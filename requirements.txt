@@ -4,3 +4,5 @@ gunicorn==26.0.0
 requests==2.34.2
 python-dotenv==1.2.1
 zhconv==1.4.3
+faster-whisper>=1.1.0
+Pillow>=11.0.0
