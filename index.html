@@ -10,8 +10,8 @@
     <meta property="og:title" content="Subconscious Mirror | Premium AI Dream Oracle">
     <meta property="og:description" content="A digital bridge to your subconscious. Experience the world's most profound AI dream analysis.">
     <meta property="og:image" content="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg">
-    <link rel="icon" type="image/png" href="static/logo.png">
-    <link rel="apple-touch-icon" href="static/logo.png">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
     <!-- Production: use locked Tailwind version (CDN compiles at runtime; okay for small project) -->
@@ -339,7 +339,7 @@
         <div class="flex justify-between items-center px-6 md:px-20 py-4 max-w-7xl mx-auto">
             <!-- Left: Logo -->
             <div class="flex items-center gap-4">
-                <img src="static/logo.png" alt="Subconscious Mirror" class="w-9 h-9 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+                <img src="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png" alt="Subconscious Mirror" class="w-9 h-9 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onclick="window.scrollTo({top:0, behavior:'smooth'})">
                 <div class="hidden sm:flex items-center gap-2">
                     <div id="status-light" class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
                     <span class="text-[9px] text-accent uppercase tracking-widest font-bold" id="t-nav-balance">Ready</span>
@@ -1643,7 +1643,7 @@
                                 const tarotSection = document.getElementById('tarot-section');
                                 tarotSection.classList.remove('hidden');
                                 const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
-                                document.getElementById('tarot-card-img').src = '/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                                document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
                                 document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
                                 // Try to extract tarot meaning from the paid text
                                 const meaningEl = document.getElementById('tarot-card-meaning');

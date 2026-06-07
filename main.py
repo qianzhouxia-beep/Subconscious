@@ -833,9 +833,12 @@ def send_report():
             from PIL import Image
             import io
             logo_b64 = ""
-            logo_path = os.path.join(os.path.dirname(__file__), "static", "logo.png")
-            if os.path.exists(logo_path):
-                img = Image.open(logo_path)
+            # Fetch logo from GitHub Raw CDN (not in Zeabur build)
+            logo_url = os.environ.get('LOGO_URL', 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png')
+            try:
+                logo_res = requests.get(logo_url, timeout=10)
+                logo_res.raise_for_status()
+                img = Image.open(io.BytesIO(logo_res.content))
                 # 邮件头像缩小到 128x128 以内
                 max_size = 128
                 if img.width > max_size or img.height > max_size:
@@ -844,6 +847,9 @@ def send_report():
                 img.save(buf, format="PNG", optimize=True)
                 logo_b64 = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
                 print(f"[Email] Logo embedded: {len(logo_b64)} chars (resized to {img.size})")
+            except Exception as e:
+                print(f"[Email] Logo fetch failed: {e}")
+                logo_b64 = ""
 
             # 将报告内容包裹在专业邮件模板中发送
             from backend.email_templates import send_report_content_email

@@ -1,0 +1,6 @@
+# Exclude image assets from Zeabur scanning
+# (served via GitHub Raw CDN)
+static/
+icons/
+*.png
+*.jpg
