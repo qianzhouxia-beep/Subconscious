@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO Meta Tags -->
+    <title>Subconscious Mirror | Premium AI Dream Oracle</title>
+    <meta name="description" content="Discover the hidden depths of your dreams with Subconscious Mirror. A premium AI Oracle combining psychological depth and Eastern wisdom.">
+    <meta name="keywords" content="AI Dream Interpretation, Dream Analysis, DeepSeek, Subconscious, Oracle, Eastern Wisdom">
+    <meta property="og:title" content="Subconscious Mirror | Premium AI Dream Oracle">
+    <meta property="og:description" content="A digital bridge to your subconscious. Experience the world's most profound AI dream analysis.">
+    <meta property="og:image" content="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg">
+    <link rel="icon" type="image/png" href="static/logo.png">
+    <link rel="apple-touch-icon" href="static/logo.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
+    <!-- Production: use locked Tailwind version (CDN compiles at runtime; okay for small project) -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <!-- Locked CDN versions (no @latest) -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <!-- PayPal JS SDK: loaded dynamically after page init -->
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        body: ['Inter', 'sans-serif'], 
+                        display: ['Instrument Serif', 'serif'],
+                        serif: ['Source Serif 4', 'Instrument Serif', 'serif']
+                    },
+                    colors: { 
+                        bg: '#0a0a0a', 
+                        surface: '#141414', 
+                        accent: '#89AACC',
+                        'void-black': '#050505',
+                        'nebula-purple': '#1a0f2e',
+                        'starlight-white': '#F5F5F5',
+                        'ethereal-silver': '#DEDEDE'
+                    },
+                    borderRadius: {
+                        'lg': '0.5rem',
+                        'xl': '0.75rem',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+        body { background-color: #0a0a0a; color: #f5f5f5; overflow-x: hidden; transition: background-color 0.5s ease; }
+        .accent-gradient { background: linear-gradient(90deg, #89AACC 0%, #4E85BF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .video-overlay { background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(10,10,10,0.85) 100%); }
+
+        /* ===== Aetheris Design System — Enhanced Styles ===== */
+
+        /* Nebula Background */
+        #nebula-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 40%, rgba(26,15,46,0.3) 0%, #0a0a0a 100%);
+            pointer-events: none; z-index: -1; transition: background 0.3s ease;
+        }
+
+        /* Particle Canvas */
+        canvas#particleCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1; opacity: 0.5;
+        }
+
+        /* Cursor Glow */
+        #cursor-glow {
+            pointer-events: none; position: fixed; top: 0; left: 0;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(137, 170, 204, 0.04) 0%, transparent 70%);
+            transform: translate(-50%, -50%); z-index: -1;
+        }
+
+        /* Enhanced Glass Cards */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-card:hover {
+            background: rgba(15, 15, 15, 0.6);
+            border-color: rgba(137, 170, 204, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(137,170,204,0.1);
+            transform: translateY(-8px);
+        }
+
+        /* Scroll Reveal Animations */
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-on-scroll {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1), transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+        .reveal-on-load {
+            opacity: 0;
+            animation: fadeInSlideUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Nav Link Underline Effect (Aetheris) */
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0; height: 1px;
+            bottom: -4px; left: 0;
+            background-color: #89AACC;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        /* ===== Aetheris: Dream Recorder Styles ===== */
+        .pulsing-orb {
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #89AACC 60%, #406180 100%);
+            box-shadow: 0 0 20px rgba(137, 170, 204, 0.4);
+            animation: breathe 4s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(137, 170, 204, 0.3); }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 35px rgba(137, 170, 204, 0.6); }
+        }
+        .input-glow-card {
+            background: rgba(28, 27, 27, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(137, 170, 204, 0.2);
+            transition: all 0.5s ease;
+        }
+        .input-glow-card:focus-within {
+            border-color: #89AACC;
+            box-shadow: 0 0 15px rgba(137, 170, 204, 0.2);
+        }
+        .ai-quote-glow {
+            background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #c5dcee 60%, #a8caed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .temporal-line {
+            background: linear-gradient(to bottom, transparent, rgba(137,170,204,0.5), rgba(137,170,204,0.8));
+        }
+        /* Interactive Tags */
+        input[type="range"] { -webkit-appearance: none; appearance: none; }
+        /* Enhanced Glass Cards - Aetheris Optimized */
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(137, 170, 204, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+        .glass-card .icon-container {
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-card:hover .icon-container {
+            transform: scale(1.1) rotate(5deg);
+        }
+        .glass-card .icon-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(137, 170, 204, 0.3), transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .icon-container::after {
+            width: 80px;
+            height: 80px;
+        }
+        .glass-card .card-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: 'Instrument Serif', 'Source Serif 4', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            color: rgba(137, 170, 204, 0.06);
+            line-height: 1;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .card-number {
+            color: rgba(137, 170, 204, 0.12);
+            transform: translateX(-5px);
+        }
+        .glass-card .particle-dot {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(137, 170, 204, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .particle-dot {
+            opacity: 1;
+        }
+        .glass-card .particle-dot:nth-child(1) { top: 20%; left: 10%; animation: float 3s ease-in-out infinite; }
+        .glass-card .particle-dot:nth-child(2) { top: 60%; right: 15%; animation: float 4s ease-in-out infinite 1s; }
+        .glass-card .particle-dot:nth-child(3) { bottom: 30%; left: 20%; animation: float 3.5s ease-in-out infinite 0.5s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .feature-title {
+            background: linear-gradient(135deg, #f5f5f5 0%, #89AACC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .feature-title {
+            letter-spacing: 1px;
+        }
+        
+        .glass-card .feature-tag {
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover .feature-tag {
+            opacity: 1 !important;
+        }
+        
+        /* Override hover transform for features section cards */
+        #features .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 80px rgba(137, 170, 204, 0.1),
+                inset 0 0 40px rgba(137, 170, 204, 0.03);
+        }
+        
+        /* ===== End Aetheris Optimized Styles ===== */
+
+        .nav-pill { backdrop-filter: blur(16px); border: none; background: transparent; cursor: pointer; }
+        .typing-dot { width: 6px; height: 6px; background: #89AACC; border-radius: 50%; opacity: 0.3; animation: blink 1.4s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        /* Voice recording mic animation */
+        @keyframes mic-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .voice-recording { color: #ff6b6b !important; border-color: rgba(255,107,107,0.4) !important; animation: mic-pulse 1.2s ease-in-out infinite; }
+        .voice-recording svg { filter: drop-shadow(0 0 6px rgba(255,107,107,0.5)); }
+        @keyframes voicePulse { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 0.8s linear infinite; }
+
+        .blurred { filter: blur(18px); opacity: 0.2; pointer-events: none; transition: all 1.5s ease-in-out; }
+        .paypal-sdk-container { min-height: 48px; }
+        .unblurred { filter: blur(0); opacity: 1; pointer-events: auto; }
+        .custom-scrollbar::-webkit-scrollbar,
+        .scrollbar-lucent::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track,
+        .scrollbar-lucent::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .scrollbar-lucent::-webkit-scrollbar-thumb { background: rgba(137,170,204,0.25); border-radius: 10px; border: 1px solid rgba(137,170,204,0.1); transition: background 0.3s; }
+        .scrollbar-lucent::-webkit-scrollbar-thumb:hover { background: rgba(137,170,204,0.5); }
+        /* Environment icon selected state */
+        .env-icon.selected svg { color: #89AACC !important; }
+        .env-icon.selected span { color: #89AACC !important; }
+        .env-icon.selected .active-indicator { opacity: 1; }
+        .modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); }
+        .modal-content { max-width: 600px; width: 90%; background: #141414; border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 48px; position: relative; }
+        #modal-text { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
+        /* Range slider */
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #89AACC; cursor: pointer; border: 2px solid #141414; box-shadow: 0 0 8px rgba(137,170,204,0.4); }
+        input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #89AACC; cursor: pointer; border: 2px solid #141414; box-shadow: 0 0 8px rgba(137,170,204,0.4); }
+        #modal-text { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
+        /* Improved contrast for accessibility */
+        .text-gray-400 { color: #a0a0a0 !important; }
+        .text-gray-500 { color: #8a8a8a !important; }
+        /* Mobile hamburger menu */
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.05); cursor: pointer; }
+            .mobile-menu-btn span { display: block; width: 16px; height: 1.5px; background: white; transition: all 0.3s; position: relative; }
+            .mobile-menu-btn span::before, .mobile-menu-btn span::after { content: ''; position: absolute; width: 100%; height: 100%; background: white; transition: all 0.3s; }
+            .mobile-menu-btn span::before { top: -5px; }
+            .mobile-menu-btn span::after { top: 5px; }
+            .mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); z-index: 60; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; }
+            .mobile-nav.active { display: flex; }
+            .mobile-nav a { font-size: 1.5rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.2em; transition: color 0.3s; }
+            .mobile-nav a:hover { color: white; }
+        }
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+            .typing-dot { animation: none; opacity: 0.6; }
+        }
+        /* Network status bar */
+        #network-status { position: fixed; top: 0; left: 0; right: 0; background: #c0392b; color: white; text-align: center; padding: 8px; font-size: 12px; z-index: 200; transform: translateY(-100%); transition: transform 0.3s; }
+        #network-status.visible { transform: translateY(0); }
+        #network-status.reconnected { background: #27ae60; }
+    </style>
+</head>
+<body class="font-body">
+
+    <!-- Aetheris Design System: Ambient Background -->
+    <div id="nebula-bg"></div>
+    <canvas id="particleCanvas"></canvas>
+    <div id="cursor-glow"></div>
+
+    <!-- Network Status Banner -->
+    <div id="network-status" role="alert" aria-live="polite">
+        <span id="network-status-text">Connection lost. Retrying...</span>
+    </div>
+
+    <!-- Loading Screen (hidden - loader removed) -->
+    <div id="loader" style="display:none"></div>
+
+    <!-- Navbar (Aetheris Design) -->
+    <nav class="fixed top-0 w-full z-50 bg-void-black/20 backdrop-blur-2xl border-b border-starlight-white/5 transition-colors duration-500" id="navbar">
+        <div class="flex justify-between items-center px-6 md:px-20 py-4 max-w-7xl mx-auto">
+            <!-- Left: Logo -->
+            <div class="flex items-center gap-4">
+                <img src="static/logo.png" alt="Subconscious Mirror" class="w-9 h-9 rounded-full object-cover cursor-pointer hover:scale-105 transition-transform" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+                <div class="hidden sm:flex items-center gap-2">
+                    <div id="status-light" class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                    <span class="text-[9px] text-accent uppercase tracking-widest font-bold" id="t-nav-balance">Ready</span>
+                </div>
+            </div>
+
+            <!-- Center: Nav Links (desktop) -->
+            <div class="hidden md:flex items-center gap-8">
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#interpret" id="t-nav-interpret">Interpretation</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#symbols" id="t-nav-symbols">Symbols</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#journal" id="t-nav-journal">Journal</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#features" id="t-nav-features">Celestial</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#pricing" id="t-nav-pricing">Pricing</a>
+            </div>
+
+            <!-- Right: Actions -->
+            <div class="flex items-center gap-3">
+                <button onclick="toggleLang()" id="lang-btn" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition-all" aria-label="Switch language">ZH</button>
+                <a href="mailto:support@api-tokenmaster.com" target="_blank" class="hidden sm:inline-flex items-center gap-2 border border-starlight-white/10 px-5 py-2 rounded-full text-[11px] uppercase tracking-widest text-white hover:bg-white/5 transition-all duration-500" id="t-nav-hi">Say Hi ↗</a>
+                <!-- Mobile menu button -->
+                <div class="mobile-menu-btn sm:hidden" onclick="toggleMobileMenu()" role="button" aria-label="Toggle menu" tabindex="0">
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation Overlay (disabled - nav links removed) -->
+    <div id="mobile-nav" class="mobile-nav hidden" role="dialog" aria-label="Mobile navigation">
+        <button onclick="toggleMobileMenu()" class="absolute top-8 right-8 text-gray-400 hover:text-white text-3xl" aria-label="Close menu">✕</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative h-screen w-full flex items-center justify-center">
+        <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline></video>
+        <div class="absolute inset-0 video-overlay z-10"></div>
+        <div class="relative z-20 text-center px-6 pt-24 max-w-6xl">
+            <span class="text-[10px] text-gray-500 uppercase tracking-[0.5em] mb-12 block" id="t-hero-eyebrow">Revealing the Unseen</span>
+            <h1 id="t-hero-title" class="text-5xl md:text-7xl lg:text-[9.5rem] font-display italic leading-[0.8] tracking-tighter text-white mb-10">
+                Subconscious <br> <span class="accent-gradient pr-4">Mirror</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-400 font-light max-w-xl mx-auto mb-16" id="t-hero-desc">
+                A <span class="text-white font-display italic">Dream Oracle</span> that decodes the hidden messages from your subconscious mind.
+            </p>
+            <button onclick="gsap.to(window, {duration: 1.5, scrollTo: '#interpret', ease: 'power4.inOut'})"
+                    class="px-12 py-5 bg-white text-black rounded-full font-bold text-[11px] md:text-xs uppercase tracking-widest hover:scale-105 transition-all" id="t-hero-start">
+                Start Interpretation
+            </button>
+        </div>
+    </section>
+
+    <!-- Interpretation Section -->
+    <section id="interpret" class="min-h-screen bg-bg py-32 px-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-6xl font-display italic text-white mb-6" id="t-interpret-whisper">Whisper your dream</h2>
+                <p class="text-gray-500 text-[9px] uppercase tracking-widest" id="t-interpret-akashic">Connect to the Akashic records below</p>
+            </div>
+
+            <!-- Aetheris AI Interaction -->
+            <div class="flex flex-col items-center gap-8">
+                <!-- Pulsing Orb -->
+                <div class="flex flex-col items-center gap-3">
+                    <div class="pulsing-orb rounded-full relative flex items-center justify-center cursor-pointer hover:shadow-[0_0_50px_rgba(137,170,204,0.8)] transition-shadow duration-500">
+                        <div class="absolute inset-0 rounded-full blur-md opacity-50" style="background:#89AACC"></div>
+                    </div>
+                    <span class="text-accent/70 text-[9px] uppercase tracking-[0.3em] font-bold" id="t-ai-label">Subconscious AI Oracle</span>
+                </div>
+
+                <!-- AI Quote Card (always visible as header) -->
+                <div id="ai-quote-card" class="glass-card px-6 py-6 md:py-8 rounded-2xl w-full relative flex flex-col items-stretch justify-start" style="border:1px solid rgba(255,255,255,0.08);height:400px;">
+                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-accent/5 blur-[50px] rounded-full pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col overflow-y-auto flex-1 scrollbar-lucent pr-3" id="chat-welcome">
+                        <p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">I am listening. Share your dream with me...</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Redesigned Input Area -->
+            <div id="chat-input-area" class="w-full mt-6">
+                <div class="input-glow-card rounded-2xl p-1 relative">
+                    <textarea id="t-chat-placeholder" rows="3" class="w-full text-white p-6 text-base font-light placeholder-gray-500 resize-none" placeholder="Describe your vision here..." maxlength="5000" aria-label="Dream description" style="background:transparent!important;border:none!important;outline:none!important;box-shadow:none!important;"></textarea>
+                    <div class="absolute bottom-4 left-6 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" id="input-status-dot"></span>
+                        <span class="text-[9px] uppercase tracking-widest text-gray-500" id="t-input-status-text">Awaiting Transmission</span>
+                    </div>
+                    <div class="absolute bottom-4 right-4 flex items-center gap-3">
+                        <div id="turn-indicator" class="text-[9px] text-accent/60 uppercase tracking-widest hidden md:inline opacity-0">Connection 0 / 5</div>
+                        <button class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1.5 select-none" id="t-voice-btn">
+                            <svg class="w-3.5 h-3.5" id="t-voice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2"/></svg>
+                            <span id="t-voice-label">Voice</span>
+                        </button>
+                        <button onclick="resetOracle()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-oracle-reset">Reset</button>
+                        <button onclick="sendMessage()" class="px-6 py-2 bg-accent text-bg rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 hover:scale-105 transition-all active:scale-95" id="t-chat-send">Transmit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice bar -->
+            <div id="voice-bar" class="hidden mt-2 rounded-lg px-4 py-2 flex items-center gap-3" style="background:rgba(10,10,10,0.6);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(12px);min-height:48px;">
+                <div id="voice-bar-icon" class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+                </div>
+                <div id="voice-bar-text" class="text-sm text-white/90 font-light truncate flex-1 min-w-0">&#8203;</div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <span id="voice-bar-dot" class="w-2 h-2 rounded-full bg-red-500" style="animation:voicePulse 1s ease-in-out infinite;"></span>
+                    <span id="voice-bar-status" class="text-[9px] uppercase tracking-widest text-red-400/70">Recording</span>
+                </div>
+            </div>
+
+            <div class="text-center mt-6 md:hidden">
+                <div id="turn-indicator-mobile" class="text-[9px] text-accent/60 uppercase tracking-widest opacity-0">Connection 0 / 5</div>
+            </div>
+
+            <!-- Aetheris v3: Atmosphere + Environment + Symbols -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-16">
+                <!-- Left: Sliders -->
+                <div class="glass-card px-6 py-6 rounded-xl space-y-6" style="border:1px solid rgba(255,255,255,0.06)">
+                    <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold border-b border-accent/20 pb-2" id="t-atmo-title">情感与感知 (Atmosphere)</h3>
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs text-gray-400" id="t-atmo-intensity">情绪强度 (Intensity)</span>
+                                <span class="text-[10px] text-accent font-bold" id="atmo-intensity-val">中等</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="w-full h-0.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(137,170,204,0.6)]" data-label="atmo-intensity-val" data-labels='["微弱","平静","中等","剧烈","震撼"]'>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs text-gray-400" id="t-atmo-lucidity">清醒程度 (Lucidity)</span>
+                                <span class="text-[10px] text-accent font-bold" id="atmo-lucidity-val">模糊</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="3" class="w-full h-0.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(137,170,204,0.6)]" data-label="atmo-lucidity-val" data-labels='["深眠","混沌","模糊","半清醒","完全主宰"]'>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs text-gray-400" id="t-atmo-vividness">清晰度 (Vividness)</span>
+                                <span class="text-[10px] text-accent font-bold" id="atmo-vivid-val">真切</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="7" class="w-full h-0.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(137,170,204,0.6)]" data-label="atmo-vivid-val" data-labels='["褪色","朦胧","真切","超现实","璀璨"]'>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Environment + Symbols -->
+                <div class="space-y-6">
+                    <!-- Environment Icons -->
+                    <div class="glass-card px-6 py-6 rounded-xl" style="border:1px solid rgba(255,255,255,0.06)">
+                        <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold border-b border-accent/20 pb-2 mb-5" id="t-env-title">睡眠环境 (Environment)</h3>
+                        <div class="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 text-center">
+                            <!-- 1. 睡前状态 -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="presleep" onclick="openEnvPopup('presleep')">
+                                <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-presleep">睡前状态</span>
+                            </div>
+                            <!-- 2. 睡眠质量 -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="quality" onclick="openEnvPopup('quality')">
+                                <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-quality">睡眠质量</span>
+                            </div>
+                            <!-- 3. 梦境情绪基调 -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="mood" onclick="openEnvPopup('mood')">
+                                <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
+                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-mood">梦境情绪</span>
+                            </div>
+                            <!-- 4. 梦境类型 -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="dreamtype" onclick="openEnvPopup('dreamtype')">
+                                <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
+                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-dreamtype">梦境类型</span>
+                            </div>
+                            <!-- 5. 近期压力 -->
+                            <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="stress" onclick="openEnvPopup('stress')">
+                                <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-stress">近期压力</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Symbols Input -->
+                    <div class="glass-card px-6 py-6 rounded-xl" style="border:1px solid rgba(255,255,255,0.06)">
+                        <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold border-b border-accent/20 pb-2 mb-4" id="t-symbol-title">关键词/意象 (Symbols)</h3>
+                        <div class="flex flex-wrap gap-2 mb-3 min-h-[28px]" id="symbol-tag-container">
+                            <span class="text-[9px] text-gray-500 italic" id="t-symbol-placeholder">输入类似"飞行""深海"的关键词</span>
+                        </div>
+                        <input type="text" id="symbol-input" class="w-full bg-transparent border-b border-white/10 focus:border-accent focus:ring-0 text-sm py-2 placeholder:text-gray-600 transition-all outline-none text-white" placeholder="输入意象并回车..." maxlength="20">
+                        <div class="text-[8px] text-gray-600 mt-2" id="t-symbol-hint">按回车添加，点击 ✕ 删除</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Final Report Overlay (全屏弹窗) -->
+            <div id="final-report" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background:rgba(5,5,5,0.85);backdrop-filter:blur(12px);">
+                <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
+                    <div class="w-full max-w-3xl mx-auto">
+                        <!-- Close button -->
+                        <div class="flex justify-end mb-4">
+                            <button onclick="resetOracle()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-close">Close</button>
+                        </div>
+                        <!-- Report card -->
+                        <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2" id="t-res-psych">
+                            <span class="text-accent text-lg">🧠</span> Psychology Analysis
+                        </h4>
+                        <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
+                    </div>
+                    <!-- Premium Unlock Section -->
+                    <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
+                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2" id="t-res-destiny">
+                            <span class="text-accent text-lg">🔮</span> Eastern Destiny Path
+                        </h4>
+                        <!-- Unlock prompt -->
+                        <p class="text-xs text-gray-400 mb-4 leading-relaxed" id="t-unlock-hint"></p>
+                        <div id="res-paid-blur" class="blurred"><div id="res-paid" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div></div>
+                        <div id="pay-overlay" class="absolute inset-0 flex items-center justify-center pt-4">
+                            <div class="text-center px-6 py-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl max-w-sm mx-auto shadow-2xl">
+                                <p class="text-xs text-gray-400 uppercase tracking-[0.2em] mb-4" id="t-unlock-msg">Unlock your full destiny path</p>
+                                <div class="flex flex-col gap-3">
+                                    <div id="paypal-unlock" class="paypal-sdk-container" data-amount="4.99"></div>
+                                    <noscript><button type="button" class="block w-full py-4 bg-[#0070ba] text-white rounded-full font-bold text-sm cursor-not-allowed opacity-50">PayPal requires JavaScript</button></noscript>
+                                    <div class="flex items-center gap-2 my-1">
+                                        <div class="flex-1 h-px bg-white/10"></div>
+                                        <span class="text-[8px] text-gray-500 uppercase tracking-widest" id="t-or-divider">or</span>
+                                        <div class="flex-1 h-px bg-white/10"></div>
+                                    </div>
+                                    <div id="license-area">
+                                        <button onclick="showLicenseInput()" class="text-[9px] text-white/40 hover:text-white uppercase tracking-widest transition-all" id="t-have-key">Use redemption code</button>
+                                        <div id="license-input-wrapper" class="hidden mt-3 space-y-2">
+                                            <input type="text" id="t-key-placeholder"
+                                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white focus:border-accent transition-all outline-none"
+                                                placeholder="Enter License Key" aria-label="License key">
+                                            <button onclick="verifyLicense()" id="t-verify-btn"
+                                                class="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] uppercase tracking-widest transition-all">
+                                                Verify Key
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarot Card Display -->
+                    <div id="tarot-section" class="hidden border-t border-white/10 pt-6 mt-6">
+                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
+                            <span class="text-accent text-lg">🃏</span> Tarot Guidance
+                        </h4>
+                        <div class="flex flex-col md:flex-row items-center gap-8">
+                            <div class="w-40 h-60 rounded-2xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
+                                <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card">
+                            </div>
+                            <div class="flex-1">
+                                <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name">The Fool</h5>
+                                <p class="text-sm text-gray-400 leading-relaxed" id="tarot-card-meaning"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-8">
+                        <button onclick="resetOracle()" class="text-[9px] text-gray-500 uppercase tracking-[0.4em] hover:text-white transition-all underline underline-offset-8" id="t-oracle-new">Begin New Journey</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+    </section>
+
+    <!-- ===== Aetheris: Features Section ===== -->
+    <section id="features" class="py-32 px-6 max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-20">
+            <h2 class="text-4xl md:text-6xl font-display italic text-white mb-6" id="t-features-title">The <span class="accent-gradient">Aetheris</span> Engine</h2>
+            <p class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">Three pillars of subconscious analysis</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1: AI Interpretation -->
+            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll">
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="card-number">01</div>
+                
+                <div class="icon-container">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent shadow-lg shadow-accent/10">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat1-title">AI Interpretation</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat1-desc">Our neural networks process your narratives to identify linguistic patterns and archetype manifestations, providing a scientifically-backed decoding of complex dream imagery.</p>
+                </div>
+                
+                <div class="mt-auto pt-4 border-t border-white/5 feature-tag" style="opacity:0.6;">
+                    <a class="text-[10px] uppercase tracking-widest text-accent/70 hover:text-accent flex items-center gap-2 transition-colors" href="#interpret" id="t-feat1-link">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        Explore Technology
+                    </a>
+                </div>
+            </div>
+
+            <!-- Feature 2: Pattern Tracking -->
+            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll" style="transition-delay:0.15s;">
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="card-number">02</div>
+                
+                <div class="icon-container">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-400/5 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-400/10">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat2-title">Pattern Tracking</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat2-desc">Visualize recurring motifs over months of entries. Identify the emotional triggers and environmental factors that dictate the quality and clarity of your REM cycles.</p>
+                </div>
+                
+                <div class="mt-auto pt-4 border-t border-white/5 feature-tag" style="opacity:0.6;">
+                    <a class="text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-400 flex items-center gap-2 transition-colors" href="#journal" id="t-feat2-link">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        View Analytics
+                    </a>
+                </div>
+            </div>
+
+            <!-- Feature 3: Celestial Alignment -->
+            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll" style="transition-delay:0.3s;">
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="particle-dot"></div>
+                <div class="card-number">03</div>
+                
+                <div class="icon-container">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent shadow-lg shadow-accent/10">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat3-title">Celestial Alignment</h3>
+                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat3-desc">Correlate your subconscious data with lunar phases and celestial positioning to understand how external cosmic rhythms influence your internal landscape.</p>
+                </div>
+                
+                <div class="mt-auto pt-4 border-t border-white/5 feature-tag" style="opacity:0.6;">
+                    <a class="text-[10px] uppercase tracking-widest text-accent/70 hover:text-accent flex items-center gap-2 transition-colors" href="#journal" id="t-feat3-link">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                        Dream Journal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== The Aetheris Motion Engine Detail ===== -->
+    <section id="motion-engine" class="py-32 px-6 md:px-20 lg:px-40 relative overflow-hidden border-t border-white/5 bg-void-black/30">
+        <div class="flex flex-col lg:flex-row gap-16 items-center">
+            <!-- Left Content -->
+            <div class="flex-1 space-y-6 reveal-on-scroll">
+                <span class="text-accent/60 text-[10px] uppercase tracking-[0.3em] font-bold" id="t-engine-eyebrow">System Core</span>
+                <h2 class="text-4xl md:text-5xl font-display italic text-white" id="t-engine-title">
+                    The Aetheris <span class="text-accent">Motion</span> Engine
+                </h2>
+                <p class="text-gray-400 text-lg leading-relaxed max-w-md" id="t-engine-desc">
+                    Our updated JavaScript logic ensures that interaction feels like a natural extension of thought. Every movement ripples through the background fabric, creating a dance of light and darkness.
+                </p>
+                <div class="grid grid-cols-2 gap-4 pt-6 max-w-sm">
+                    <div class="p-4 border-l-2 border-accent/20">
+                        <div class="text-2xl font-display italic text-accent mb-1">0ms</div>
+                        <div class="text-xs text-gray-500 tracking-widest">INPUT LATENCY</div>
+                    </div>
+                    <div class="p-4 border-l-2 border-accent/20">
+                        <div class="text-2xl font-display italic text-accent mb-1">Fluid</div>
+                        <div class="text-xs text-gray-500 tracking-widest">INTERACTION</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Image -->
+            <div class="flex-1 w-full reveal-on-scroll" style="transition-delay:0.2s;">
+                <div class="aspect-video rounded-2xl overflow-hidden glass-card p-2">
+                    <img
+                        alt="Motion Engine Dynamics"
+                        class="w-full h-full object-cover rounded-xl opacity-80"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlqOzfK-1YFhEIGXLl0vcMmnR5rsLtyF1jJJd2BpZGiLygEZreNJCcpWbybHF3pwDtSPxa9P4JjcMF2lMbXpSfDUtc5zZYI-C8ORZgPcN3qBPHSqkzOEESWyiBcoxct2EX5nBqjfIb9sEDZAyC2OEsp_OEwnXnDYFDEXy9CCl2lMdk8nf_l4zIMe6e0-DpcweUr1yDjd40R47pjT2JzdOUGNtneI2IFhIm9yk10aqK5yJJSm90h26DTHkt1asyCc-tYOwglMMGXCA"
+                    />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Symbol Quick Search Section ===== -->
+    <section id="symbols" class="py-32 px-6 relative overflow-hidden border-t border-white/5 bg-void-black/20">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <div class="text-center mb-16 reveal-on-scroll">
+                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-symbols-eyebrow">DREAM DICTIONARY</span>
+                <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-symbols-title">Quick <span class="text-amber-400/80">Symbol Lookup</span></h2>
+                <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-symbols-desc">Enter a dream symbol — water, snake, house, fire — and receive an instant interpretation from the depths of the collective unconscious.</p>
+            </div>
+            <div class="glass-card p-8 rounded-2xl reveal-on-scroll" style="transition-delay:0.1s;border:1px solid rgba(255,255,255,0.06);">
+                <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div class="flex-1 relative">
+                        <input type="text" id="t-symbols-search-ph" class="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all" placeholder="Search a dream symbol..." maxlength="60" aria-label="Symbol search">
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                    </div>
+                    <button onclick="lookupSymbol()" class="px-8 py-4 bg-accent text-bg rounded-xl text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 hover:scale-105 transition-all active:scale-95 whitespace-nowrap" id="t-symbols-lookup-btn">Look Up</button>
+                </div>
+                <!-- Quick symbol tags -->
+                <div class="flex flex-wrap gap-2 mb-6" id="symbol-tags">
+                    <!-- Rendered by JS -->
+                </div>
+                <!-- Result area -->
+                <div id="symbol-result" class="hidden min-h-[100px]">
+                    <div class="border-t border-white/5 pt-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+                            <span class="text-[9px] uppercase tracking-widest text-accent/60 font-bold" id="t-symbols-result-label">Interpretation</span>
+                        </div>
+                        <div id="symbol-result-content" class="text-sm text-gray-300 leading-relaxed"></div>
+                    </div>
+                </div>
+                <!-- Loading state -->
+                <div id="symbol-loading" class="hidden text-center py-12">
+                    <div class="inline-block w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mb-4"></div>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-500" id="t-symbols-loading-text">Consulting the collective unconscious...</p>
+                </div>
+                <!-- Empty state (shown initially) -->
+                <div id="symbol-empty" class="text-center py-8">
+                    <div class="text-4xl mb-3 opacity-20">🔍</div>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-600" id="t-symbols-empty-text">Type a symbol above to reveal its meaning</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Aetheris: Dream Archive Section ===== -->
+    <section id="journal" class="py-32 px-6 relative overflow-hidden bg-void-black/30 border-t border-white/5">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div class="reveal-on-scroll relative h-full">
+                <div class="absolute -inset-20 bg-accent/5 rounded-full blur-[100px] opacity-40"></div>
+                <div class="relative z-10 rounded-2xl border border-white/5 overflow-hidden min-h-[480px] glass-card">
+                    <div class="w-full h-full min-h-[480px] flex flex-col items-center justify-center bg-gradient-to-br from-void-black via-nebula-purple/20 to-void-black relative">
+                        <!-- Decorative floating orbs -->
+                        <div class="absolute w-32 h-32 rounded-full bg-accent/5 blur-[60px] animate-pulse top-12 left-1/4"></div>
+                        <div class="absolute w-24 h-24 rounded-full bg-amber-400/5 blur-[50px] animate-pulse bottom-20 right-1/4" style="animation-delay:2s"></div>
+                        <!-- Central visual -->
+                        <div class="text-center p-8 z-10">
+                            <div class="text-7xl mb-6 opacity-40">🌌</div>
+                            <div class="text-[10px] uppercase tracking-widest text-accent/50">The Archive of Dream Resonance</div>
+                            <div class="mt-8 flex items-center justify-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-accent/40 animate-pulse"></span>
+                                <span class="text-[8px] uppercase tracking-[0.4em] text-gray-600">subconscious frequency active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="reveal-on-scroll space-y-8" style="transition-delay:0.2s">
+                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-archive-eyebrow">THE ARCHIVE</span>
+                <h2 class="text-4xl md:text-5xl font-display italic text-white leading-tight" id="t-archive-title">The Archive of <br><span class="text-amber-400/80">Dream Resonance</span></h2>
+                <p class="text-gray-400 text-base leading-relaxed" id="t-archive-desc">Every night is a transmission. Our institute provides the tools to store, search, and synchronize your dreams into a comprehensive digital repository of your hidden self.</p>
+
+                <!-- Tab Buttons -->
+                <div class="flex flex-wrap justify-center gap-3 pt-4" id="archive-tabs">
+                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300 active-tab" data-tab="0" style="background:rgba(137,170,204,0.12);color:#89AACC;border-color:rgba(137,170,204,0.25);" id="t-tag1">Lucid Dreaming</button>
+                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300" data-tab="1" style="color:rgba(251,191,36,0.6);border-color:rgba(251,191,36,0.1);background:rgba(251,191,36,0.05);" id="t-tag2">Archetypal Symbols</button>
+                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300" data-tab="2" style="color:rgba(137,170,204,0.6);border-color:rgba(137,170,204,0.1);background:rgba(137,170,204,0.05);" id="t-tag3">Deep REM Analysis</button>
+                </div>
+
+                <!-- Demo Dashboard -->
+                <div class="glass-card p-8 rounded-2xl text-left" style="border:1px solid rgba(255,255,255,0.06);min-height:320px;" id="archive-dashboard">
+                    <!-- Content swapped by JS below -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="relative py-32 px-6 border-t border-white/5 bg-bg">
+        <div class="max-w-6xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-display italic text-white mb-6" id="t-pricing-title">Invest in your <span class="accent-gradient">self</span></h2>
+            <p class="text-gray-500 text-xs uppercase tracking-widest mb-24" id="t-pricing-sub">Choose your path to enlightenment</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card p-12 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-6" id="t-tier1-name">The Spark</span>
+                    <div class="text-5xl font-display italic mb-8">$4.99</div>
+                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
+                        <li id="t-tier1-f1">1 Deep Interpretation</li>
+                        <li id="t-tier1-f2">Eastern Wisdom Alignment</li>
+                        <li id="t-tier1-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
+                    </ul>
+                    <div id="paypal-4-99" class="paypal-sdk-container" data-amount="4.99"></div>
+                </div>
+                <div class="glass-card p-12 flex flex-col items-center relative card-active reveal-on-scroll" style="transition-delay:0.2s">
+                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest" id="t-pricing-pop">Most Popular</div>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-6" id="t-tier2-name">The Seeker</span>
+                    <div class="text-5xl font-display italic mb-8">$12.99</div>
+                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
+                        <li id="t-tier2-f1">5 Deep Interpretations</li>
+                        <li id="t-tier2-f2">Personalized Destiny Map</li>
+                        <li id="t-tier2-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
+                    </ul>
+                    <div id="paypal-12-99" class="paypal-sdk-container" data-amount="12.99"></div>
+                </div>
+                <div class="glass-card p-12 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-6" id="t-tier3-name">The Oracle</span>
+                    <div class="text-5xl font-display italic mb-8">$29.99</div>
+                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
+                        <li id="t-tier3-f1">Unlimited Monthly Access</li>
+                        <li id="t-tier3-f2">DeepSeek R1 High-Priority</li>
+                        <li id="t-tier3-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Nous Hermes 3 Integration</li>
+                    </ul>
+                    <div id="paypal-29-99" class="paypal-sdk-container" data-amount="29.99"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Referral Modal -->
+    <div id="referral-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="t-ref-modal-title" onclick="if(event.target === this) closeReferralModal()">
+        <div class="modal-content custom-scrollbar text-center">
+            <button onclick="closeReferralModal()" class="absolute top-8 right-8 text-gray-400 hover:text-white text-2xl" aria-label="Close">✕</button>
+            <h3 class="font-display italic text-4xl text-white mb-6" id="t-ref-modal-title">Pass the Spark</h3>
+            <p class="text-gray-400 text-sm mb-10 leading-relaxed" id="t-ref-modal-desc">Share this magical mirror with 2 friends. When they begin their journey, your full destiny path will be revealed for free.</p>
+
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-8 flex items-center justify-between">
+                <code id="ref-link" class="text-xs text-accent truncate mr-4">Loading...</code>
+                <button onclick="copyRefLink()" class="px-4 py-2 bg-white/10 rounded-lg text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all" id="t-copy-btn">Copy</button>
+            </div>
+
+            <div class="flex flex-col items-center">
+                <div id="t-ref-status-text" class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Journeyers joined: 0 / 2</div>
+                <div class="w-full max-w-xs h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div id="ref-progress" class="h-full bg-accent transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms Modal -->
+    <div id="terms-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="t-modal-title" onclick="if(event.target === this) closeModal()">
+        <div class="modal-content custom-scrollbar">
+            <button onclick="closeModal()" class="absolute top-8 right-8 text-gray-400 hover:text-white text-2xl" aria-label="Close">✕</button>
+            <div class="flex flex-col h-full">
+                <h3 class="font-display italic text-4xl text-white mb-10" id="t-modal-title">USAGE TERMS</h3>
+                <div id="modal-text" class="custom-scrollbar text-gray-400 text-sm leading-relaxed space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-24 text-center bg-bg border-t border-white/5">
+        <div class="flex justify-center gap-12 mb-16 text-[11px] uppercase tracking-[0.4em] text-gray-400 font-bold">
+            <button onclick="openModal('terms')" id="t-footer-terms">USAGE TERMS</button>
+            <button onclick="openModal('privacy')" id="t-footer-privacy">PRIVACY POLICY</button>
+        </div>
+        <div class="text-4xl md:text-7xl lg:text-[10rem] font-display italic text-white/[0.03] mb-12">Subconscious Mirror</div>
+        <p class="text-gray-700 text-[10px] uppercase tracking-[0.5em]" id="t-footer-copy">&copy; 2026 TokenMaster Global. All rights reserved. <span class="ml-4 opacity-30 text-[8px]">v33.3.0</span></p>
+    </footer>
+
+    <script>
+        // --- Configuration ---
+        const API_BASE = window.location.origin;
+        const API_PREFIX = '/api';
+
+        // Server-side session (replaces localStorage premium)
+        let sessionId = null;
+        let isPremiumUser = false;
+        let userEmail = null;
+
+        let refId = localStorage.getItem('sm_ref_id') || null;
+        const urlParams = new URLSearchParams(window.location.search);
+        const refBy = urlParams.get('ref');
+        let currentLang = localStorage.getItem('sm_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en');
+
+        // --- Network Status ---
+        function showNetworkStatus(text, isReconnected) {
+            const bar = document.getElementById('network-status');
+            const textEl = document.getElementById('network-status-text');
+            textEl.innerText = text;
+            bar.className = isReconnected ? 'visible reconnected' : 'visible';
+            bar.id = 'network-status';
+            if (isReconnected) {
+                setTimeout(() => { bar.classList.remove('visible'); }, 3000);
+            }
+        }
+
+        window.addEventListener('offline', () => showNetworkStatus('Connection lost. Please check your network.', false));
+        window.addEventListener('online', () => showNetworkStatus('Connection restored!', true));
+
+        // --- API Helper with Auth ---
+        async function apiFetch(endpoint, options = {}) {
+            const opts = {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(sessionId ? {'Authorization': `Bearer ${sessionId}`} : {}),
+                    ...(options.headers || {})
+                }
+            };
+            try {
+                const res = await fetch(`${API_BASE}${API_PREFIX}${endpoint}`, opts);
+                if (res.status === 429) {
+                    addBubble(i18n[currentLang].rate_limit_msg || 'Too many requests. Please wait a moment.', 'ai');
+                    return null;
+                }
+                if (res.status === 401) {
+                    // Re-init session
+                    await initSession();
+                    return null;
+                }
+                return res;
+            } catch (err) {
+                if (!navigator.onLine) {
+                    showNetworkStatus('Connection lost. Please check your network.', false);
+                }
+                throw err;
+            }
+        }
+
+        // --- Session Init ---
+        async function initSession() {
+            try {
+                const res = await fetch(`${API_BASE}${API_PREFIX}/session/init`, { method: 'POST' });
+                const data = await res.json();
+                sessionId = data.sessionId;
+                isPremiumUser = data.premium || false;
+            } catch (e) {
+                console.error("Session init failed:", e);
+            }
+        }
+
+        // --- i18n ---
+        const i18n = {
+            en: {
+                nav_home: "Home", nav_oracle: "Oracle", nav_interpret: "Interpretation", nav_journal: "Journal", nav_features: "Celestial", nav_pricing: "Pricing", nav_hi: "Say Hi ↗", nav_balance: "Ready", nav_symbols: "Symbols",
+                mob_home: "Home", mob_oracle: "Oracle", mob_pricing: "Pricing",
+                hero_eyebrow: "Revealing the Unseen", hero_title: "Subconscious <br> <span class='accent-gradient pr-4'>Mirror</span>", hero_desc: "A <span class='text-white font-display italic'>Dream Oracle</span> that decodes the hidden messages from your subconscious mind.", hero_start: "Start Interpretation",
+                interpret_whisper: "Whisper your dream", interpret_akashic: "Connect to the Akashic records below",
+                chat_welcome: "I am listening. Share your dream with me...", chat_welcome_text: "I am listening. Share your dream with me...", chat_placeholder: "Type here...", chat_send: "Send Message",
+                oracle_reset: "Reset", oracle_new: "Return",
+                voice_label: "Voice",
+                report_gen: "The oracle is crafting your destiny report...",
+                features_title: "The <span class='accent-gradient'>Aetheris</span> Engine", features_sub: "Three pillars of subconscious analysis",
+                feat1_title: "AI Interpretation", feat1_desc: "Our neural networks process your narratives to identify linguistic patterns and archetype manifestations, providing a scientifically-backed decoding of complex dream imagery.", feat1_link: "Explore Technology",
+                feat2_title: "Pattern Tracking", feat2_desc: "Visualize recurring motifs over months of entries. Identify the emotional triggers and environmental factors that dictate the quality and clarity of your REM cycles.", feat2_link: "View Analytics",
+                feat3_title: "Celestial Alignment", feat3_desc: "Correlate your subconscious data with lunar phases and celestial positioning to understand how external cosmic rhythms influence your internal landscape.", feat3_link: "Dream Journal",
+                symbols_eyebrow: "DREAM DICTIONARY", symbols_title: "Quick <span class='text-amber-400/80'>Symbol Lookup</span>", symbols_desc: "Enter a dream symbol — water, snake, house, fire — and receive an instant interpretation from the depths of the collective unconscious.",
+                symbols_lookup_btn: "Look Up", symbols_loading_text: "Consulting the collective unconscious...", symbols_empty_text: "Type a symbol above to reveal its meaning", symbols_result_label: "Interpretation",
+                symbols_search_ph: "Search a dream symbol...",
+                archive_eyebrow: "THE ARCHIVE", archive_title: "The Archive of <br><span class='text-amber-400/80'>Dream Resonance</span>", archive_desc: "Every night is a transmission. Our institute provides the tools to store, search, and synchronize your dreams into a comprehensive digital repository of your hidden self.",
+                tag1: "Lucid Dreaming", tag2: "Archetypal Symbols", tag3: "Deep REM Analysis",
+                journal_title: "Your Subconscious Narrative",
+                entry1_date: "OCT 14, 2024", entry1_title: "The Whispering Woods", entry1_desc: "A vivid exploration of a shifting forest where the leaves sounded like static frequency...",
+                entry2_date: "OCT 12", entry2_title: "Oceanic Static",
+                lucidity_label: "Lucidity Score",
+                ai_label: "Subconscious AI Oracle", atmo_title: "Atmosphere", atmo_intensity: "Intensity", atmo_lucidity: "Lucidity", atmo_vividness: "Vividness",
+                env_title: "Environment", env_night: "New Moon", env_temp: "22°C", env_duration: "7.5h",
+                env_presleep: "Before Sleep", env_quality: "Sleep Quality", env_mood: "Dream Mood",
+                env_dreamtype: "Dream Type", env_stress: "Stress Level",
+                symbol_title: "Symbols & Keywords", symbol_hint: "Press Enter to add, click ✕ to remove",
+                symbol_placeholder: 'Enter keywords like "Flight" "Deep Sea"',
+                sym_1: "Flight", sym_2: "Deep Sea", symbol_ph: "Enter symbols here...",
+                atmo_labels_i: '["Faint","Calm","Moderate","Intense","Overwhelming"]',
+                atmo_labels_l: '["Deep Sleep","Chaotic","Hazy","Lucid","Fully Aware"]',
+                atmo_labels_v: '["Faded","Hazy","Vivid","Surreal","Brilliant"]',
+                timeline_label: "Temporal Marker: Now",
+                input_status_text: "Awaiting Transmission", input_status_active: "Synchronizing Frequencies...",
+                pricing_title: "Invest in your <span class='accent-gradient'>self</span>", pricing_sub: "Choose your path to enlightenment", pricing_pop: "Most Popular",
+                tier1_name: "The Spark", tier2_name: "The Seeker", tier3_name: "The Oracle",
+                tier1_f1: "1 Deep Interpretation", tier1_f2: "Eastern Wisdom Alignment", tier1_f3: "Powered by DeepSeek-R1",
+                tier2_f1: "5 Deep Interpretations", tier2_f2: "Personalized Destiny Map", tier2_f3: "Powered by DeepSeek-R1",
+                tier3_f1: "Unlimited Monthly Access", tier3_f2: "DeepSeek R1 High-Priority", tier3_f3: "Nous Hermes 3 Integration",
+                select_0: "Select Plan", select_1: "Select Plan", select_2: "Select Plan",
+                unlock_msg: "Unlock full report ($4.99)", unlock_btn: "Unlock Full Report ($4.99)", unlock_hint: "Unlock with payment below, or enter a redemption code to access all content.",
+                have_key: "Use redemption code", verify_btn: "Verify Key", key_placeholder: "Enter License Key", email_placeholder: "Your email (optional)",
+                or_divider: "or",
+                ref_btn: "Invite 2 friends to unlock for free", ref_modal_title: "Pass the Spark", ref_modal_desc: "Share this magical mirror with 2 friends. When they begin their journey, your full destiny path will be revealed for free.",
+                copy_btn: "Copy", copied: "Copied!", sc_title: "Oracle Engine", sc_sync: "Quantum Logic Sync: Active", sc_recharge: "Recharge Energy ↗", turn_label: "Connection", slow_thought: "The oracle is traversing the dream realm...", error_ether: "The connection to the ether has flickered. Please try again.", rate_limit_msg: "Too many requests. Please wait a moment.",
+                ref_status_text: "Journeyers joined: ", footer_terms: "USAGE TERMS", footer_privacy: "PRIVACY POLICY", footer_copy: "&copy; 2026 TokenMaster Global. All rights reserved. <a href='https://api-tokenmaster.com' target='_blank' class='ml-4 hover:text-white transition-all underline underline-offset-4'>Powered by TokenMaster</a>",
+                res_psych: "<span class='text-accent text-lg'>🧠</span> Psychology Analysis",
+                destiny_report: "Destiny Report",
+                gen_img: "Generate Dream Image",
+                res_destiny: "<span class='text-accent text-lg'>🔮</span> Eastern Destiny Path",
+                res_tarot: "<span class='text-accent text-lg'>🃏</span> Tarot Guidance",
+                page_title: "Subconscious Mirror | Premium AI Dream Oracle",
+                modal_terms: `
+                    <div class="space-y-6 text-left">
+                        <p><strong>1. Spiritual Nature:</strong> All interpretations are provided for self-discovery and entertainment purposes only. Subconscious Mirror does not provide professional medical, psychological, or legal advice.</p>
+                        <p><strong>2. Energy Binding:</strong> Once purchased, Energy is tied to your browser's unique fingerprint. We do not use accounts to protect your absolute anonymity.</p>
+                        <p><strong>3. Non-Refundable:</strong> Due to the immediate allocation of AI reasoning resources (DeepSeek R1), all spiritual transactions are final once generation begins.</p>
+                    </div>
+                `,
+                modal_privacy: `
+                    <div class="space-y-6 text-left">
+                        <p><strong>1. Sacred Privacy:</strong> We do not store your dreams. Every session is a transient echo in the digital void, wiped immediately after the session ends.</p>
+                        <p><strong>2. Payment Integrity:</strong> All transactions are handled securely via PayPal. We never store or even see your financial details.</p>
+                        <p><strong>3. Zero Tracking:</strong> We do not use marketing trackers or sell user data to third parties. Your subconscious journey is yours alone.</p>
+                    </div>
+                `
+            },
+            zh: {
+                nav_home: "首页", nav_oracle: "解梦神谕", nav_interpret: "梦境解读", nav_journal: "梦境日记", nav_features: "星象解析", nav_pricing: "定价方案", nav_hi: "打个招呼 ↗", nav_balance: "已就绪", nav_symbols: "符号查询",
+                mob_home: "首页", mob_oracle: "解梦神谕", mob_pricing: "价格方案",
+                hero_eyebrow: "揭示未见之象", hero_title: "潜意识之<span class='accent-gradient pr-4'>镜</span>", hero_desc: "一座<span class='text-white font-display italic'>解梦神谕</span>,为你解读潜意识深处的隐藏信息。", hero_start: "开始解梦",
+                interpret_whisper: "低语你的梦境", interpret_akashic: "连接下方的阿卡西记录",
+                chat_welcome: "我在倾听。分享你的梦境...", chat_welcome_text: "我在倾听。分享你的梦境...", chat_placeholder: "在此输入...", chat_send: "发送信息",
+                oracle_reset: "重置", oracle_new: "返回",
+                voice_label: "语音",
+                report_gen: "神谕正在编织您的命运报告...",
+                features_title: "<span class='accent-gradient'>以太</span>引擎", features_sub: "潜意识解析三大支柱",
+                feat1_title: "AI 深度解析", feat1_desc: "我们的神经网络处理您的梦境叙事，识别语言模式和原型表现，为复杂的梦境图像提供科学支持的解码。", feat1_link: "探索技术",
+                feat2_title: "模式追踪", feat2_desc: "可视化在数月梦境条目中反复出现的主题。识别决定您 REM 周期质量和清晰度的情绪触发因素和环境因素。", feat2_link: "查看分析",
+                feat3_title: "星象对齐", feat3_desc: "将您的潜意识数据与月相和天体位置关联起来，了解外部宇宙节律如何影响您的内在景观。", feat3_link: "梦境日记",
+                symbols_eyebrow: "梦境词典", symbols_title: "快速<span class='text-amber-400/80'>符号查询</span>", symbols_desc: "输入一个梦境符号——水、蛇、房子、火焰——即刻从集体潜意识深处获得解读。",
+                symbols_lookup_btn: "查询", symbols_loading_text: "正在连接集体潜意识...", symbols_empty_text: "在上方输入符号以揭示其含义", symbols_result_label: "符号解读",
+                symbols_search_ph: "搜索梦境符号...",
+                archive_eyebrow: "梦境档案", archive_title: "梦境共鸣<br><span class='text-amber-400/80'>之档案库</span>", archive_desc: "每一个夜晚都是一次信号传输。我们的研究所为您提供存储、搜索和同步梦境数据的工具，构建一个涵盖您隐藏自我的全面数字档案库。",
+                tag1: "清醒梦", tag2: "原型符号", tag3: "深度REM分析",
+                journal_title: "您的潜意识叙事",
+                entry1_date: "2024年10月14日", entry1_title: "低语之森", entry1_desc: "对一片变幻森林的生动探索，树叶听起来如同静电频率……",
+                entry2_date: "10月12日", entry2_title: "海洋静电",
+                lucidity_label: "清醒度评分",
+                ai_label: "潜意识 AI 神谕", atmo_title: "情感与感知", atmo_intensity: "情绪强度", atmo_lucidity: "清醒程度", atmo_vividness: "清晰度",
+                env_title: "睡眠环境", env_night: "新月", env_temp: "22°C", env_duration: "7.5小时",
+                env_presleep: "睡前状态", env_quality: "睡眠质量", env_mood: "梦境情绪",
+                env_dreamtype: "梦境类型", env_stress: "近期压力",
+                symbol_title: "关键词/意象", symbol_hint: "按回车添加，点击删除",
+                sym_1: "飞行", sym_2: "深海", symbol_ph: "输入意象并回车...",
+                symbol_placeholder: '输入类似"飞行""深海"的关键词',
+                atmo_labels_i: '["微弱","平静","中等","剧烈","震撼"]',
+                atmo_labels_l: '["深眠","混沌","模糊","半清醒","完全主宰"]',
+                atmo_labels_v: '["褪色","朦胧","真切","超现实","璀璨"]',
+                timeline_label: "时间标记：此刻",
+                input_status_text: "等待传输", input_status_active: "同步频率中...",
+                pricing_title: "投资你的<span class='accent-gradient'>内心</span>", pricing_sub: "选择您的觉醒之路", pricing_pop: "最受欢迎",
+                tier1_name: "灵感之火", tier2_name: "追寻之者", tier3_name: "觉醒神谕",
+                tier1_f1: "1次深度解析", tier1_f2: "东方智慧对齐", tier1_f3: "DeepSeek-R1 深度驱动",
+                tier2_f1: "5次深度解析", tier2_f2: "个人命运蓝图", tier2_f3: "DeepSeek-R1 深度驱动",
+                tier3_f1: "本月无限次访问", tier3_f2: "DeepSeek R1高优先级", tier3_f3: "Nous Hermes 3 深度集成",
+                select_0: "选择方案", select_1: "选择方案", select_2: "选择方案",
+                unlock_msg: "解锁完整报告 ($4.99)", unlock_btn: "解锁完整报告 ($4.99)", unlock_hint: "支付解锁完整命运报告，或输入兑换码解锁全部内容。",
+                have_key: "输入兑换码", verify_btn: "验证激活码", key_placeholder: "输入激活码",
+                or_divider: "或",
+                ref_btn: "邀请2位好友免费解锁", ref_modal_title: "传递灵光", ref_modal_desc: "与2位好友分享这面魔镜。当他们开启旅程时,您的完整命运路径将免费点亮。",
+                copy_btn: "复制", copied: "已复制", sc_title: "神谕引擎", sc_sync: "量子逻辑同步:活跃", sc_recharge: "补充能量 ↗", turn_label: "连接进度", slow_thought: "神谕正在穿越梦境领域...", error_ether: "以太连接出现波动,请重试。", rate_limit_msg: "请求过于频繁,请稍后再试。",
+                ref_status_text: "已加入的旅人: ", footer_terms: "使用条款", footer_privacy: "隐私政策", footer_copy: "&copy; 2026 TokenMaster Global. 版权所有。<a href='https://api-tokenmaster.com' target='_blank' class='ml-4 hover:text-white transition-all underline underline-offset-4'>由 TokenMaster 提供技术支持</a>",
+                res_psych: "<span class='text-accent text-lg'>🧠</span> 心理学解析",
+                destiny_report: "解梦报告",
+                gen_img: "生成梦境画像",
+                res_destiny: "<span class='text-accent text-lg'>🔮</span> 东方命理路径",
+                res_tarot: "<span class='text-accent text-lg'>🃏</span> 塔罗指引",
+                page_title: "潜意识之镜 | AI 解梦神谕",
+                modal_terms: `
+                    <div class="space-y-6 text-left">
+                        <p><strong>1. 精神探索声明:</strong>所有梦境解析仅供自我探索与娱乐之用。潜意识之镜不提供任何专业的医疗、心理学或法律建议。</p>
+                        <p><strong>2. 能量绑定逻辑:</strong>为了保护您的绝对匿名性,购买的能量将与您浏览器的唯一指纹绑定。请勿轻易清理浏览器缓存。</p>
+                        <p><strong>3. 不退款政策:</strong>鉴于 AI 推理资源(DeepSeek R1)的即时性分配,一旦解析任务开始,所有交易均不支持退款。</p>
+                    </div>
+                `,
+                modal_privacy: `
+                    <div class="space-y-6 text-left">
+                        <p><strong>1. 数据契约:</strong>我们不存储您的梦境内容。每一次对话都是数字虚空中的瞬时回响,解析完成后数据将被立即抹除。</p>
+                        <p><strong>2. 支付安全:</strong>所有交易均由 PayPal 安全处理。我们绝不会存储您的财务详细信息。</p>
+                        <p><strong>3. 零追踪承诺:</strong>我们不使用营销追踪器,也不向第三方出售用户数据。您的潜意识旅程仅属于您自己。</p>
+                    </div>
+                `
+            }
+        };
+
+        // --- Language & SEO ---
+        function renderLanguage() {
+            const t = i18n[currentLang];
+            document.querySelectorAll('[id^="t-"]').forEach(el => {
+                const key = el.id.replace('t-', '').replace(/-/g, '_');
+                if (t[key]) {
+                    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+            document.getElementById('lang-btn').innerText = currentLang === 'en' ? 'ZH' : 'EN';
+            // Update SEO-critical elements
+            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+            document.title = t.page_title;
+            updateTurnIndicator();
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'en' ? 'zh' : 'en';
+            localStorage.setItem('sm_lang', currentLang);
+            window.location.reload();
+        }
+
+        // --- Mobile Navigation ---
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mobile-nav');
+            nav.classList.toggle('active');
+        }
+
+        // --- Modal with Focus Management ---
+        let previousFocusEl = null;
+
+        function trapFocus(modalEl) {
+            const focusable = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            modalEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+                if (e.key === 'Escape') {
+                    if (modalEl.id === 'referral-modal') closeReferralModal();
+                    else closeModal();
+                }
+            });
+        }
+
+        function openModal(type) {
+            const t = i18n[currentLang];
+            previousFocusEl = document.activeElement;
+            const modal = document.getElementById('terms-modal');
+            document.getElementById('modal-text').innerHTML = type === 'terms' ? t.modal_terms : t.modal_privacy;
+            document.getElementById('t-modal-title').innerText = type === 'terms' ? t.footer_terms : t.footer_privacy;
+            modal.style.display = 'flex';
+            trapFocus(modal);
+            // Focus the close button
+            modal.querySelector('button[aria-label="Close"]').focus();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('terms-modal');
+            modal.style.display = 'none';
+            if (previousFocusEl) previousFocusEl.focus();
+        }
+
+        function toggleStatusCard() {
+            const card = document.getElementById('status-card');
+            if (!card) return;
+            card.classList.toggle('opacity-0');
+            card.classList.toggle('opacity-100');
+            card.classList.toggle('translate-y-2');
+            card.classList.toggle('translate-y-0');
+            card.classList.toggle('pointer-events-none');
+            card.classList.toggle('pointer-events-auto');
+        }
+
+        // ============================================================
+        // PayPal JS SDK Integration
+        // Flow: Load SDK once → render official buttons with correct locale
+        // On language switch: if SDK locale ≠ target, show custom language-matched HTML buttons
+        // Page refresh → SDK loads fresh with current language locale
+        // ============================================================
+
+        let paypalSdkReady = false;
+        let paypalSdkLocale = 'en_US';
+
+        function getPayPalLocale() {
+            return currentLang === 'zh' ? 'zh_CN' : 'en_US';
+        }
+
+        async function initPayPalSdk() {
+            const locale = getPayPalLocale();
+            try {
+                const res = await fetch('/api/paypal/config');
+                const config = await res.json();
+                if (!config.clientId) {
+                    console.log('[PayPal SDK] No client ID configured');
+                    return;
+                }
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = `https://www.paypal.com/sdk/js?client-id=${config.clientId}&currency=USD&intent=capture&disable-funding=credit,paylater&locale=${locale}`;
+                    script.onload = () => { paypalSdkLocale = locale; resolve(); };
+                    script.onerror = () => reject(new Error('SDK load failed'));
+                    document.head.appendChild(script);
+                });
+                paypalSdkReady = true;
+                renderPayPalButtons();
+            } catch (err) {
+                console.warn('[PayPal SDK] Init failed:', err.message);
+            }
+        }
+
+        function renderPayPalButtons() {
+            if (!window.paypal) return;
+            document.querySelectorAll('.paypal-sdk-container').forEach(container => {
+                renderPayPalButton(container);
+            });
+        }
+
+        function renderPayPalButton(container) {
+            if (!window.paypal || !container) return;
+            const amount = container.dataset.amount;
+            if (!amount) return;
+            container.innerHTML = '';
+            const label = container.id === 'paypal-unlock' ? 'checkout' : 'pay';
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'blue', shape: 'pill', label, tagline: false },
+                createOrder: async () => {
+                    const res = await fetch('/api/paypal/create-order', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.error) throw new Error(data.error || 'Order creation failed');
+                    return data.id;
+                },
+                onApprove: async (data) => {
+                    try {
+                        const res = await fetch('/api/paypal/capture-order', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ orderID: data.orderID })
+                        });
+                        const result = await res.json();
+                        if (result.status === 'captured' && result.email) {
+                            document.cookie = `sm_auth_token=${encodeURIComponent(result.email)};path=/;max-age=31536000;SameSite=Lax`;
+                            window.location.reload();
+                        } else {
+                            throw new Error('Capture returned unexpected result');
+                        }
+                    } catch (err) {
+                        console.error('[PayPal SDK] Capture error:', err);
+                        alert('Payment verification failed. Your payment may still process — please contact support if needed.');
+                    }
+                },
+                onError: (err) => { console.error('[PayPal SDK] Button error:', err); },
+                onCancel: () => { console.log('[PayPal SDK] Payment cancelled by user'); }
+            }).render(`#${container.id}`);
+
+            // Watch for PayPal SDK's popup-blocked fallback message.
+            // The SDK shows "没有找到安全的paypal浏览器？" when the popup is blocked
+            // but doesn't clear it when the user clicks "继续" and the popup opens.
+            // Detect the fallback and re-render just this one button.
+            const observer = new MutationObserver(() => {
+                const text = container.textContent || '';
+                if ((/browser/i.test(text) || /浏览器/i.test(text) || /找不到/i.test(text) || /fallback/i.test(text)) && window.paypal) {
+                    observer.disconnect();
+                    renderPayPalButton(container);
+                }
+            });
+            observer.observe(container, { childList: true, subtree: true, characterData: true });
+        }
+
+        async function payWithPayPalFallback(amount, btnEl) {
+            const btn = btnEl;
+            if (btn.disabled) return;
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="animate-spin h-4 w-4 text-white/70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Connecting...</span>';
+            btn.style.opacity = '0.7';
+
+            const w = 480, h = 640;
+            const left = Math.max(0, (screen.width - w) / 2);
+            const top = Math.max(0, (screen.height - h) / 2);
+            const paypalWindow = window.open('', 'PayPalCheckout',
+                `width=${w},height=${h},top=${top},left=${left},resizable=yes,scrollbars=yes`);
+
+            if (!paypalWindow) {
+                try {
+                    const res = await fetch('/api/paypal/create-order', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ amount })
+                    });
+                    const data = await res.json();
+                    if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+                    const approveLink = (data.links || []).find(l => l.rel === 'approve');
+                    if (approveLink && approveLink.href) {
+                        window.location.href = approveLink.href;
+                    } else throw new Error('No approval URL');
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    btn.style.opacity = '1';
+                    alert('Payment failed: ' + err.message);
+                }
+                return;
+            }
+
+            // Check popup closed
+            const recoverCheck = setInterval(() => {
+                if (paypalWindow.closed) {
+                    clearInterval(recoverCheck);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    btn.style.opacity = '1';
+                }
+            }, 800);
+
+            setTimeout(() => {
+                clearInterval(recoverCheck);
+                if (paypalWindow && !paypalWindow.closed) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    btn.style.opacity = '1';
+                }
+            }, 180000);
+
+            paypalWindow.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Redirecting...</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0a0a0a;color:#f5f5f5;font-family:Inter,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}.container{text-align:center}.spinner{width:32px;height:32px;border:2px solid rgba(137,170,204,.15);border-top-color:#89AACC;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1.5rem}@keyframes spin{to{transform:rotate(360deg)}}h1{font-size:1rem;font-weight:400;color:#a0a0a0}</style></head><body>
+<div class="container"><div class="spinner"></div><h1>Connecting to PayPal...</h1></div></body></html>`);
+            paypalWindow.document.close();
+
+            try {
+                const res = await fetch('/api/paypal/create-order', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount })
+                });
+                const data = await res.json();
+                if (!res.ok || data.error) throw new Error(data.error || 'Server error');
+                const approveLink = (data.links || []).find(l => l.rel === 'approve');
+                if (approveLink && approveLink.href) {
+                    paypalWindow.location.href = approveLink.href;
+                } else {
+                    paypalWindow.close();
+                    throw new Error('No approval URL');
+                }
+            } catch (err) {
+                clearInterval(recoverCheck);
+                if (paypalWindow && !paypalWindow.closed) paypalWindow.close();
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                btn.style.opacity = '1';
+                alert('Payment failed: ' + err.message);
+            }
+        }
+
+        async function checkPayPalPremium(email) {
+            try {
+                const res = await apiFetch(`/check-premium?email=${encodeURIComponent(email)}`);
+                const data = await res.json();
+                if (data.status === 'unlocked') {
+                    isPremiumUser = true;
+                    document.getElementById('res-paid-blur').classList.remove('blurred');
+                    document.getElementById('pay-overlay').classList.add('hidden');
+                }
+            } catch (e) {
+                console.error('Check premium error:', e);
+            }
+        }
+
+        function openReferralModal() {
+            previousFocusEl = document.activeElement;
+            const modal = document.getElementById('referral-modal');
+            modal.style.display = 'flex';
+            trapFocus(modal);
+            checkReferralStatus();
+            window.refInterval = setInterval(checkReferralStatus, 5000);
+            modal.querySelector('button[aria-label="Close"]').focus();
+        }
+
+        function closeReferralModal() {
+            document.getElementById('referral-modal').style.display = 'none';
+            clearInterval(window.refInterval);
+            if (previousFocusEl) previousFocusEl.focus();
+        }
+
+        function copyRefLink() {
+            navigator.clipboard.writeText(document.getElementById('ref-link').innerText);
+            const btn = document.getElementById('t-copy-btn');
+            btn.innerText = i18n[currentLang].copied;
+            setTimeout(() => btn.innerText = i18n[currentLang].copy_btn, 2000);
+        }
+
+        // --- Referral System ---
+        async function initReferral() {
+            if (!refId) {
+                try {
+                    const res = await apiFetch('/referral/init', { method: 'POST' });
+                    if (!res) return;
+                    const data = await res.json();
+                    refId = data.refId;
+                    localStorage.setItem('sm_ref_id', refId);
+                } catch (e) { console.error("Ref init failed"); }
+            }
+            if (refId) document.getElementById('ref-link').innerText = `${window.location.origin}${window.location.pathname}?ref=${refId}`;
+
+            if (refBy && refBy !== refId) {
+                try {
+                    await apiFetch('/referral/click', {
+                        method: 'POST',
+                        body: JSON.stringify({ refBy: refBy, email: userEmail || '' })
+                    });
+                } catch (e) { console.error("Ref click failed"); }
+            }
+        }
+
+        async function checkReferralStatus() {
+            // Server-side premium check
+            if (isPremiumUser) {
+                document.getElementById('res-paid-blur').classList.remove('blurred');
+                document.getElementById('pay-overlay').classList.add('hidden');
+                return;
+            }
+            if (!refId) return;
+            try {
+                const res = await apiFetch(`/referral/status?refId=${refId}`);
+                if (!res) return;
+                const data = await res.json();
+                const count = data.count || 0;
+                document.getElementById('t-ref-status-text').innerText = `${i18n[currentLang].ref_status_text} ${count} / 2`;
+                document.getElementById('ref-progress').style.width = `${(count / 2) * 100}%`;
+                if (count >= 2) {
+                    if (data.unlocked === 1) {
+                        isPremiumUser = true;
+                        document.getElementById('res-paid-blur').classList.remove('blurred');
+                        document.getElementById('pay-overlay').classList.add('hidden');
+                    }
+                    closeReferralModal();
+                }
+            } catch (e) {}
+        }
+
+        // ===== Tarot Cards Data =====
+        const tarotCards = [
+            { en: 'The Fool', zh: '愚者' },
+            { en: 'The Magician', zh: '魔术师' },
+            { en: 'The High Priestess', zh: '女祭司' },
+            { en: 'The Empress', zh: '女皇' },
+            { en: 'The Emperor', zh: '皇帝' },
+            { en: 'The Hierophant', zh: '教皇' },
+            { en: 'The Lovers', zh: '恋人' },
+            { en: 'The Chariot', zh: '战车' },
+            { en: 'Strength', zh: '力量' },
+            { en: 'The Hermit', zh: '隐者' },
+            { en: 'Wheel of Fortune', zh: '命运之轮' },
+            { en: 'Justice', zh: '正义' },
+            { en: 'The Hanged Man', zh: '倒吊人' },
+            { en: 'Death', zh: '死神' },
+            { en: 'Temperance', zh: '节制' },
+            { en: 'The Devil', zh: '恶魔' },
+            { en: 'The Tower', zh: '高塔' },
+            { en: 'The Star', zh: '星星' },
+            { en: 'The Moon', zh: '月亮' },
+            { en: 'The Sun', zh: '太阳' },
+            { en: 'Judgement', zh: '审判' },
+            { en: 'The World', zh: '世界' }
+        ];
+
+        // --- Chat Logic ---
+        let chatHistory = [];
+        let turnCount = 0;
+
+        function updateTurnIndicator() {
+            const indicator = document.getElementById('turn-indicator');
+            const indicatorMobile = document.getElementById('turn-indicator-mobile');
+            const text = `${i18n[currentLang].turn_label} ${turnCount} / 5`;
+            indicator.innerText = text;
+            indicator.style.opacity = "1";
+            if (indicatorMobile) {
+                indicatorMobile.innerText = text;
+                indicatorMobile.style.opacity = "1";
+            }
+        }
+
+        function showLicenseInput() {
+            document.getElementById('license-input-wrapper').classList.remove('hidden');
+            document.getElementById('t-have-key').classList.add('hidden');
+        }
+
+        async function verifyLicense() {
+            const key = document.getElementById('t-key-placeholder').value.trim();
+            const btn = document.getElementById('t-verify-btn');
+            if (!key) return;
+
+            btn.disabled = true;
+            btn.innerText = currentLang === 'en' ? "Verifying..." : "验证中...";
+
+            try {
+                const res = await apiFetch('/verify-license', {
+                    method: 'POST',
+                    body: JSON.stringify({ license_key: key, sessionId: sessionId })
+                });
+                if (!res) { btn.disabled = false; btn.innerText = i18n[currentLang].verify_btn; return; }
+                const data = await res.json();
+
+                if (res.ok && data.status === 'unlocked') {
+                    isPremiumUser = true;
+                    document.getElementById('res-paid-blur').classList.remove('blurred');
+                    document.getElementById('pay-overlay').classList.add('hidden');
+                    checkReferralStatus();
+                } else {
+                    alert(data.message || data.error || "Verification failed");
+                }
+            } catch (e) {
+                alert(i18n[currentLang].error_ether);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = i18n[currentLang].verify_btn;
+            }
+        }
+
+        function resetOracle() {
+            chatHistory = []; turnCount = 0; updateTurnIndicator();
+            // Reset quote card to welcome state
+            const welcomeContainer = document.getElementById('chat-welcome');
+            welcomeContainer.innerHTML = '<p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">' +
+                (currentLang === 'zh' ? '我在聆听。分享你的梦境...' : 'I am listening. Share your dream with me...') +
+                '</p>';
+            document.getElementById('final-report').classList.add('hidden');
+            document.getElementById('chat-input-area').classList.remove('hidden');
+            gsap.set("#chat-input-area, #turn-indicator", { opacity: 1 });
+            document.getElementById('t-chat-placeholder').value = "";
+            // Reset env icon selected states and default values
+            document.querySelectorAll('.env-icon').forEach(el => el.classList.remove('selected'));
+            document.getElementById('t-env-presleep').innerText = currentLang === 'zh' ? '睡前状态' : 'Before Sleep';
+            document.getElementById('t-env-quality').innerText = currentLang === 'zh' ? '睡眠质量' : 'Sleep Quality';
+            document.getElementById('t-env-mood').innerText = currentLang === 'zh' ? '梦境情绪' : 'Dream Mood';
+            document.getElementById('t-env-dreamtype').innerText = currentLang === 'zh' ? '梦境类型' : 'Dream Type';
+            document.getElementById('t-env-stress').innerText = currentLang === 'zh' ? '近期压力' : 'Stress Level';
+        }
+
+        async function sendMessage() {
+            const dreamInput = document.getElementById('t-chat-placeholder');
+            const sendBtn = document.getElementById('t-chat-send');
+            const content = dreamInput.value.trim();
+
+            if (!content || sendBtn.disabled) return;
+            if (content.length > 5000) {
+                alert(currentLang === 'zh' ? '输入内容过长,请控制在5000字以内' : 'Input too long, max 5000 characters');
+                return;
+            }
+
+            // Add user message as right-aligned bubble
+            addBubble(content, 'user');
+            dreamInput.value = "";
+            sendBtn.disabled = true;
+
+            const thinking = addThinkingBubble();
+            // Collect atmosphere data
+            const atmoIntensity = document.getElementById('atmo-intensity-val')?.textContent || '中等';
+            const atmoLucidity = document.getElementById('atmo-lucidity-val')?.textContent || '模糊';
+            const atmoVivid = document.getElementById('atmo-vivid-val')?.textContent || '真切';
+            // Collect environment variables
+            const envPresleep = document.getElementById('t-env-presleep')?.innerText || '';
+            const envQuality = document.getElementById('t-env-quality')?.innerText || '';
+            const envMood = document.getElementById('t-env-mood')?.innerText || '';
+            const envDreamtype = document.getElementById('t-env-dreamtype')?.innerText || '';
+            const envStress = document.getElementById('t-env-stress')?.innerText || '';
+            const symbolTags = [...document.querySelectorAll('.symbol-tag-item')].map(el => {
+                return el.textContent.replace('✕', '').trim();
+            }).join(', ');
+            const atmoContext = ` [Atmosphere: intensity=${atmoIntensity}, lucidity=${atmoLucidity}, vividness=${atmoVivid}]`;
+            const envContext = ` [Environment: Presleep=${envPresleep}, Quality=${envQuality}, Mood=${envMood}, Type=${envDreamtype}, Stress=${envStress}]`;
+            const symContext = symbolTags ? ` [Symbols: ${symbolTags}]` : '';
+            chatHistory.push({ "role": "user", "content": `Dream: ${content}${atmoContext}${envContext}${symContext}` });
+
+            const slowToast = setTimeout(() => {
+                const tip = document.createElement('div');
+                tip.className = "text-[9px] text-gray-500 uppercase tracking-widest text-center py-2 italic animate-pulse";
+                tip.innerText = i18n[currentLang].slow_thought;
+                thinking.appendChild(tip);
+            }, 10000);
+
+            try {
+                const res = await apiFetch('/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({ lang: currentLang, messages: chatHistory, refBy: refBy, sessionId: sessionId })
+                });
+                clearTimeout(slowToast);
+
+                if (!res) { thinking.remove(); sendBtn.disabled = false; return; }
+
+                const result = await res.json();
+                thinking.remove();
+                sendBtn.disabled = false;
+
+                if (result.error) {
+                    addBubble(result.error, 'ai');
+                    return;
+                }
+
+                if (result.mode === 'question') {
+                    turnCount++;
+                    updateTurnIndicator();
+                    addBubble(result.content, 'ai');
+                    chatHistory.push({"role": "assistant", "content": result.content});
+                } else if (result.mode === 'report') {
+                    addBubble(i18n[currentLang].report_gen, 'ai');
+                    setTimeout(() => {
+                        document.getElementById('final-report').classList.remove('hidden');
+                        document.getElementById('res-free').innerHTML = formatReportText(result.data.free_part);
+
+                        // Parse tarot card and display paid part
+                        if (result.data.paid_part) {
+                            let paidText = result.data.paid_part;
+                            const tarotMatch = paidText.match(/\[TAROT:\s*(\d+)\]/);
+                            let tarotIndex = -1;
+                            if (tarotMatch) {
+                                tarotIndex = parseInt(tarotMatch[1]);
+                                paidText = paidText.replace(/\[TAROT:\s*\d+\]/, '').trim();
+                            }
+                            document.getElementById('res-paid').innerHTML = formatReportText(paidText);
+
+                            if (tarotIndex >= 0 && tarotIndex <= 21) {
+                                const tarotSection = document.getElementById('tarot-section');
+                                tarotSection.classList.remove('hidden');
+                                const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                                document.getElementById('tarot-card-img').src = '/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                                document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
+                                // Try to extract tarot meaning from the paid text
+                                const meaningEl = document.getElementById('tarot-card-meaning');
+                                const tarotSectionText = paidText.split('**Tarot Guidance**')[1] || paidText.split('**塔罗指引**')[1] || '';
+                                if (tarotSectionText) {
+                                    meaningEl.innerText = tarotSectionText.split('**')[0].trim().substring(0, 200);
+                                }
+                            }
+
+                            if (result.status === 'full') {
+                                isPremiumUser = true;
+                                document.getElementById('res-paid-blur').classList.remove('blurred');
+                                document.getElementById('pay-overlay').classList.add('hidden');
+                            }
+                        }
+
+                        gsap.from("#final-report > div", { opacity: 0, y: 60, duration: 0.8, ease: "power3.out" });
+                    }, 3000);
+                }
+            } catch (err) {
+                clearTimeout(slowToast);
+                thinking.remove();
+                sendBtn.disabled = false;
+                addBubble(i18n[currentLang].error_ether || 'Connection error. Please try again.', 'ai');
+            }
+        }
+
+        function formatReportText(raw) {
+            // Convert AI markdown-style text into structured HTML with paragraphs and headers
+            if (!raw) return '';
+            // 1. Handle standalone **Header** lines → styled section headers
+            // 2. Handle inline **bold** → <strong>
+            // 3. Split into paragraphs
+
+            let html = '';
+            const lines = raw.split('\n');
+            let paraLines = [];
+
+            function flushParagraph() {
+                let text = paraLines.join(' ').trim();
+                if (!text) { paraLines = []; return; }
+                // Convert inline **bold** to <strong>
+                text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90">$1</strong>');
+                html += '<p class="mb-4 last:mb-0">' + text + '</p>';
+                paraLines = [];
+            }
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmed = line.trim();
+                if (!trimmed) {
+                    flushParagraph(); // empty line = paragraph break
+                    continue;
+                }
+                // Check if this line is a standalone bold header: **Header Text**
+                const headerMatch = trimmed.match(/^\*\*(.+?)\*\*$/);
+                if (headerMatch) {
+                    flushParagraph(); // close current paragraph
+                    const headerText = headerMatch[1];
+                    html += '<h4 class="text-sm font-semibold text-accent/90 tracking-wide mt-6 mb-3 first:mt-0">' + headerText + '</h4>';
+                    continue;
+                }
+                // Regular text line
+                paraLines.push(trimmed);
+            }
+            flushParagraph(); // flush remaining
+
+            return html;
+        }
+
+        function addBubble(text, side) {
+            const container = document.getElementById('chat-welcome');
+            const welcomeText = document.getElementById('t-chat-welcome-text');
+            // Remove default welcome text on first message
+            if (welcomeText) welcomeText.remove();
+
+            const wrapper = document.createElement('div');
+            wrapper.className = `mb-0.5 flex flex-col ${side === 'user' ? 'items-end' : 'items-start'}`;
+
+            const label = document.createElement('span');
+            label.className = `text-[8px] uppercase tracking-widest font-bold ${side === 'user' ? 'text-accent/60' : 'text-white/40'}`;
+            label.innerText = side === 'user' ? 'YOU' : 'AETHERIS';
+
+            const msg = document.createElement('div');
+            msg.className = `max-w-[85%] px-4 py-2.5 rounded-2xl text-sm font-light leading-relaxed ${
+                side === 'user'
+                    ? 'bg-accent/15 text-white/90 rounded-tr-md'
+                    : 'bg-white/5 text-white/80 rounded-tl-md'
+            }`;
+            msg.innerText = text;
+
+            wrapper.appendChild(label);
+            wrapper.appendChild(msg);
+            container.appendChild(wrapper);
+
+            gsap.from(wrapper, { opacity: 0, y: 12, duration: 0.4 });
+            container.scrollTop = container.scrollHeight;
+            return wrapper;
+        }
+
+        function addThinkingBubble() {
+            const container = document.getElementById('chat-welcome');
+            const div = document.createElement('div');
+            div.className = `mb-0.5 flex flex-col items-start`;
+            div.innerHTML = `<span class="text-[8px] uppercase tracking-widest font-bold text-white/40">AETHERIS</span><div class="max-w-[85%] px-4 py-2.5 rounded-2xl bg-white/5 rounded-tl-md"><div class="flex gap-2"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+            container.appendChild(div);
+            gsap.from(div, { opacity: 0, y: 12, duration: 0.4 });
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        /**
+         * Clean up voice transcript: remove fillers, fix repetitions, add punctuation.
+         */
+        function cleanVoiceText(text, lang) {
+            if (!text || text.trim().length < 2) return text;
+            let t = text.trim();
+            const isZh = lang === 'zh';
+
+            if (isZh) {
+                t = t.replace(/\b(嗯|呃|哦|噢|啊|呀|哎|嘿|哈|噢)\s*/g, ' ')
+                    .replace(/(那个|这个|就是说|然后呢|怎么说呢|反正就是|所以说|就是说|也就是说|\s是吧|\s对吧|之类的|什么的|\s的话|你知道吧|你懂吧|说实话|老实说|其实吧)\s*/g, ' ')
+                    .replace(/([我你他她它])\1+/g, '$1')
+                    .replace(/(然后|但是|可是|而且|因为|所以|如果|虽然|不过|就是|可能|应该|可以|没有)\1+/g, '$1')
+                    .replace(/\s{2,}/g, ' ').trim()
+                    .replace(/^(就是|反正|然后|还有|可是|不过|因为|所以|那个|这个)\s*/g, '')
+                    .replace(/\s*(就是|反正|然后|还有|那个|这个|之类的|什么的|对吧|是吧)$/g, '');
+            } else {
+                t = t.replace(/\b(um+|uh+|er+|ah+|oh+|like|you know|i mean|sort of|kind of|you see|well|actually|basically|literally|right|so yeah|okay so)\b\s*/gi, ' ')
+                    .replace(/\b(\w+)(\s+\1\b)+/gi, '$1')
+                    .replace(/\s{2,}/g, ' ').trim()
+                    .replace(/^(so|and|but|because|then|well|like)\s+/gi, '')
+                    .replace(/\s+(you know|right|yeah|okay|like|basically)$/gi, '');
+            }
+
+            let segments = [];
+            if (isZh) {
+                let buffer = '';
+                const words = t.split(/(?<=[的着了过吧吗呢啊呀哇哈噢哦嗯来])|(?=然后|但是|可是|不过|而且|然而|却|但|所以|因为|如果|虽然|结果|突然|接着|后来|最终|最后|这时|那时|这时候|忽然|其实|原来|似乎|好像|仿佛|感觉|觉得|没想到|发现|还有|接着|随后|随即|并且|或者|不但|不仅|虽然|尽管|只是|然而|于是|因此|因而|从而|以便|以免|免得|除非|只要|无论|不管|即使|哪怕)/g);
+                for (let w of words) {
+                    if (!w.trim()) continue;
+                    buffer += w;
+                    if (/[的着了过吧吗呢啊呀哇哈噢哦嗯来]$/.test(w.trim()) && buffer.length > 3) {
+                        segments.push(buffer.trim()); buffer = '';
+                    } else if (w.trim().length >= 10 && buffer.length > 6) {
+                        segments.push(buffer.trim()); buffer = '';
+                    }
+                }
+                if (buffer.trim()) segments.push(buffer.trim());
+            } else {
+                segments = t.split(/(?<=\.\.\.|,|\.)|(?=\band\b|\bbut\b|\bso\b|\bbecause\b|\bthen\b|\bhowever\b|\bwhen\b|\bwhile\b|\bwhere\b|\bwhich\b|\bthat\b|\bfinally\b|\bsuddenly\b)/gi).map(s => s.trim()).filter(s => s);
+            }
+            if (segments.length === 0) segments = [t];
+
+            const punctuated = segments.map((seg, idx) => {
+                if (!seg.trim()) return '';
+                let s = seg.trim();
+                const isLast = idx === segments.length - 1;
+                if (/[。！？，、；：\.!\?,;:]$/.test(s)) return s;
+                if (isZh) {
+                    if (/吗$|呢$|么$|什么|怎么|为什么|哪里|哪个|谁$|是不是|有没有|能不能|该不该|要不要|行不行|对吗|好吗|啥$/.test(s)) return s + '？';
+                    if (/太.+了$|真.+啊$|吓人|可怕|天哪|糟了|完了|天啊|我的天/.test(s)) return s + '！';
+                    if (!isLast && s.length > 2) return s + '，';
+                    if (isLast) return s + '。';
+                    return s + '，';
+                } else {
+                    if (/^(what|who|where|when|why|how|is|are|was|were|do|does|did|can|could|would|should|will)\b/i.test(s)) return s + '?';
+                    if (/^(wow|oh|ah|hey|no|yes|great|awful|terrible|amazing|incredible|suddenly)/i.test(s)) return s + '!';
+                    if (!isLast && s.length > 2) return s + ', ';
+                    if (!/[.?!,;:]$/.test(s)) return s + '.';
+                    return s;
+                }
+            }).join(isZh ? '' : ' ');
+
+            let result = punctuated.replace(/[，,]{2,}/g, '，').replace(/[。.]{2,}/g, '。').replace(/[？?]{2,}/g, '？').replace(/[！!]{2,}/g, '！').replace(/\s+([，。？！、,\.!\?;:])/g, '$1').trim();
+            if (!isZh && result.length > 0) result = result[0].toUpperCase() + result.slice(1);
+            return result;
+        }
+
+        // --- Voice Input (Web Speech API primary + MediaRecorder fallback) --- 按住说话
+        let isRecording = false;
+        let isProcessing = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let voiceCanceled = false;
+        let wsRecognition = null;       // Web Speech API instance
+        let wsFinalText = '';           // Web Speech final transcript (real-time)
+        let wsHadResult = false;        // Did Web Speech return any result?
+        let voiceStream = null;         // shared mic stream
+
+        async function startVoiceInput() {
+            if (isRecording || isProcessing) return;
+            const btn = document.getElementById('t-voice-btn');
+            const label = document.getElementById('t-voice-label');
+            console.log('[Voice] startVoiceInput');
+
+            // Request microphone (shared stream for both channels)
+            try {
+                voiceStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch (e) {
+                console.error('[Voice] Mic denied:', e);
+                alert(currentLang === 'zh' ? '需要麦克风权限才能语音输入。' : 'Microphone access is required for voice input.');
+                return;
+            }
+
+            isRecording = true;
+            wsFinalText = '';
+            wsHadResult = false;
+            audioChunks = [];
+
+            // UI: recording state
+            const bar = document.getElementById('voice-bar');
+            bar.classList.remove('hidden');
+            document.getElementById('voice-bar-icon').innerHTML =
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>';
+            document.getElementById('voice-bar-text').innerHTML = '&#8203;';
+            document.getElementById('voice-bar-text').className = 'text-sm text-white/90 font-light truncate flex-1 min-w-0';
+            document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-red-500';
+            document.getElementById('voice-bar-dot').style.animation = 'voicePulse 1s ease-in-out infinite';
+            document.getElementById('voice-bar-status').innerText = currentLang === 'zh' ? '录音中' : 'Recording';
+            document.getElementById('voice-bar-status').className = 'text-[9px] uppercase tracking-widest text-red-400/70';
+            btn.classList.add('voice-recording');
+            label.innerText = currentLang === 'zh' ? '录音中' : 'Recording';
+
+            // Channel 1: Web Speech API (instant text, real-time display)
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                wsRecognition = new SpeechRecognition();
+                wsRecognition.continuous = true;
+                wsRecognition.interimResults = true;
+                wsRecognition.lang = currentLang === 'zh' ? 'zh-CN' : 'en-US';
+                wsRecognition.onresult = (event) => {
+                    wsHadResult = true;
+                    let full = '';
+                    for (let i = 0; i < event.results.length; i++) {
+                        if (event.results[i].isFinal) full += event.results[i][0].transcript;
+                    }
+                    wsFinalText = full;
+                    const last = event.results[event.results.length - 1];
+                    const interim = last.isFinal ? '' : last[0].transcript;
+                    document.getElementById('voice-bar-text').innerHTML = full + (interim ? ' <span class="text-white/30">' + interim + '</span>' : '') || '&#8203;';
+                };
+                wsRecognition.onerror = (e) => {
+                    if (e.error === 'no-speech' || e.error === 'aborted') return;
+                    // network error → silently fall through to MediaRecorder fallback
+                    console.log('[Voice] WebSpeech error:', e.error, '(will use MediaRecorder fallback)');
+                };
+                wsRecognition.onend = () => {
+                    // auto-restart if still recording and no result yet
+                    if (isRecording && !wsHadResult && wsRecognition) {
+                        try { wsRecognition.start(); } catch (ex) {}
+                    }
+                };
+                try { wsRecognition.start(); console.log('[Voice] WebSpeech started, lang:', wsRecognition.lang); }
+                catch (ex) { console.log('[Voice] WebSpeech start failed:', ex); wsRecognition = null; }
+            }
+
+            // Channel 2: MediaRecorder (backup recording, sent to faster-whisper if WebSpeech fails)
+            const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', ''].find(t => t === '' || MediaRecorder.isTypeSupported(t));
+            mediaRecorder = new MediaRecorder(voiceStream, mimeType ? { mimeType } : undefined);
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
+            mediaRecorder.onstop = async () => {
+                if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+                // Only send to backend if Web Speech didn't produce results
+                if (!wsHadResult) {
+                    await processVoiceAudio();
+                }
+                // else: WebSpeech already filled the text, just clean up
+            };
+            mediaRecorder.start(200);
+            console.log('[Voice] MediaRecorder started, mimeType:', mediaRecorder.mimeType);
+        }
+
+        function stopVoiceInput() {
+            if (!isRecording || isProcessing) return;
+            isRecording = false;
+            isProcessing = true;
+            voiceCanceled = false;
+
+            // Stop Web Speech
+            if (wsRecognition) { try { wsRecognition.stop(); } catch (e) {} wsRecognition = null; }
+
+            if (wsHadResult && wsFinalText.trim()) {
+                // WebSpeech success → polish via LLM (add punctuation, clean fillers)
+                console.log('[Voice] WebSpeech result:', JSON.stringify(wsFinalText));
+                const rawText = wsFinalText.trim();
+                // Clean up MediaRecorder silently (no need for backend)
+                try { mediaRecorder.stop(); } catch (e) {}
+                mediaRecorder = null; audioChunks = [];
+                if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+
+                // Show polishing state
+                document.getElementById('voice-bar-icon').innerHTML =
+                    '<svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><path d="M12 2a10 10 0 109.8 7.5"/></svg>';
+                document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '整理中...' : 'Polishing...';
+                document.getElementById('voice-bar-text').className = 'text-sm text-white/60 font-light flex-1 min-w-0';
+                document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-yellow-500';
+                document.getElementById('voice-bar-dot').style.animation = 'none';
+                document.getElementById('voice-bar-status').innerText = currentLang === 'zh' ? '整理中' : 'Polishing';
+                document.getElementById('voice-bar-status').className = 'text-[9px] uppercase tracking-widest text-yellow-400/70';
+
+                // Polish async, then fill
+                polishAndFill(rawText);
+                return; // polishAndFill handles cleanup
+            } else if (mediaRecorder) {
+                // WebSpeech failed → fallback to MediaRecorder → backend faster-whisper
+                document.getElementById('voice-bar-icon').innerHTML =
+                    '<svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><path d="M12 2a10 10 0 109.8 7.5"/></svg>';
+                document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别中...' : 'Transcribing...';
+                document.getElementById('voice-bar-text').className = 'text-sm text-white/60 font-light flex-1 min-w-0';
+                document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-yellow-500';
+                document.getElementById('voice-bar-dot').style.animation = 'none';
+                document.getElementById('voice-bar-status').innerText = currentLang === 'zh' ? '识别中' : 'Transcribing';
+                document.getElementById('voice-bar-status').className = 'text-[9px] uppercase tracking-widest text-yellow-400/70';
+                console.log('[Voice] WebSpeech no result, falling back to MediaRecorder');
+                try { mediaRecorder.stop(); } catch (e) { console.error('[Voice] stop error:', e); cancelVoiceInput(); }
+            } else {
+                cancelVoiceInput();
+            }
+        }
+
+        async function polishAndFill(rawText) {
+            // Call /api/clean-text to add punctuation and clean fillers
+            try {
+                const resp = await fetch(API_BASE + API_PREFIX + '/clean-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: rawText, lang: currentLang || 'zh' })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    const cleaned = (data.cleaned || '').trim();
+                    if (cleaned && cleaned.length >= rawText.length * 0.3) {
+                        console.log('[Voice] Polished:', JSON.stringify(cleaned));
+                        _fillVoiceText(cleaned);
+                    } else {
+                        console.log('[Voice] Polish returned degraded output, using raw');
+                        _fillVoiceText(rawText);
+                    }
+                } else {
+                    console.warn('[Voice] Polish failed HTTP', resp.status);
+                    _fillVoiceText(rawText);
+                }
+            } catch (err) {
+                console.warn('[Voice] Polish error:', err);
+                _fillVoiceText(rawText);
+            }
+            isProcessing = false;
+            setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 600);
+        }
+
+        function _fillVoiceText(text) {
+            // Shared helper: fill text into input and show success UI
+            const ta = document.getElementById('t-chat-placeholder');
+            const prev = ta.value.trim();
+            const sep = (prev && !/[\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a.!?,;:\n]$/.test(prev)) ? ' ' : '';
+            ta.value = prev + sep + text;
+            ta.dispatchEvent(new Event('input'));
+            document.getElementById('voice-bar-icon').innerHTML =
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>';
+            document.getElementById('voice-bar-text').innerHTML = '&#8203;';
+            document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-green-500';
+            document.getElementById('voice-bar-dot').style.animation = 'none';
+            document.getElementById('voice-bar-status').innerText = currentLang === 'zh' ? '完成' : 'Done';
+            document.getElementById('voice-bar-status').className = 'text-[9px] uppercase tracking-widest text-green-400/70';
+        }
+
+        async function processVoiceAudio() {
+            // Fallback: send recorded audio to /api/transcribe (local faster-whisper)
+            if (voiceCanceled) return;
+            if (!audioChunks.length) {
+                console.warn('[Voice] No audio chunks to process');
+                cancelVoiceInput(); return;
+            }
+            const blob = new Blob(audioChunks, { type: mediaRecorder ? mediaRecorder.mimeType || 'audio/webm' : 'audio/webm' });
+            console.log('[Voice] Sending', blob.size, 'bytes to /api/transcribe');
+            const formData = new FormData();
+            formData.append('audio', blob, 'recording.webm');
+            formData.append('lang', currentLang === 'zh' ? 'zh' : 'en');
+            try {
+                const resp = await fetch(API_BASE + API_PREFIX + '/transcribe', { method: 'POST', body: formData });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + await resp.text().catch(() => ''));
+                const data = await resp.json();
+                const text = (data.text || '').trim();
+                console.log('[Voice] Whisper result:', JSON.stringify(text));
+                if (!text) throw new Error('Empty transcription result');
+                _fillVoiceText(text);
+                isProcessing = false;
+                setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 600);
+            } catch (err) {
+                console.error('[Voice] Whisper failed:', err);
+                document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别失败，请重试' : 'Transcription failed';
+                document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-red-500';
+                document.getElementById('voice-bar-status').innerText = 'Error';
+                isProcessing = false;
+                setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 2000);
+            }
+        }
+
+        function cancelVoiceInput() {
+            voiceCanceled = true;
+            if (wsRecognition) { try { wsRecognition.stop(); } catch (e) {} wsRecognition = null; }
+            try { if (mediaRecorder && isRecording) mediaRecorder.stop(); } catch (e) {}
+            if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+            mediaRecorder = null;
+            audioChunks = [];
+            wsFinalText = '';
+            isRecording = false; isProcessing = false;
+            document.getElementById('voice-bar').classList.add('hidden');
+            resetVoiceUI();
+        }
+
+        function resetVoiceUI() {
+            const btn = document.getElementById('t-voice-btn');
+            const label = document.getElementById('t-voice-label');
+            btn.classList.remove('voice-recording');
+            label.innerText = currentLang === 'zh' ? '语音' : 'Voice';
+            document.getElementById('input-status-dot').className = 'w-1.5 h-1.5 rounded-full bg-accent animate-pulse';
+            document.getElementById('t-input-status-text').innerText = currentLang === 'zh' ? '等待输入' : 'Awaiting Transmission';
+        }
+// --- Video with Adaptive Bitrate (optimized) ---
+        const video = document.getElementById('hero-video');
+        if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+            const hls = new Hls({
+                startLevel: -1,           // Auto-select quality
+                capLevelToPlayerSize: true,
+                maxBufferLength: 6,        // Reduce buffer for faster start
+                maxMaxBufferLength: 12,
+                startFragPrefetch: true,   // Prefetch first fragment
+            });
+            hls.loadSource('https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g.m3u8');
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
+                // Use highest available quality for crisp hero video
+                const levels = hls.levels;
+                if (levels.length > 1) {
+                    hls.currentLevel = levels.length - 1;
+                }
+                video.play().catch(() => {});
+            });
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) console.warn('HLS error:', data);
+            });
+        }
+
+        // ===== Aetheris Design System: Interactive Particle Canvas (120 particles, mouse reactive) =====
+        (function initParticleCanvas() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 40;
+            let mouse = { x: -1000, y: -1000, active: false };
+            const aura = document.getElementById('nebula-bg');
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            document.addEventListener('mousemove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+                mouse.active = true;
+                if (aura) {
+                    aura.style.setProperty('--mouse-x', `${e.clientX}px`);
+                    aura.style.setProperty('--mouse-y', `${e.clientY}px`);
+                }
+                // Cursor glow
+                const glow = document.getElementById('cursor-glow');
+                if (glow) {
+                    glow.style.left = e.clientX + 'px';
+                    glow.style.top = e.clientY + 'px';
+                }
+            });
+
+            document.addEventListener('mouseleave', () => { mouse.active = false; });
+
+            class Particle {
+                constructor() {
+                    this.init();
+                }
+                init() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.baseOpacity = Math.random() * 0.4 + 0.1;
+                }
+                update() {
+                    // Reactive dynamics: magnetic attraction + repulsion when too close
+                    if (mouse.active) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const maxDist = 250;
+                        if (dist < maxDist) {
+                            const force = (maxDist - dist) / maxDist;
+                            const strength = 0.08;
+                            if (dist < 80) {
+                                this.vx -= (dx / dist) * force * strength * 2.5;
+                                this.vy -= (dy / dist) * force * strength * 2.5;
+                            } else {
+                                this.vx += (dx / dist) * force * strength;
+                                this.vy += (dy / dist) * force * strength;
+                            }
+                        }
+                    }
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vx *= 0.98;
+                    this.vy *= 0.98;
+                    if (Math.abs(this.vx) < 0.05) this.vx += (Math.random() - 0.5) * 0.02;
+                    if (Math.abs(this.vy) < 0.05) this.vy += (Math.random() - 0.5) * 0.02;
+                    if (this.x < 0) this.x = canvas.width;
+                    if (this.x > canvas.width) this.x = 0;
+                    if (this.y < 0) this.y = canvas.height;
+                    if (this.y > canvas.height) this.y = 0;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(168, 202, 237, ${this.baseOpacity})`;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+
+            let animFrameId = null;
+            function startAnim() {
+                function loop() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.lineWidth = 0.5;
+                    for (let i = 0; i < particles.length; i++) {
+                        const p1 = particles[i];
+                        p1.update();
+                        p1.draw();
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const p2 = particles[j];
+                            const dx = p1.x - p2.x;
+                            const dy = p1.y - p2.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 150) {
+                                ctx.strokeStyle = `rgba(168, 202, 237, ${(1 - dist / 150) * 0.15})`;
+                                ctx.beginPath();
+                                ctx.moveTo(p1.x, p1.y);
+                                ctx.lineTo(p2.x, p2.y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                    animFrameId = requestAnimationFrame(loop);
+                }
+                loop();
+            }
+            function stopAnim() {
+                if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+            }
+            document.addEventListener('visibilitychange', () => {
+                document.hidden ? stopAnim() : startAnim();
+            });
+            startAnim();
+        })();
+
+        // ===== Aetheris Design System: Scroll Reveal =====
+        (function initScrollReveal() {
+            window.__scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => window.__scrollObserver.observe(el));
+        })();
+
+        // --- Loader removed: init directly ---
+        async function init() {
+            await initSession();
+            renderLanguage();
+            initReferral();
+            checkReferralStatus();
+
+            // --- Voice button: addEventListener (more reliable than inline handlers) ---
+            const voiceBtn = document.getElementById('t-voice-btn');
+            if (voiceBtn) {
+                let voiceMouseDown = false;
+                const onVoiceStart = (e) => { e.preventDefault(); voiceMouseDown = true; startVoiceInput(); };
+                const onVoiceEnd = (e) => { if (voiceMouseDown) { voiceMouseDown = false; stopVoiceInput(); } };
+                voiceBtn.addEventListener('mousedown', onVoiceStart);
+                voiceBtn.addEventListener('mouseup', onVoiceEnd);
+                voiceBtn.addEventListener('mouseleave', onVoiceEnd);
+                voiceBtn.addEventListener('touchstart', onVoiceStart, { passive: false });
+                voiceBtn.addEventListener('touchend', onVoiceEnd);
+                voiceBtn.addEventListener('touchcancel', onVoiceEnd);
+            }
+
+            // PayPal JS SDK: load in background (doesn't block page)
+            initPayPalSdk();
+            
+            // Check if user just returned from PayPal payment
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'success') {
+                const email = urlParams.get('email') || userEmail;
+                if (email) {
+                    await checkPayPalPremium(email);
+                    setTimeout(() => alert('🎉 Payment successful! Your premium access is now active.'), 500);
+                } else {
+                    setTimeout(() => alert('🎉 Payment successful! Please enter your email to activate premium.'), 500);
+                }
+                // Clean URL
+                window.history.replaceState({}, '', window.location.pathname);
+            } else if (urlParams.get('payment') === 'cancel') {
+                setTimeout(() => alert('Payment was cancelled. You can try again anytime.'), 300);
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+            
+            // Navbar visible immediately (no GSAP delay)
+            const navbar = document.getElementById('navbar');
+            if (navbar) {
+                navbar.style.opacity = '1';
+                // Scroll-driven navbar: add solid background when past hero
+                const hero = document.getElementById('hero');
+                window.addEventListener('scroll', () => {
+                    const heroBottom = hero ? hero.offsetHeight : 400;
+                    if (window.scrollY > heroBottom - 80) {
+                        navbar.style.background = 'rgba(20,20,20,0.92)';
+                        navbar.style.borderBottomColor = 'rgba(255,255,255,0.08)';
+                    } else {
+                        navbar.style.background = 'rgba(20,20,20,0.05)';
+                        navbar.style.borderBottomColor = 'rgba(255,255,255,0.02)';
+                    }
+                });
+            }
+
+            // Atmosphere Sliders (labels from i18n)
+            const labelMap = { 'atmo-intensity-val': 'atmo_labels_i', 'atmo-lucidity-val': 'atmo_labels_l', 'atmo-vivid-val': 'atmo_labels_v' };
+            document.querySelectorAll('input[type="range"][data-label]').forEach(slider => {
+                const labelId = slider.dataset.label;
+                const labelEl = document.getElementById(labelId);
+                const i18nKey = labelMap[labelId];
+                const labels = i18nKey ? JSON.parse(i18n[currentLang][i18nKey]) : JSON.parse(slider.dataset.labels || '[]');
+                function updateLabel() {
+                    const idx = Math.min(Math.floor((parseInt(slider.value) - 1) / (10 / labels.length)), labels.length - 1);
+                    if (labelEl) labelEl.textContent = labels[idx];
+                }
+                slider.addEventListener('input', updateLabel);
+                updateLabel();
+            });
+
+            // Symbol Input Tags with i18n
+            const symInput = document.getElementById('symbol-input');
+            const symContainer = document.getElementById('symbol-tag-container');
+            const symPlaceholder = document.getElementById('t-symbol-placeholder');
+            if (symInput && symContainer) {
+                symInput.placeholder = i18n[currentLang].symbol_ph || '输入意象并回车...';
+                // No default tags — user starts with empty container + hint
+
+                function refreshPlaceholder() {
+                    const hasTags = symContainer.querySelectorAll('.symbol-tag-item').length > 0;
+                    if (symPlaceholder) symPlaceholder.style.display = hasTags ? 'none' : 'inline';
+                }
+                refreshPlaceholder();
+
+                symInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && symInput.value.trim() !== '') {
+                        e.preventDefault();
+                        const tag = document.createElement('span');
+                        tag.className = 'bg-accent/10 text-accent px-3 py-1 rounded-full text-[10px] flex items-center gap-1 symbol-tag-item';
+                        tag.innerHTML = `${symInput.value.trim()} <button class="text-accent/60 hover:text-white text-xs ml-0.5" type="button" onclick="this.parentElement.remove()">✕</button>`;
+                        symContainer.appendChild(tag);
+                        refreshPlaceholder();
+                        symInput.value = '';
+                    }
+                });
+                // Watch for tag removal to update placeholder
+                const observer = new MutationObserver(refreshPlaceholder);
+                observer.observe(symContainer, { childList: true });
+            }
+
+            // Environment Icon click highlight
+            document.querySelectorAll('.env-icon').forEach(icon => {
+                icon.addEventListener('click', () => {
+                    icon.classList.toggle('active');
+                    const svg = icon.querySelector('svg');
+                    const span = icon.querySelector('span');
+                    if (icon.classList.contains('active')) {
+                        svg?.classList.add('text-accent');
+                        span?.classList.add('text-accent');
+                    } else {
+                        svg?.classList.remove('text-accent');
+                        span?.classList.remove('text-accent');
+                    }
+                });
+            });
+
+            // Input status text: update on typing
+            const inputEl = document.getElementById('t-chat-placeholder');
+            const statusText = document.getElementById('t-input-status-text');
+            if (inputEl && statusText) {
+                inputEl.addEventListener('input', function() {
+                    const t = i18n[currentLang];
+                    if (this.value.length > 0) {
+                        statusText.textContent = t.input_status_active || 'Synchronizing Frequencies...';
+                        statusText.classList.add('text-accent');
+                        document.getElementById('input-status-dot')?.classList.add('animate-pulse');
+                    } else {
+                        statusText.textContent = t.input_status_text || 'Awaiting Transmission';
+                        statusText.classList.remove('text-accent');
+                        document.getElementById('input-status-dot')?.classList.remove('animate-pulse');
+                    }
+                });
+            }
+
+        }
+
+        // Auto-init on DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+
+        // --- Environment Popup (positioned near icon) ---
+        function openEnvPopup(type) {
+            const popup = document.getElementById('env-popup');
+            const title = document.getElementById('env-popup-title');
+            const body = document.getElementById('env-popup-body');
+            const btn = event.target;
+
+            body.innerHTML = '';
+
+            if (type === 'presleep') {
+                title.innerText = currentLang === 'zh' ? '睡前状态' : 'Before Sleep';
+                const opts = currentLang === 'zh'
+                    ? ['疲惫', '平静', '兴奋', '焦虑', '冥想后']
+                    : ['Exhausted', 'Calm', 'Excited', 'Anxious', 'After Meditation'];
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
+                    btn.innerText = o;
+                    btn.onclick = () => { document.getElementById('t-env-presleep').innerText = o; document.getElementById('t-env-presleep').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    grid.appendChild(btn);
+                });
+                body.appendChild(grid);
+            } else if (type === 'quality') {
+                title.innerText = currentLang === 'zh' ? '睡眠质量' : 'Sleep Quality';
+                const opts = currentLang === 'zh'
+                    ? ['很差', '一般', '好', '非常好']
+                    : ['Poor', 'Fair', 'Good', 'Excellent'];
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
+                    btn.innerText = o;
+                    btn.onclick = () => { document.getElementById('t-env-quality').innerText = o; document.getElementById('t-env-quality').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    grid.appendChild(btn);
+                });
+                body.appendChild(grid);
+            } else if (type === 'mood') {
+                title.innerText = currentLang === 'zh' ? '梦境情绪基调' : 'Dream Mood';
+                const opts = currentLang === 'zh'
+                    ? ['恐惧', '平静', '兴奋', '悲伤', '喜悦']
+                    : ['Fear', 'Calm', 'Excitement', 'Sadness', 'Joy'];
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
+                    btn.innerText = o;
+                    btn.onclick = () => { document.getElementById('t-env-mood').innerText = o; document.getElementById('t-env-mood').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    grid.appendChild(btn);
+                });
+                body.appendChild(grid);
+            } else if (type === 'dreamtype') {
+                title.innerText = currentLang === 'zh' ? '梦境类型' : 'Dream Type';
+                const opts = currentLang === 'zh'
+                    ? ['清醒梦', '普通梦', '噩梦', '重复梦', '预知梦']
+                    : ['Lucid Dream', 'Ordinary', 'Nightmare', 'Repeating', 'Premonition'];
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
+                    btn.innerText = o;
+                    btn.onclick = () => { document.getElementById('t-env-dreamtype').innerText = o; document.getElementById('t-env-dreamtype').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    grid.appendChild(btn);
+                });
+                body.appendChild(grid);
+            } else if (type === 'stress') {
+                title.innerText = currentLang === 'zh' ? '近期压力等级' : 'Stress Level';
+                const opts = currentLang === 'zh'
+                    ? ['无', '轻度', '中等', '高压']
+                    : ['None', 'Mild', 'Moderate', 'High'];
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 gap-2';
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
+                    btn.innerText = o;
+                    btn.onclick = () => { document.getElementById('t-env-stress').innerText = o; document.getElementById('t-env-stress').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    grid.appendChild(btn);
+                });
+                body.appendChild(grid);
+            }
+
+            // Position near the clicked icon
+            const rect = btn.getBoundingClientRect();
+            const popupW = 320;
+            let left = rect.left + rect.width / 2 - popupW / 2;
+            let top = rect.bottom + 8;
+
+            // Keep within viewport
+            if (left < 12) left = 12;
+            if (left + popupW > window.innerWidth - 12) left = window.innerWidth - popupW - 12;
+            if (top + 300 > window.innerHeight) top = rect.top - 300;
+
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+            popup.style.display = 'block';
+            popup.style.opacity = '1';
+            gsap.from(popup, { opacity: 0, y: -8, duration: 0.25 });
+        }
+
+        function closeEnvPopup() {
+            const popup = document.getElementById('env-popup');
+            gsap.to(popup, { opacity: 0, y: -8, duration: 0.15, onComplete: () => {
+                popup.style.display = 'none';
+                popup.style.opacity = 1;
+            }});
+        }
+
+        // Click outside to close environment popup
+        document.addEventListener('click', function(e) {
+            const popup = document.getElementById('env-popup');
+            if (popup.style.display !== 'none' && !popup.contains(e.target) && !e.target.closest('.env-icon')) {
+                closeEnvPopup();
+            }
+        });
+
+        // --- Archive Dashboard (Demo Mode) ---
+        const archivePanels = [
+            // Tab 0: Lucid Dreaming Stats
+            {
+                en: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="flex flex-col items-start gap-4">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest">Lucid Dream Overview</span>
+                        <div class="flex items-center gap-6">
+                            <svg class="w-24 h-24 -rotate-90 flex-shrink-0" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="48" fill="none" stroke="#89AACC" stroke-width="8" stroke-dasharray="302" stroke-dashoffset="181" stroke-linecap="round"/>
+                            </svg>
+                            <div><span class="text-3xl font-display italic text-white">40%</span><br><span class="text-[9px] text-gray-500">lucidity rate</span><br><span class="text-sm text-gray-400 mt-1 block">12 lucid dreams<br>this month</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">Recent Lucid Dreams</span>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">Flying through a crystal cave</span><span class="text-[9px] text-gray-500">Oct 28</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">Lucid</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-amber-400/50 flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">Conversation with my shadow self</span><span class="text-[9px] text-gray-500">Oct 26</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400/80">Vivid</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">Controlling the ocean tide</span><span class="text-[9px] text-gray-500">Oct 24</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">Lucid</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-white/10 flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">Walking through mirror doors</span><span class="text-[9px] text-gray-500">Oct 22</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400">Normal</span></div>
+                    </div>
+                </div>`,
+                zh: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="flex flex-col items-start gap-4">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest">清醒梦概览</span>
+                        <div class="flex items-center gap-6">
+                            <svg class="w-24 h-24 -rotate-90 flex-shrink-0" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+                                <circle cx="60" cy="60" r="48" fill="none" stroke="#89AACC" stroke-width="8" stroke-dasharray="302" stroke-dashoffset="181" stroke-linecap="round"/>
+                            </svg>
+                            <div><span class="text-3xl font-display italic text-white">40%</span><br><span class="text-[9px] text-gray-500">清醒率</span><br><span class="text-sm text-gray-400 mt-1 block">本月 12 次<br>清醒梦</span></div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">近期清醒梦境</span>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">在晶体洞穴中飞行</span><span class="text-[9px] text-gray-500">10/28</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">清醒</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-amber-400/50 flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">与阴影自我对话</span><span class="text-[9px] text-gray-500">10/26</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400/80">生动</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-accent flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">控制海洋潮汐</span><span class="text-[9px] text-gray-500">10/24</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">清醒</span></div>
+                        <div class="flex items-center gap-3 py-1.5"><span class="w-2 h-2 rounded-full bg-white/10 flex-shrink-0"></span><span class="text-xs text-white/80 flex-1">穿过镜门行走</span><span class="text-[9px] text-gray-500">10/22</span><span class="text-[8px] px-1.5 py-0.5 rounded bg-white/10 text-gray-400">普通</span></div>
+                    </div>
+                </div>`
+            },
+            // Tab 1: Archetypal Symbols
+            {
+                en: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">Symbol Frequency</span>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">Flying</span><span class="text-gray-500">12x</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:85%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">Falling</span><span class="text-gray-500">9x</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:64%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">Water / Ocean</span><span class="text-gray-500">7x</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-400/60 rounded-full" style="width:50%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">Being Chased</span><span class="text-gray-500">6x</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:43%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">Lost Teeth</span><span class="text-gray-500">4x</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-400/60 rounded-full" style="width:29%"></div></div></div>
+                    </div>
+                    <div class="space-y-3 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">Symbol Interpretation</span>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-accent font-bold">Flying</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">Desire for freedom, escape from constraints, or spiritual elevation.</p></div>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-amber-400/80 font-bold">Being Chased</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">Avoiding a problem or fear in waking life that needs attention.</p></div>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-accent font-bold">Water</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">Emotions, the unconscious mind, depth of feeling.</p></div>
+                    </div>
+                </div>`,
+                zh: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">符号频率排名</span>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">飞行</span><span class="text-gray-500">12次</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:85%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">坠落</span><span class="text-gray-500">9次</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:64%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">水/海洋</span><span class="text-gray-500">7次</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-400/60 rounded-full" style="width:50%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">被追赶</span><span class="text-gray-500">6次</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-accent rounded-full" style="width:43%"></div></div></div>
+                        <div><div class="flex justify-between text-xs mb-1"><span class="text-white/80">掉牙</span><span class="text-gray-500">4次</span></div><div class="h-1.5 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-amber-400/60 rounded-full" style="width:29%"></div></div></div>
+                    </div>
+                    <div class="space-y-3 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">符号解析</span>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-accent font-bold">飞行</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">自由的渴望，摆脱束缚，或精神升华的象征。</p></div>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-amber-400/80 font-bold">被追赶</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">逃避现实中需要面对的问题或恐惧。</p></div>
+                        <div class="p-3 rounded-lg" style="background:rgba(137,170,204,0.04);border:1px solid rgba(137,170,204,0.06);"><span class="text-xs text-accent font-bold">水/海洋</span><p class="text-[10px] text-gray-400 mt-1 leading-relaxed">情绪、潜意识、情感的深度。</p></div>
+                    </div>
+                </div>`
+            },
+            // Tab 2: Deep REM Analysis
+            {
+                en: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">REM Metrics</span>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-4 rounded-xl" style="background:rgba(137,170,204,0.06);border:1px solid rgba(137,170,204,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">Avg. REM</span><div class="text-xl font-display italic text-white mt-1">112<span class="text-[10px] text-gray-500"> min</span></div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">Cycles</span><div class="text-xl font-display italic text-white mt-1">4.7<span class="text-[10px] text-gray-500"> /night</span></div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(137,170,204,0.06);border:1px solid rgba(137,170,204,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">Intensity</span><div class="text-xl font-display italic text-white mt-1">High</div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">Recall</span><div class="text-xl font-display italic text-white mt-1">3.2<span class="text-[10px] text-gray-500"> /5</span></div></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">Sleep Architecture</span>
+                        <div class="flex gap-1 h-16 items-end mb-1"><div class="flex-1 rounded-t-sm transition-all" style="height:25%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:50%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:85%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:40%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:70%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:30%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:95%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:45%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:80%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:35%;background:rgba(137,170,204,0.15)"></div></div>
+                        <div class="flex justify-between text-[7px] text-gray-600"><span>10PM</span><span>12AM</span><span>2AM</span><span>4AM</span><span>6AM</span></div>
+                        <div class="flex items-center gap-4 mt-3"><span class="flex items-center gap-1.5 text-[8px] text-gray-500"><span class="w-2 h-2 rounded-sm bg-accent/35"></span>REM phase</span><span class="flex items-center gap-1.5 text-[8px] text-gray-500"><span class="w-2 h-2 rounded-sm" style="background:rgba(137,170,204,0.15)"></span>Deep sleep</span></div>
+                    </div>
+                </div>`,
+                zh: `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">REM 指标</span>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-4 rounded-xl" style="background:rgba(137,170,204,0.06);border:1px solid rgba(137,170,204,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">平均REM时长</span><div class="text-xl font-display italic text-white mt-1">112<span class="text-[10px] text-gray-500"> 分钟</span></div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">周期数</span><div class="text-xl font-display italic text-white mt-1">4.7<span class="text-[10px] text-gray-500"> /晚</span></div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(137,170,204,0.06);border:1px solid rgba(137,170,204,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">梦境强度</span><div class="text-xl font-display italic text-white mt-1">高</div></div>
+                            <div class="p-4 rounded-xl" style="background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.1);"><span class="text-[8px] uppercase tracking-widest text-gray-500">回忆评分</span><div class="text-xl font-display italic text-white mt-1">3.2<span class="text-[10px] text-gray-500"> /5</span></div></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3 border-l border-white/5 pl-6">
+                        <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-3">睡眠结构分析</span>
+                        <div class="flex gap-1 h-16 items-end mb-1"><div class="flex-1 rounded-t-sm transition-all" style="height:25%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:50%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:85%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:40%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:70%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:30%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:95%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:45%;background:rgba(137,170,204,0.15)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:80%;background:rgba(137,170,204,0.35)"></div><div class="flex-1 rounded-t-sm transition-all" style="height:35%;background:rgba(137,170,204,0.15)"></div></div>
+                        <div class="flex justify-between text-[7px] text-gray-600"><span>10PM</span><span>12AM</span><span>2AM</span><span>4AM</span><span>6AM</span></div>
+                        <div class="flex items-center gap-4 mt-3"><span class="flex items-center gap-1.5 text-[8px] text-gray-500"><span class="w-2 h-2 rounded-sm bg-accent/35"></span>REM阶段</span><span class="flex items-center gap-1.5 text-[8px] text-gray-500"><span class="w-2 h-2 rounded-sm" style="background:rgba(137,170,204,0.15)"></span>深睡</span></div>
+                    </div>
+                </div>`
+            }
+        ];
+
+        function switchArchiveTab(idx) {
+            const dashboard = document.getElementById('archive-dashboard');
+            const tabs = document.querySelectorAll('#archive-tabs button');
+            if (!dashboard) return;
+            tabs.forEach((btn, i) => {
+                if (i === idx) {
+                    btn.style.background = 'rgba(137,170,204,0.12)';
+                    btn.style.color = '#89AACC';
+                    btn.style.borderColor = 'rgba(137,170,204,0.25)';
+                } else {
+                    const isAmber = i === 1;
+                    btn.style.background = isAmber ? 'rgba(251,191,36,0.05)' : 'rgba(137,170,204,0.05)';
+                    btn.style.color = isAmber ? 'rgba(251,191,36,0.6)' : 'rgba(137,170,204,0.6)';
+                    btn.style.borderColor = isAmber ? 'rgba(251,191,36,0.1)' : 'rgba(137,170,204,0.1)';
+                }
+            });
+            const data = archivePanels[idx][currentLang] || archivePanels[idx].en;
+            dashboard.innerHTML = data;
+            gsap.from(dashboard.children, { opacity: 0, y: 12, duration: 0.3, stagger: 0.05 });
+        }
+
+        // Init archive tabs
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('#archive-tabs button').forEach(btn => {
+                btn.addEventListener('click', () => switchArchiveTab(parseInt(btn.dataset.tab)));
+            });
+            switchArchiveTab(0);
+        });
+
+        // ===== Symbol Quick Search =====
+        async function lookupSymbol() {
+            const input = document.getElementById('t-symbols-search-ph');
+            const symbol = input ? input.value.trim() : '';
+            if (!symbol) return;
+            const resultDiv = document.getElementById('symbol-result');
+            const resultContent = document.getElementById('symbol-result-content');
+            const loadingDiv = document.getElementById('symbol-loading');
+            const emptyDiv = document.getElementById('symbol-empty');
+            // Show loading
+            if (resultDiv) resultDiv.classList.add('hidden');
+            if (emptyDiv) emptyDiv.classList.add('hidden');
+            if (loadingDiv) loadingDiv.classList.remove('hidden');
+            try {
+                const res = await fetch('/api/symbol-lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbol, lang: currentLang })
+                });
+                const data = await res.json();
+                if (loadingDiv) loadingDiv.classList.add('hidden');
+                if (data.error) {
+                    if (resultContent) resultContent.innerText = data.error;
+                } else {
+                    if (resultContent) resultContent.innerHTML = data.interpretation;
+                }
+                if (resultDiv) resultDiv.classList.remove('hidden');
+            } catch (e) {
+                if (loadingDiv) loadingDiv.classList.add('hidden');
+                if (resultContent) resultContent.innerText = 'Failed to connect. Please try again.';
+                if (resultDiv) resultDiv.classList.remove('hidden');
+            }
+        }
+
+        function quickSymbol(symbol) {
+            const input = document.getElementById('t-symbols-search-ph');
+            if (input) {
+                input.value = symbol;
+                lookupSymbol();
+            }
+        }
+
+        function renderSymbolTags() {
+            const container = document.getElementById('symbol-tags');
+            if (!container) return;
+            const lang = currentLang;
+            const tags = [
+                { en: 'Water', zh: '水', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M10 2c0 2-4 5-4 8 0 2 2 4 4 4s4-2 4-4c0-3-4-6-4-8z" opacity="0.75"/></svg>' },
+                { en: 'Snake', zh: '蛇', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M4 16c1-4 3-7 9-7 3 0 4 2 3 3s-2 2-4 1c-1-1 0-3 1-3" opacity="0.8"/></svg>' },
+                { en: 'Fire', zh: '火焰', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><path d="M10 3c0 2-3 5-3 8 0 2 1 3 3 3s3-1 3-3c0-3-3-6-3-8z" opacity="0.75"/><path d="M8 10c1 1 2 2 3 1" opacity="0.5"/></svg>' },
+                { en: 'House', zh: '房子', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M4 9l6-5 6 5" opacity="0.6"/><path d="M6 8v7c0 1 1 1 1 1h6s1 0 1-1V8" opacity="0.75"/></svg>' },
+                { en: 'Ocean', zh: '海洋', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M3 13c2-2 4-2 6 0s4 2 6 0" opacity="0.6"/><path d="M3 16c2-2 4-2 6 0s4 2 6 0" opacity="0.4"/></svg>' },
+                { en: 'Spider', zh: '蜘蛛', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><circle cx="10" cy="10" r="1.5" opacity="0.7"/><path d="M5 5l5 5 5-5" opacity="0.4"/><path d="M5 15l5-5 5 5" opacity="0.4"/><path d="M3 10l14 0" opacity="0.3"/></svg>' },
+                { en: 'Baby', zh: '婴儿', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><circle cx="10" cy="7" r="2.5" opacity="0.7"/><path d="M6 16c1-3 2-4 4-4s3 1 4 4" opacity="0.6"/></svg>' },
+                { en: 'Dog', zh: '狗', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5"><circle cx="10" cy="12" r="4" opacity="0.65"/><path d="M7 8L6 4l3 2" opacity="0.5"/><path d="M13 8l1-4-3 2" opacity="0.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor" opacity="0.2"/><circle cx="12" cy="11" r="0.5" fill="currentColor" opacity="0.2"/></svg>' },
+                { en: 'Tree', zh: '树', svg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="w-3.5 h-3.5"><path d="M10 3L5 10h10L10 3z" opacity="0.7"/><path d="M10 10v7" opacity="0.5"/><path d="M7 14h6" opacity="0.35"/></svg>' }
+            ];
+            container.innerHTML = tags.map(t => `
+                <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[9px] uppercase tracking-widest rounded-full border border-white/10 text-gray-400 hover:text-white hover:border-accent/30 transition-all" onclick="quickSymbol('${t.en}')">
+                    ${t.svg} ${t[lang] || t.en}
+                </button>
+            `).join('');
+        }
+
+        // Init symbol search on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render symbol tags with i18n
+            renderSymbolTags();
+            // Symbol search: Enter key support
+            const searchInput = document.getElementById('t-symbols-search-ph');
+            if (searchInput) {
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') lookupSymbol();
+                });
+            }
+        });
+
+        // Observe scroll reveals for new dream cards
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+                if (window.__scrollObserver) window.__scrollObserver.observe(el);
+            });
+        });
+    </script>
+
+    <!-- Environment Popup (positioned near icon) -->
+    <div id="env-popup" style="display:none;position:fixed;z-index:200;background:#141414;border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:24px;width:320px;box-shadow:0 8px 40px rgba(0,0,0,0.6);" class="relative">
+        <button onclick="closeEnvPopup()" class="absolute top-3 right-3 text-gray-500 hover:text-white text-base leading-none w-6 h-6 flex items-center justify-center rounded-full hover:bg-white/10 transition-all">&times;</button>
+        <h3 class="text-sm font-display italic text-white mb-4" id="env-popup-title">选择月相</h3>
+        <div id="env-popup-body"></div>
+    </div>
+</body>
+</html>
