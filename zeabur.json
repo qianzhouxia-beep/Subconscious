@@ -1,0 +1,7 @@
+{
+    "build": {
+        "provider": "python",
+        "python_version": "3.13"
+    },
+    "start": "gunicorn main:app -w 4 -b 0.0.0.0:${PORT:-8080}"
+}
