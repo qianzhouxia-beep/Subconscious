@@ -44,6 +44,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
 WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL", "base")  # base=145MB, faster & more accurate than tiny
 HTML_FILE = "index.html"
 DB_FILE = "mirror_data.db"
+BRAND_URL = os.environ.get("BASE_URL", "https://mirror.api-tokenmaster.com")
 
 if not DEEPSEEK_API_KEY:
     raise ValueError("DEEPSEEK_API_KEY environment variable is required")

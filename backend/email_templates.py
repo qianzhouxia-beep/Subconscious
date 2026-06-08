@@ -456,20 +456,6 @@ def send_email(to_email, subject, html_content):
         return False, error_msg
 
 
-def send_order_confirmation(email, order_data, lang="en"):
-    """
-    Send order confirmation email
-    order_data: dict with keys: customer_name, product_name, order_id, amount, date, status, cta_link
-    """
-    subjects = {
-        "en": "✨ Your Journey Begins — Order Confirmed",
-        "zh": "✨ 您的旅程现在开始 — 订单已确认"
-    }
-    
-    html = get_order_confirmation_template(order_data, lang)
-    return send_email(email, subjects.get(lang, subjects["en"]), html)
-
-
 def send_dream_report(email, report_data, lang="en"):
     """
     Send dream report ready email

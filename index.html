@@ -2723,5 +2723,60 @@
         <h3 class="text-sm font-display italic text-white mb-4" id="env-popup-title">选择月相</h3>
         <div id="env-popup-body"></div>
     </div>
+
+    <!-- Anchor Fix + Link Validator (built-in) -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // ============ Anchor Fix: smooth scroll + validate all fragment links ============
+        document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+            var targetId = link.getAttribute('href').substring(1);
+            if (!targetId) {
+                console.warn('[LinkCheck] Empty anchor:', link.outerHTML);
+                return;
+            }
+            var target = document.getElementById(targetId);
+            if (!target) {
+                console.warn('[LinkCheck] Broken anchor: #' + targetId + ' at', link.outerHTML.substring(0, 80));
+            }
+            // Ensure smooth scroll behavior
+            link.addEventListener('click', function(e) {
+                var el = document.getElementById(targetId);
+                if (el) {
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // ============ External Link Validator ============
+        var deadPatterns = ['#', 'javascript:void(0)', 'javascript:;', ''];
+        document.querySelectorAll('a[href]').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (deadPatterns.indexOf(href.trim()) !== -1) {
+                console.warn('[LinkCheck] Dead link pattern:', href, 'at', link.outerHTML.substring(0, 80));
+            }
+        });
+
+        // ============ Image Validator (check broken src) ============
+        document.querySelectorAll('img').forEach(function(img) {
+            var src = img.getAttribute('src');
+            if (!src || src.trim() === '') {
+                console.warn('[LinkCheck] Empty image src:', img.outerHTML.substring(0, 80));
+            }
+            if (src && !src.startsWith('data:') && !src.startsWith('http')) {
+                // Internal asset — flag for review
+                img.addEventListener('error', function() {
+                    console.error('[LinkCheck] Broken image:', src);
+                });
+            }
+        });
+
+        console.log('[AnchorFix] Page validated: ' +
+            document.querySelectorAll('a[href^="#"]').length + ' anchors, ' +
+            document.querySelectorAll('img').length + ' images checked.');
+    })();
+    </script>
 </body>
 </html>
