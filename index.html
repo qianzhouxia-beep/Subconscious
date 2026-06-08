@@ -1901,7 +1901,7 @@
                 catch (ex) { console.log('[Voice] WebSpeech start failed:', ex); wsRecognition = null; }
             }
 
-            // Channel 2: MediaRecorder (backup recording, sent to faster-whisper if WebSpeech fails)
+            // Channel 2: MediaRecorder (backup recording, sent to Whisper API if WebSpeech fails)
             const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', ''].find(t => t === '' || MediaRecorder.isTypeSupported(t));
             mediaRecorder = new MediaRecorder(voiceStream, mimeType ? { mimeType } : undefined);
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunks.push(e.data); };
@@ -1949,7 +1949,7 @@
                 polishAndFill(rawText);
                 return; // polishAndFill handles cleanup
             } else if (mediaRecorder) {
-                // WebSpeech failed → fallback to MediaRecorder → backend faster-whisper
+                // WebSpeech failed → fallback to MediaRecorder → backend Whisper API
                 document.getElementById('voice-bar-icon').innerHTML =
                     '<svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#facc15" stroke-width="2.5"><path d="M12 2a10 10 0 109.8 7.5"/></svg>';
                 document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别中...' : 'Transcribing...';
@@ -2012,7 +2012,7 @@
         }
 
         async function processVoiceAudio() {
-            // Fallback: send recorded audio to /api/transcribe (local faster-whisper)
+            // Fallback: send recorded audio to /api/transcribe (Whisper API)
             if (voiceCanceled) return;
             if (!audioChunks.length) {
                 console.warn('[Voice] No audio chunks to process');
