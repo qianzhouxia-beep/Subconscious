@@ -9,8 +9,6 @@ import sqlite3
 import requests
 import time
 import uuid
-import tempfile
-import threading
 import zhconv
 from flask import Flask, request, jsonify, make_response, send_file
 from flask_cors import CORS
@@ -37,11 +35,6 @@ PAYPAL_SECRET = os.environ.get("PAYPAL_SECRET", "")
 PAYPAL_WEBHOOK_ID = os.environ.get("PAYPAL_WEBHOOK_ID", "")
 WHISPER_API_BASE = os.environ.get("WHISPER_API_BASE", "https://api-tokenmaster.com/v1/audio/transcriptions")
 WHISPER_API_KEY = os.environ.get("WHISPER_API_KEY", os.environ.get("DEEPSEEK_API_KEY", ""))
-# faster-whisper local model (lazy init)
-_whisper_model = None
-_whisper_lock = threading.Lock()
-MODEL_DIR = os.path.join(os.path.dirname(__file__), 'models')
-WHISPER_MODEL_SIZE = os.environ.get("WHISPER_MODEL", "base")  # base=145MB, faster & more accurate than tiny
 HTML_FILE = "index.html"
 DB_FILE = "mirror_data.db"
 BRAND_URL = os.environ.get("BASE_URL", "https://mirror.api-tokenmaster.com")
@@ -377,25 +370,6 @@ def clean_text():
 _FILLER_CHARS = frozenset('啊哦呃嗯嘛呢吧啦呀哟嘿诶嘶哈呵咳呣噢喔呗吖嘞啰')
 _FILLER_PHRASES = frozenset({'就是说', '反正', '怎么说呢', '这样子', '对不对', '是吧', '那个', '然后呢', '那啥', '怎么说'})
 
-def _post_process_whisper_text(text, lang='zh'):
-    """Local post-processing: T2S + filler removal. LLM polish handles punctuation."""
-    if not text: return text
-    # 1. Traditional → Simplified Chinese
-    if lang == 'zh':
-        try:
-            text = zhconv.convert(text, 'zh-cn')
-        except Exception:
-            pass
-    # 2. Replace multi-char filler phrases as substrings (handle adjacency like "那怎么说呢")
-    for phrase in sorted(_FILLER_PHRASES, key=len, reverse=True):
-        text = text.replace(phrase, ' ')
-    # 3. Collapse all delimiters to spaces, split into word tokens
-    text = re.sub(r'[\s,，。．！？…、；;：:]+', ' ', text).strip()
-    words = text.split()
-    # 4. Filter out standalone filler characters
-    clean = [w for w in words if w not in _FILLER_CHARS]
-    return ' '.join(clean)
-
 def _polish_via_llm(text, lang='zh'):
     """Use DeepSeek to add punctuation, correct errors, and clean up fillers."""
     if lang != 'zh' or not DEEPSEEK_API_KEY or not text:
@@ -425,72 +399,44 @@ def _polish_via_llm(text, lang='zh'):
         return text
 
 
-# --- WHISPER TRANSCRIPTION (audio → text, with post-processing pipeline) ---
+# --- WHISPER TRANSCRIPTION (audio → text via WHISPER_API_BASE) ---
 @app.route('/api/transcribe', methods=['POST', 'OPTIONS'])
 def transcribe():
-    """Transcribe audio: local faster-whisper → post-process (T2S + fillers → LLM polish)."""
+    """Transcribe audio via WHISPER_API_BASE endpoint."""
     if request.method == 'OPTIONS': return _cors(make_response())
     if 'audio' not in request.files:
         return _cors(jsonify({"error": "No audio file"}), 400)
     audio_file = request.files['audio']
     lang = request.form.get('lang', 'zh')
-    whisper_lang = 'zh' if lang == 'zh' else 'en'
-    tmp_path = None
-    try:
-        # Step 1: Save audio to temp file
-        suffix = '.webm' if audio_file.filename and audio_file.filename.endswith('.webm') else '.ogg'
-        tmp_fd, tmp_path = tempfile.mkstemp(suffix=suffix)
-        os.close(tmp_fd)
-        audio_file.save(tmp_path)
 
-        # Step 2: Local faster-whisper transcription
-        model = _get_whisper_model()
-        segments, info = model.transcribe(
-            tmp_path, language=whisper_lang,
-            beam_size=5, best_of=5, temperature=0.0,
-            condition_on_previous_text=False,
-            vad_filter=True
-        )
-        raw_text = ' '.join(seg.text.strip() for seg in segments).strip()
-        print(f"[Whisper] Raw ({whisper_lang}): {raw_text[:120] if raw_text else '(empty)'}")
+    # Fallback: if WHISPER_API_BASE not configured, return empty gracefully
+    if not WHISPER_API_BASE:
+        return _cors(jsonify({"text": ""}))
+
+    try:
+        # Send audio directly to Whisper API
+        files = {'file': (audio_file.filename or 'audio.webm', audio_file.read(), audio_file.content_type or 'audio/webm')}
+        headers = {'Authorization': f'Bearer {WHISPER_API_KEY}'}
+        data = {'model': 'whisper-1', 'language': lang}
+
+        resp = requests.post(WHISPER_API_BASE, headers=headers, files=files, data=data, timeout=30)
+        resp.raise_for_status()
+        res_json = resp.json()
+        raw_text = res_json.get('text', '').strip()
+        print(f"[Whisper API] Raw ({lang}): {raw_text[:120] if raw_text else '(empty)'}")
 
         if not raw_text:
             return _cors(jsonify({"text": ""}))
 
-        # Step 3: Local post-processing (T2S + filler removal)
-        cleaned = _post_process_whisper_text(raw_text, whisper_lang)
-        print(f"[Whisper] Cleaned: {cleaned[:120]}")
-
-        # Step 4: LLM polish (punctuation + error correction)
-        polished = _polish_via_llm(cleaned, whisper_lang)
-        print(f"[Whisper] Polished: {polished[:120]}")
+        # Polish via LLM (add punctuation, fix errors)
+        polished = _polish_via_llm(raw_text, lang)
+        print(f"[Whisper API] Polished: {polished[:120]}")
 
         return _cors(jsonify({"text": polished}))
     except Exception as e:
-        print(f"[Whisper] Error: {e}")
+        print(f"[Whisper API] Error: {e}")
         import traceback; traceback.print_exc()
         return _cors(jsonify({"error": str(e)}), 500)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            try: os.unlink(tmp_path)
-            except: pass
-
-
-def _get_whisper_model():
-    """Lazy-init faster-whisper model (thread-safe)."""
-    global _whisper_model
-    if _whisper_model is not None:
-        return _whisper_model
-    with _whisper_lock:
-        if _whisper_model is not None:
-            return _whisper_model
-        from faster_whisper import WhisperModel
-        print(f"[Whisper-local] Loading model '{WHISPER_MODEL_SIZE}' from {MODEL_DIR}...")
-        _whisper_model = WhisperModel(
-            WHISPER_MODEL_SIZE, device='cpu', compute_type='int8',
-            download_root=MODEL_DIR
-        )
-        print("[Whisper-local] Model loaded OK")
         return _whisper_model
 
 @app.route('/api/verify-license', methods=['POST', 'OPTIONS'])
