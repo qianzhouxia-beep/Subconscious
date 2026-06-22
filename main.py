@@ -12,6 +12,8 @@ import uuid
 import zhconv
 from flask import Flask, request, jsonify, make_response, send_file
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Add backend directory to path for email templates
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
@@ -27,7 +29,38 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app, supports_credentials=True)
 
+# --- RATE LIMITER ---
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
 # --- CONFIGURATION (ENV DRIVEN) ---
+import logging
+import json
+from datetime import datetime, timezone
+
+# 结构化 JSON 日志
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            import traceback
+            log_entry["exception"] = traceback.format_exception(*record.exc_info)
+        return json.dumps(log_entry, ensure_ascii=False)
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+logger = logging.getLogger("subconscious-mirror")
+
 DEEPSEEK_API_BASE = os.environ.get("DEEPSEEK_API_BASE", "https://api.deepseek.com/v1/chat/completions")
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")
@@ -38,44 +71,119 @@ WHISPER_API_KEY = os.environ.get("WHISPER_API_KEY", os.environ.get("DEEPSEEK_API
 HTML_FILE = "index.html"
 DB_FILE = "mirror_data.db"
 BRAND_URL = os.environ.get("BASE_URL", "https://mirror.api-tokenmaster.com")
+GUMROAD_PERMALINK = os.environ.get("GUMROAD_PERMALINK", "subconscious-mirror")
+ENABLE_TEST_MODE = os.environ.get("ENABLE_TEST_MODE", "0") == "1"
+TEST_LICENSE_KEY = os.environ.get("TEST_LICENSE_KEY", "TEST-MIRROR-2026") if ENABLE_TEST_MODE else None
+PRICE_USD = os.environ.get("PRICE_USD", "4.99")
 
 if not DEEPSEEK_API_KEY:
     raise ValueError("DEEPSEEK_API_KEY environment variable is required")
 
+# --- ERROR CLASSIFICATION ---
+class ServiceUnavailableError(Exception):
+    """外部服务不可用（AI API、支付网关等）"""
+    pass
+
+class ExternalAPIError(Exception):
+    """外部 API 返回错误"""
+    pass
+
+def classify_request_error(err, context=""):
+    """将 requests 异常分类为 HTTP 状态码和用户可读消息"""
+    if isinstance(err, requests.Timeout):
+        return 503, f"Service timeout: {context}"
+    if isinstance(err, requests.ConnectionError):
+        return 502, f"Cannot reach external service: {context}"
+    if isinstance(err, requests.HTTPError):
+        status = err.response.status_code if hasattr(err, 'response') else 500
+        if status == 429:
+            return 429, "AI service is busy, please try again in a moment"
+        elif status == 401:
+            return 500, "API authentication failed — please check server configuration"
+        elif status >= 500:
+            return 502, f"External service error: {context}"
+        return 502, f"External API error: {context}"
+    if isinstance(err, (sqlite3.OperationalError, sqlite3.DatabaseError)):
+        return 503, "Database temporarily unavailable"
+    if isinstance(err, (json.JSONDecodeError, KeyError, IndexError)):
+        return 502, f"Unexpected API response format: {context}"
+    if isinstance(err, ValueError):
+        return 400, str(err)
+    return 500, f"Internal error: {context}"
+
 
 # --- DATABASE LAYER ---
-def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
+from contextlib import contextmanager
+
+@contextmanager
+def get_db():
+    """获取数据库连接（context manager，自动关闭，启用 WAL 模式提升并发）"""
+    conn = sqlite3.connect(DB_FILE, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA foreign_keys=ON")
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+# 保留旧接口兼容性（逐步迁移）
+def get_db_connection():
+    conn = sqlite3.connect(DB_FILE, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
 def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS referrals (
-                        ref_id TEXT PRIMARY KEY,
-                        inviter_email TEXT,
-                        count INTEGER DEFAULT 0,
-                        unlocked INTEGER DEFAULT 0,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS referral_logs (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ref_id TEXT,
-                        visitor_ip TEXT,
-                        user_agent TEXT,
-                        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        UNIQUE(ref_id, visitor_ip, user_agent))''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS payments (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        email TEXT NOT NULL UNIQUE,
-                        status TEXT,
-                        license_key TEXT,
-                        timestamp REAL)''')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
-    conn.commit()
-    conn.close()
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''CREATE TABLE IF NOT EXISTS referrals (
+                            ref_id TEXT PRIMARY KEY,
+                            inviter_email TEXT,
+                            count INTEGER DEFAULT 0,
+                            unlocked INTEGER DEFAULT 0,
+                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS referral_logs (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            ref_id TEXT,
+                            visitor_ip TEXT,
+                            user_agent TEXT,
+                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE(ref_id, visitor_ip, user_agent))''')
+        cursor.execute('''CREATE TABLE IF NOT EXISTS payments (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            email TEXT NOT NULL UNIQUE,
+                            status TEXT,
+                            license_key TEXT,
+                            timestamp REAL)''')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
 
 init_db()
+
+# --- REQUEST LOGGING MIDDLEWARE ---
+@app.before_request
+def log_request():
+    request._start_time = time.time()
+
+@app.after_request
+def log_response(response):
+    elapsed_ms = int((time.time() - getattr(request, '_start_time', time.time())) * 1000)
+    logger.info("request", extra={
+        "method": request.method,
+        "path": request.path,
+        "status": response.status_code,
+        "elapsed_ms": elapsed_ms,
+        "ip": request.remote_addr,
+        "user_agent": request.headers.get("User-Agent", "")[:100],
+    })
+    return response
 
 @app.route('/api/session/init', methods=['GET', 'POST', 'OPTIONS'])
 def session_init():
@@ -84,10 +192,9 @@ def session_init():
     is_premium = False
     auth_token = request.cookies.get('sm_auth_token')
     if auth_token:
-        conn = get_db_connection()
-        row = conn.execute("SELECT status FROM payments WHERE email = ?", (auth_token,)).fetchone()
-        conn.close()
-        if row and row['status'] == 'paid': is_premium = True
+        with get_db() as conn:
+            row = conn.execute("SELECT status FROM payments WHERE email = ?", (auth_token,)).fetchone()
+            if row and row['status'] == 'paid': is_premium = True
     res = make_response(jsonify({"sessionId": new_sid, "premium": is_premium, "status": "active"}))
     return _cors(res)
 
@@ -95,10 +202,22 @@ def session_init():
 def handle_500(e):
     return jsonify({"error": str(e), "type": type(e).__name__}), 500, {"Access-Control-Allow-Origin": "*"}
 
+# --- CORS CONFIGURATION ---
+ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", "").split(",") if os.environ.get("CORS_ORIGINS") else None
+
 def _cors(res, status=200):
-    res.headers["Access-Control-Allow-Origin"] = "*"
+    origin = request.headers.get("Origin", "")
+    # 如果配置了白名单，使用白名单；否则允许常见域名（比 * 安全）
+    if ALLOWED_ORIGINS:
+        if origin in ALLOWED_ORIGINS:
+            res.headers["Access-Control-Allow-Origin"] = origin
+    elif origin and ("api-tokenmaster.com" in origin or "localhost" in origin or "127.0.0.1" in origin):
+        res.headers["Access-Control-Allow-Origin"] = origin
+    else:
+        res.headers["Access-Control-Allow-Origin"] = "*"
     res.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     res.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    res.headers["Vary"] = "Origin"
     return res, status
 
 @app.route('/')
@@ -107,24 +226,52 @@ def index():
         return send_file(HTML_FILE)
     return "<h1>Mirror Sanctum Error: HTML File Missing</h1>", 404
 
+# --- HEALTH CHECK ---
+@app.route('/health')
+def health():
+    """健康检查端点 — 用于负载均衡器和监控系统"""
+    import time as _time
+    health_data = {
+        "status": "ok",
+        "service": "subconscious-mirror",
+        "version": "v34.0.0",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    # 检查数据库连接
+    try:
+        with get_db() as conn:
+            conn.execute("SELECT 1")
+        health_data["database"] = "ok"
+    except Exception as e:
+        health_data["database"] = f"error: {e}"
+        health_data["status"] = "degraded"
+    # 检查 DeepSeek API 连通性（可选，避免增加延迟可注释掉）
+    try:
+        resp = requests.get(
+            DEEPSEEK_API_BASE.replace("/chat/completions", ""),
+            headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}"},
+            timeout=5
+        )
+        health_data["ai_api"] = "ok" if resp.status_code < 500 else f"HTTP {resp.status_code}"
+    except Exception as e:
+        health_data["ai_api"] = f"unreachable: {e}"
+    return _cors(jsonify(health_data))
+
 @app.route('/api/referral/init', methods=['POST', 'OPTIONS'])
 def init_ref():
     if request.method == 'OPTIONS': return _cors(make_response())
     inviter_email = request.json.get('email', '')
     ref_id = f"ref_{int(time.time())}_{os.urandom(2).hex()}"
-    conn = get_db_connection()
-    conn.execute("INSERT INTO referrals (ref_id, inviter_email, count) VALUES (?, ?, 0)", (ref_id, inviter_email))
-    conn.commit()
-    conn.close()
+    with get_db() as conn:
+        conn.execute("INSERT INTO referrals (ref_id, inviter_email, count) VALUES (?, ?, 0)", (ref_id, inviter_email))
     return _cors(jsonify({"status": "ready", "refId": ref_id}))
 
 
 @app.route('/api/referral/status', methods=['GET'])
 def referral_status():
     ref_id = request.args.get('refId')
-    conn = get_db_connection()
-    row = conn.execute("SELECT count, unlocked FROM referrals WHERE ref_id = ?", (ref_id,)).fetchone()
-    conn.close()
+    with get_db() as conn:
+        row = conn.execute("SELECT count, unlocked FROM referrals WHERE ref_id = ?", (ref_id,)).fetchone()
     return _cors(jsonify({"count": row["count"] if row else 0, "unlocked": row["unlocked"] if row else 0}))
 
 @app.route('/api/referral/click', methods=['POST'])
@@ -133,25 +280,22 @@ def referral_click():
     visitor_ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', 'unknown')
     if not inviter_id: return _cors(jsonify({"status": "ignored"}))
-    conn = get_db_connection()
     try:
-        conn.execute("INSERT INTO referral_logs (ref_id, visitor_ip, user_agent) VALUES (?, ?, ?)", 
-                     (inviter_id, visitor_ip, user_agent))
-        conn.execute("UPDATE referrals SET count = count + 1 WHERE ref_id = ?", (inviter_id,))
-        conn.commit()
-        row = conn.execute("SELECT count, inviter_email, unlocked FROM referrals WHERE ref_id = ?", (inviter_id,)).fetchone()
-        if row and row['count'] >= 2 and row['unlocked'] == 0 and row['inviter_email']:
-            conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', 'referral-unlock', ?)",
-                         (row['inviter_email'], time.time()))
-            conn.execute("UPDATE referrals SET unlocked = 1 WHERE ref_id = ?", (inviter_id,))
-            conn.commit()
+        with get_db() as conn:
+            conn.execute("INSERT INTO referral_logs (ref_id, visitor_ip, user_agent) VALUES (?, ?, ?)", 
+                         (inviter_id, visitor_ip, user_agent))
+            conn.execute("UPDATE referrals SET count = count + 1 WHERE ref_id = ?", (inviter_id,))
+            row = conn.execute("SELECT count, inviter_email, unlocked FROM referrals WHERE ref_id = ?", (inviter_id,)).fetchone()
+            if row and row['count'] >= 2 and row['unlocked'] == 0 and row['inviter_email']:
+                conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', 'referral-unlock', ?)",
+                             (row['inviter_email'], time.time()))
+                conn.execute("UPDATE referrals SET unlocked = 1 WHERE ref_id = ?", (inviter_id,))
         return _cors(jsonify({"status": "counted", "count": row["count"] if row else 0}))
     except sqlite3.IntegrityError:
         return _cors(jsonify({"status": "ignored"}))
-    finally:
-        conn.close()
 
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
+@limiter.limit("10 per minute")
 def chat():
     if request.method == 'OPTIONS': return _cors(make_response())
     req_data = request.json
@@ -160,10 +304,9 @@ def chat():
     user_email = req_data.get('email')
     is_premium = False
     if user_email:
-        conn = get_db_connection()
-        row = conn.execute("SELECT status FROM payments WHERE email = ?", (user_email,)).fetchone()
-        conn.close()
-        if row and row['status'] == 'paid': is_premium = True
+        with get_db() as conn:
+            row = conn.execute("SELECT status FROM payments WHERE email = ?", (user_email,)).fetchone()
+            if row and row['status'] == 'paid': is_premium = True
     user_msg_count = len([m for m in messages if m['role'] == 'user'])
     
     # --- Input validation: reject meaningless / garbage input ---
@@ -294,9 +437,21 @@ def chat():
                     else "Unlock the full destiny report for Tarot guidance, real-life reflections, action steps, and your personal prophecy."
                 )
             return _cors(jsonify({"mode": "report", "status": "full" if is_premium else "partial", "data": {"free_part": free, "paid_part": paid}}))
-    except Exception as e: return _cors(jsonify({"error": str(e)}), 500)
+    except requests.Timeout:
+        logger.error("chat_timeout", extra={"user_msgs": user_msg_count, "lang": lang})
+        return _cors(jsonify({"error": "The oracle is taking too long. Please try again."}), 503)
+    except requests.ConnectionError:
+        logger.error("chat_connection_error")
+        return _cors(jsonify({"error": "Cannot reach the oracle's realm. Please try again shortly."}), 502)
+    except (json.JSONDecodeError, KeyError) as e:
+        logger.error("chat_response_parse_error", extra={"error": str(e)})
+        return _cors(jsonify({"error": "The oracle's response was unclear. Please try again."}), 502)
+    except Exception as e:
+        logger.error("chat_unexpected_error", extra={"error": str(e), "type": type(e).__name__})
+        return _cors(jsonify({"error": "An unexpected disturbance occurred. Please try again."}), 500)
 
 @app.route('/api/symbol-lookup', methods=['POST', 'OPTIONS'])
+@limiter.limit("10 per minute")
 def symbol_lookup():
     if request.method == 'OPTIONS': return _cors(make_response())
     req_data = request.json
@@ -311,9 +466,18 @@ def symbol_lookup():
         ai_msg = res_json['choices'][0]['message']
         text = ai_msg.get('content') or ai_msg.get('reasoning_content') or ""
         return _cors(jsonify({"symbol": symbol, "interpretation": text}))
-    except Exception as e: return _cors(jsonify({"error": str(e)}), 500)
+    except requests.Timeout:
+        return _cors(jsonify({"error": "Symbol lookup timed out. Please try again."}), 503)
+    except requests.ConnectionError:
+        return _cors(jsonify({"error": "Cannot reach the oracle's library. Please try again."}), 502)
+    except (json.JSONDecodeError, KeyError):
+        return _cors(jsonify({"error": "The oracle returned an unexpected response."}), 502)
+    except Exception as e:
+        logger.error("symbol_lookup_error", extra={"symbol": symbol, "error": str(e)})
+        return _cors(jsonify({"error": "Symbol lookup failed. Please try again."}), 500)
 
 @app.route('/api/clean-text', methods=['POST', 'OPTIONS'])
+@limiter.limit("20 per minute")
 def clean_text():
     """AI-powered voice transcript cleanup — removes filler words, adds punctuation, fixes flow."""
     if request.method == 'OPTIONS': return _cors(make_response())
@@ -361,7 +525,10 @@ def clean_text():
         if not cleaned or len(cleaned) < len(raw_text) * 0.3:
             cleaned = raw_text
         return _cors(jsonify({"cleaned": cleaned, "raw": raw_text}))
+    except requests.Timeout:
+        return _cors(jsonify({"cleaned": raw_text, "raw": raw_text, "warning": "Cleanup timed out, using original"}))
     except Exception as e:
+        logger.error("clean_text_error", extra={"error": str(e)})
         # On any error, return the raw text so the user isn't blocked
         return _cors(jsonify({"cleaned": raw_text, "raw": raw_text, "error": str(e)}))
 
@@ -401,6 +568,7 @@ def _polish_via_llm(text, lang='zh'):
 
 # --- WHISPER TRANSCRIPTION (audio → text via WHISPER_API_BASE) ---
 @app.route('/api/transcribe', methods=['POST', 'OPTIONS'])
+@limiter.limit("10 per minute")
 def transcribe():
     """Transcribe audio via WHISPER_API_BASE endpoint."""
     if request.method == 'OPTIONS': return _cors(make_response())
@@ -433,48 +601,80 @@ def transcribe():
         print(f"[Whisper API] Polished: {polished[:120]}")
 
         return _cors(jsonify({"text": polished}))
+    except requests.Timeout:
+        logger.error("whisper_timeout")
+        return _cors(jsonify({"error": "Voice transcription timed out. Please try again or type your dream."}), 503)
+    except requests.ConnectionError:
+        logger.error("whisper_connection_error")
+        return _cors(jsonify({"error": "Voice service unreachable. Please type your dream instead."}), 502)
+    except requests.HTTPError as e:
+        logger.error("whisper_http_error", extra={"status": e.response.status_code if hasattr(e, 'response') else 'unknown'})
+        return _cors(jsonify({"error": "Voice transcription failed. Please type your dream instead."}), 502)
     except Exception as e:
-        print(f"[Whisper API] Error: {e}")
+        logger.error("whisper_unexpected_error", extra={"error": str(e)})
         import traceback; traceback.print_exc()
-        return _cors(jsonify({"error": str(e)}), 500)
-        return _whisper_model
+        return _cors(jsonify({"error": "Voice processing error. Please type your dream."}), 500)
 
 @app.route('/api/verify-license', methods=['POST', 'OPTIONS'])
+@limiter.limit("10 per minute")
 def verify_license():
     if request.method == 'OPTIONS': return _cors(make_response())
     data = request.json
     license_key = data.get('license_key')
-    # Test mode: use TEST-MIRROR-2026 to unlock full report without payment
-    if license_key == 'TEST-MIRROR-2026':
+    # Test mode: only enabled when ENABLE_TEST_MODE=1
+    if TEST_LICENSE_KEY and license_key == TEST_LICENSE_KEY:
         email = data.get('email') or 'test@mirror.local'
-        conn = get_db_connection()
-        conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, ?, ?, ?)", (email, 'paid', license_key, time.time()))
-        conn.commit()
-        conn.close()
+        with get_db() as conn:
+            conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, ?, ?, ?)", (email, 'paid', license_key, time.time()))
         return _cors(jsonify({"status": "unlocked", "email": email}))
     try:
-        res = requests.post("https://api.gumroad.com/v2/licenses/verify", data={"product_permalink": "subconscious-mirror", "license_key": license_key}, timeout=10)
+        res = requests.post("https://api.gumroad.com/v2/licenses/verify", data={"product_permalink": GUMROAD_PERMALINK, "license_key": license_key}, timeout=10)
         res_data = res.json()
         if res_data.get('success') is True:
             email = res_data['purchase']['email']
-            conn = get_db_connection()
-            conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, ?, ?, ?)", (email, 'paid', license_key, time.time()))
-            conn.commit()
-            conn.close()
+            with get_db() as conn:
+                conn.execute("INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, ?, ?, ?)", (email, 'paid', license_key, time.time()))
             return _cors(jsonify({"status": "unlocked", "email": email}))
         return _cors(jsonify({"status": "failed", "message": "Invalid license key"}), 400)
-    except Exception as e: return _cors(jsonify({"error": str(e)}), 500)
+    except requests.Timeout:
+        return _cors(jsonify({"error": "License verification timed out. Please try again."}), 503)
+    except requests.ConnectionError:
+        return _cors(jsonify({"error": "Cannot reach license server. Please try again later."}), 502)
+    except (json.JSONDecodeError, KeyError):
+        return _cors(jsonify({"error": "License verification returned unexpected data."}), 502)
+    except Exception as e:
+        logger.error("verify_license_error", extra={"error": str(e)})
+        return _cors(jsonify({"error": "License verification failed. Please try again."}), 500)
 
 @app.route('/api/check-premium', methods=['GET'])
 def check_premium():
     email = request.args.get('email')
-    conn = get_db_connection()
-    row = conn.execute("SELECT status FROM payments WHERE email = ?", (email,)).fetchone()
-    conn.close()
+    with get_db() as conn:
+        row = conn.execute("SELECT status FROM payments WHERE email = ?", (email,)).fetchone()
     if row and row['status'] == 'paid': return _cors(jsonify({"status": "unlocked"}))
     return _cors(jsonify({"status": "locked"}))
 
 # --- PAYPAL WEBHOOK ---
+
+def _send_email_with_retry(send_func, email, data, lang='en', max_retries=3, backoff=2):
+    """
+    带重试的邮件发送。
+    send_func: callable(email, data, lang) → (success: bool, error: str)
+    返回: (success: bool, error: str)
+    """
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            success, error = send_func(email, data, lang)
+            if success:
+                return True, None
+            last_error = error
+        except Exception as e:
+            last_error = str(e)
+        if attempt < max_retries - 1:
+            time.sleep(backoff * (attempt + 1))
+    return False, last_error
+
 @app.route('/paypal/webhook', methods=['POST'])
 def paypal_webhook():
     """Handle PayPal payment capture completed webhook"""
@@ -493,16 +693,14 @@ def paypal_webhook():
             capture_id = resource.get('id')
             
             if payer_email:
-                conn = get_db_connection()
-                conn.execute(
-                    "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
-                    (payer_email, f"paypal-{capture_id}", time.time())
-                )
-                conn.commit()
-                conn.close()
+                with get_db() as conn:
+                    conn.execute(
+                        "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
+                        (payer_email, f"paypal-{capture_id}", time.time())
+                    )
                 print(f"[PayPal] Payment captured for {payer_email}, amount: ${amount}")
                 
-                # Send order confirmation email
+                # Send order confirmation email (with retry)
                 if send_order_confirmation:
                     try:
                         order_data = {
@@ -512,42 +710,50 @@ def paypal_webhook():
                             'amount': f'${amount}',
                             'date': time.strftime('%Y-%m-%d %H:%M UTC'),
                             'status': 'PAID / SUCCESS',
-                            'cta_link': 'https://mirror.api-tokenmaster.com'
+                            'cta_link': BRAND_URL
                         }
-                        success, error = send_order_confirmation(payer_email, order_data, 'en')
+                        success, error = _send_email_with_retry(
+                            send_order_confirmation, payer_email, order_data, 'en'
+                        )
                         if success:
-                            print(f"[Email] Order confirmation sent to {payer_email}")
+                            logger.info("email_order_confirmation_sent", extra={"email": payer_email})
                         else:
-                            print(f"[Email] Failed to send: {error}")
+                            logger.error("email_order_confirmation_failed", extra={"email": payer_email, "error": error})
                     except Exception as e:
-                        print(f"[Email] Error sending confirmation: {e}")
+                        logger.error("email_order_confirmation_exception", extra={"email": payer_email, "error": str(e)})
                 
                 return jsonify({"status": "success"}), 200
         
         return jsonify({"status": "ignored"}), 200
+    except json.JSONDecodeError:
+        logger.warning("paypal_webhook_invalid_json")
+        return jsonify({"error": "Invalid JSON"}), 400
     except Exception as e:
-        print(f"[PayPal Webhook Error] {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error("paypal_webhook_error", extra={"error": str(e)})
+        return jsonify({"error": "Webhook processing error"}), 500
 
 @app.route('/api/paypal/debug', methods=['GET'])
 def paypal_debug():
-    """Debug endpoint: check PayPal env vars and connectivity"""
+    """Debug endpoint: check PayPal connectivity only (no secrets exposed).
+    Only available when FLASK_ENV is not 'production'."""
+    if os.environ.get("FLASK_ENV", "production") == "production":
+        return _cors(jsonify({"error": "Not available in production"}), 403)
     info = {
-        "paypal_client_id_set": bool(PAYPAL_CLIENT_ID),
-        "paypal_client_id_prefix": PAYPAL_CLIENT_ID[:8] if PAYPAL_CLIENT_ID else '(empty)',
-        "paypal_secret_set": bool(PAYPAL_SECRET),
-        "paypal_secret_len": len(PAYPAL_SECRET) if PAYPAL_SECRET else 0,
-        "base_url": os.environ.get('BASE_URL', '(not set)'),
+        "paypal_client_configured": bool(PAYPAL_CLIENT_ID),
+        "paypal_secret_configured": bool(PAYPAL_SECRET),
         "paypal_reachable": False,
-        "paypal_auth_status": None,
+        "paypal_status": None,
     }
-    # Test PayPal connectivity
     try:
         test_res = requests.get('https://api-m.paypal.com/v1/oauth2/token', timeout=10)
         info["paypal_reachable"] = True
-        info["paypal_auth_status"] = f"HTTP {test_res.status_code}"
+        info["paypal_status"] = f"HTTP {test_res.status_code}"
+    except requests.Timeout:
+        info["paypal_status"] = "timeout"
+    except requests.ConnectionError:
+        info["paypal_status"] = "unreachable"
     except Exception as e:
-        info["paypal_auth_status"] = str(e)
+        info["paypal_status"] = f"error: {e}"
     return _cors(jsonify(info))
 
 
@@ -610,16 +816,14 @@ def paypal_capture_order():
         
         # Store payment
         if payer_email:
-            conn = get_db_connection()
-            conn.execute(
-                "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
-                (payer_email, f'paypal-sdk-{capture_id}', time.time())
-            )
-            conn.commit()
-            conn.close()
+            with get_db() as conn:
+                conn.execute(
+                    "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
+                    (payer_email, f'paypal-sdk-{capture_id}', time.time())
+                )
             print(f'[PayPal SDK] Captured ${amount} from {payer_email}')
             
-            # Send confirmation email
+            # Send confirmation email (with retry)
             if send_order_confirmation:
                 try:
                     order_data = {
@@ -629,11 +833,17 @@ def paypal_capture_order():
                         'amount': f'${amount}',
                         'date': time.strftime('%Y-%m-%d %H:%M UTC'),
                         'status': 'PAID',
-                        'cta_link': 'https://mirror.api-tokenmaster.com'
+                        'cta_link': BRAND_URL
                     }
-                    send_order_confirmation(payer_email, order_data, 'en')
+                    success, error = _send_email_with_retry(
+                        send_order_confirmation, payer_email, order_data, 'en'
+                    )
+                    if success:
+                        logger.info("email_sdk_order_confirmation_sent", extra={"email": payer_email})
+                    else:
+                        logger.error("email_sdk_order_confirmation_failed", extra={"email": payer_email, "error": error})
                 except Exception as e:
-                    print(f'[Email] Error: {e}')
+                    logger.error("email_sdk_order_confirmation_exception", extra={"email": payer_email, "error": str(e)})
         
         return _cors(jsonify({
             "status": "captured",
@@ -642,10 +852,19 @@ def paypal_capture_order():
             "captureId": capture_id
         }))
     
+    except requests.Timeout:
+        logger.error("paypal_capture_timeout", extra={"order_id": order_id})
+        return _cors(jsonify({"error": "PayPal is taking too long. Your payment may still process — please check your email."}), 503)
+    except requests.ConnectionError:
+        logger.error("paypal_capture_connection_error")
+        return _cors(jsonify({"error": "Cannot reach PayPal. Please try again."}), 502)
+    except requests.HTTPError as e:
+        logger.error("paypal_capture_http_error", extra={"status": e.response.status_code if hasattr(e, 'response') else 'unknown'})
+        return _cors(jsonify({"error": "PayPal returned an error. Please try again."}), 502)
     except Exception as e:
         import traceback
-        print(f'[PayPal Capture Error] {e}\n{traceback.format_exc()}')
-        return _cors(jsonify({"error": str(e)}), 500)
+        logger.error("paypal_capture_error", extra={"error": str(e), "traceback": traceback.format_exc()})
+        return _cors(jsonify({"error": "Payment processing error. Please contact support if charged."}), 500)
 
 
 @app.route('/api/paypal/create-order', methods=['POST'])
@@ -671,7 +890,7 @@ def paypal_create_order():
         access_token = auth_res.json()['access_token']
         
         # Create order with application_context for redirect URLs
-        base_url = os.environ.get('BASE_URL', 'https://mirror.api-tokenmaster.com').rstrip('/')
+        base_url = BRAND_URL.rstrip('/')
         order_res = requests.post(
             'https://api-m.paypal.com/v2/checkout/orders',
             headers={
@@ -698,11 +917,19 @@ def paypal_create_order():
         )
         order_res.raise_for_status()
         return _cors(jsonify(order_res.json()))
+    except requests.Timeout:
+        logger.error("paypal_create_order_timeout")
+        return _cors(jsonify({"error": "PayPal is taking too long. Please try again."}), 503)
+    except requests.ConnectionError:
+        logger.error("paypal_create_order_connection_error")
+        return _cors(jsonify({"error": "Cannot reach PayPal. Please try again."}), 502)
+    except requests.HTTPError as e:
+        logger.error("paypal_create_order_http_error", extra={"status": e.response.status_code if hasattr(e, 'response') else 'unknown'})
+        return _cors(jsonify({"error": "PayPal returned an error. Please try again."}), 502)
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        print(f"[PayPal Create Order Error] {e}\n{tb}")
-        return _cors(jsonify({"error": str(e), "traceback": tb}), 500)
+        logger.error("paypal_create_order_error", extra={"error": str(e), "traceback": traceback.format_exc()})
+        return _cors(jsonify({"error": "Payment setup failed. Please try again."}), 500)
 
 @app.route('/api/paypal/return', methods=['GET'])
 def paypal_return():
@@ -736,24 +963,26 @@ def paypal_return():
                     capture_id = cap_data.get('id')
                     
                     if payer_email:
-                        conn = get_db_connection()
-                        conn.execute(
-                            "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
-                            (payer_email, f'paypal-{capture_id}', time.time())
-                        )
-                        conn.commit()
-                        conn.close()
+                        with get_db() as conn:
+                            conn.execute(
+                                "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
+                                (payer_email, f'paypal-{capture_id}', time.time())
+                            )
                         print(f'[PayPal Return] Captured payment for {payer_email}, ${amount}')
+        except requests.Timeout:
+            logger.warning("paypal_return_timeout")
+        except requests.ConnectionError:
+            logger.warning("paypal_return_connection_error")
         except Exception as e:
-            print(f'[PayPal Return] Capture error (webhook may still handle): {e}')
+            logger.error("paypal_return_capture_error", extra={"error": str(e)})
         
         # Redirect to frontend with success indicator
-        base_url = os.environ.get('BASE_URL', 'https://mirror.api-tokenmaster.com').rstrip('/')
+        base_url = BRAND_URL.rstrip('/')
         from flask import redirect as flask_redirect
         return flask_redirect(f'{base_url}/?payment=success&email={payer_email}')
     
     # Cancel or other status - redirect to home
-    base_url = os.environ.get('BASE_URL', 'https://mirror.api-tokenmaster.com').rstrip('/')
+    base_url = BRAND_URL.rstrip('/')
     from flask import redirect as flask_redirect
     return flask_redirect(f'{base_url}/?payment=cancel')
 
@@ -767,7 +996,7 @@ def send_report():
     html_body = data.get('html', '')       # 完整 HTML 报告
     dream_title = data.get('dream_title', 'Your Dream Analysis')
     report_preview = data.get('preview', '')
-    session_url = data.get('session_url', 'https://mirror.api-tokenmaster.com')
+    session_url = data.get('session_url', BRAND_URL)
     lang = data.get('lang', 'zh')
     
     if not email:
@@ -823,8 +1052,11 @@ def send_report():
             return _cors(jsonify({"ok": True}))
         else:
             return _cors(jsonify({"ok": False, "error": error or "Unknown error"}), 500)
+    except requests.Timeout:
+        return _cors(jsonify({"ok": False, "error": "Email service timeout. Your report is still available on the website."}), 503)
     except Exception as e:
-        return _cors(jsonify({"ok": False, "error": str(e)}), 500)
+        logger.error("send_report_error", extra={"email": email, "error": str(e)})
+        return _cors(jsonify({"ok": False, "error": "Failed to send report. Your report is still available on the website."}), 500)
 
 @app.route('/api/send-3day-reminder', methods=['POST', 'OPTIONS'])
 def send_3day_reminder():
@@ -852,9 +1084,12 @@ def send_3day_reminder():
         else:
             return _cors(jsonify({"ok": False, "error": "Email service not available"}), 503)
     except Exception as e:
-        return _cors(jsonify({"ok": False, "error": str(e)}), 500)
+        logger.error("send_3day_reminder_error", extra={"email": email, "error": str(e)})
+        return _cors(jsonify({"ok": False, "error": "Failed to send reminder."}), 500)
 
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # 生产环境严禁开启 debug=True（会导致内存泄漏和任意代码执行风险）
+    is_production = os.environ.get("FLASK_ENV", "production") == "production"
+    app.run(host='0.0.0.0', port=port, debug=not is_production)

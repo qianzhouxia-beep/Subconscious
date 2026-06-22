@@ -1,0 +1,268 @@
+    
+        html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+        body { background-color: #0a0a0a; color: #f5f5f5; overflow-x: hidden; transition: background-color 0.5s ease; }
+        .accent-gradient { background: linear-gradient(90deg, #89AACC 0%, #4E85BF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .video-overlay { background: radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(10,10,10,0.85) 100%); }
+
+        /* ===== Aetheris Design System — Enhanced Styles ===== */
+
+        /* Nebula Background */
+        #nebula-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 40%, rgba(26,15,46,0.3) 0%, #0a0a0a 100%);
+            pointer-events: none; z-index: -1; transition: background 0.3s ease;
+        }
+
+        /* Particle Canvas */
+        canvas#particleCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1; opacity: 0.5;
+        }
+
+        /* Cursor Glow */
+        #cursor-glow {
+            pointer-events: none; position: fixed; top: 0; left: 0;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(137, 170, 204, 0.04) 0%, transparent 70%);
+            transform: translate(-50%, -50%); z-index: -1;
+        }
+
+        /* Enhanced Glass Cards */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 40px;
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-card:hover {
+            background: rgba(15, 15, 15, 0.6);
+            border-color: rgba(137, 170, 204, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(137,170,204,0.1);
+            transform: translateY(-8px);
+        }
+
+        /* Scroll Reveal Animations */
+        @keyframes fadeInSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .reveal-on-scroll {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1), transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+        .reveal-on-load {
+            opacity: 0;
+            animation: fadeInSlideUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Nav Link Underline Effect (Aetheris) */
+        .nav-link { position: relative; }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0; height: 1px;
+            bottom: -4px; left: 0;
+            background-color: #89AACC;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        /* ===== Aetheris: Dream Recorder Styles ===== */
+        .pulsing-orb {
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #89AACC 60%, #406180 100%);
+            box-shadow: 0 0 20px rgba(137, 170, 204, 0.4);
+            animation: breathe 4s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(137, 170, 204, 0.3); }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 35px rgba(137, 170, 204, 0.6); }
+        }
+        .input-glow-card {
+            background: rgba(28, 27, 27, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(137, 170, 204, 0.2);
+            transition: all 0.5s ease;
+        }
+        .input-glow-card:focus-within {
+            border-color: #89AACC;
+            box-shadow: 0 0 15px rgba(137, 170, 204, 0.2);
+        }
+        .ai-quote-glow {
+            background: radial-gradient(circle at 30% 30%, #FFFFFF 0%, #c5dcee 60%, #a8caed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .temporal-line {
+            background: linear-gradient(to bottom, transparent, rgba(137,170,204,0.5), rgba(137,170,204,0.8));
+        }
+        /* Interactive Tags */
+        input[type="range"] { -webkit-appearance: none; appearance: none; }
+        /* Enhanced Glass Cards - Aetheris Optimized */
+        .glass-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(137, 170, 204, 0.3), transparent);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+        .glass-card .icon-container {
+            position: relative;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .glass-card:hover .icon-container {
+            transform: scale(1.1) rotate(5deg);
+        }
+        .glass-card .icon-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(137, 170, 204, 0.3), transparent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .icon-container::after {
+            width: 80px;
+            height: 80px;
+        }
+        .glass-card .card-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-family: 'Instrument Serif', 'Source Serif 4', serif;
+            font-size: 3rem;
+            font-weight: 300;
+            color: rgba(137, 170, 204, 0.06);
+            line-height: 1;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .card-number {
+            color: rgba(137, 170, 204, 0.12);
+            transform: translateX(-5px);
+        }
+        .glass-card .particle-dot {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(137, 170, 204, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .particle-dot {
+            opacity: 1;
+        }
+        .glass-card .particle-dot:nth-child(1) { top: 20%; left: 10%; animation: float 3s ease-in-out infinite; }
+        .glass-card .particle-dot:nth-child(2) { top: 60%; right: 15%; animation: float 4s ease-in-out infinite 1s; }
+        .glass-card .particle-dot:nth-child(3) { bottom: 30%; left: 20%; animation: float 3.5s ease-in-out infinite 0.5s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .feature-title {
+            background: linear-gradient(135deg, #f5f5f5 0%, #89AACC 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.6s ease;
+        }
+        .glass-card:hover .feature-title {
+            letter-spacing: 1px;
+        }
+        
+        .glass-card .feature-tag {
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover .feature-tag {
+            opacity: 1 !important;
+        }
+        
+        /* Override hover transform for features section cards */
+        #features .glass-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 80px rgba(137, 170, 204, 0.1),
+                inset 0 0 40px rgba(137, 170, 204, 0.03);
+        }
+        
+        /* ===== End Aetheris Optimized Styles ===== */
+
+        .nav-pill { backdrop-filter: blur(16px); border: none; background: transparent; cursor: pointer; }
+        .typing-dot { width: 6px; height: 6px; background: #89AACC; border-radius: 50%; opacity: 0.3; animation: blink 1.4s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        /* Voice recording mic animation */
+        @keyframes mic-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .voice-recording { color: #ff6b6b !important; border-color: rgba(255,107,107,0.4) !important; animation: mic-pulse 1.2s ease-in-out infinite; }
+        .voice-recording svg { filter: drop-shadow(0 0 6px rgba(255,107,107,0.5)); }
+        @keyframes voicePulse { 0%, 100% { opacity: 0.4; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 0.8s linear infinite; }
+
+        .blurred { filter: blur(18px); opacity: 0.2; pointer-events: none; transition: all 1.5s ease-in-out; }
+        .paypal-sdk-container { min-height: 48px; }
+        .unblurred { filter: blur(0); opacity: 1; pointer-events: auto; }
+        .custom-scrollbar::-webkit-scrollbar,
+        .scrollbar-lucent::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track,
+        .scrollbar-lucent::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .scrollbar-lucent::-webkit-scrollbar-thumb { background: rgba(137,170,204,0.25); border-radius: 10px; border: 1px solid rgba(137,170,204,0.1); transition: background 0.3s; }
+        .scrollbar-lucent::-webkit-scrollbar-thumb:hover { background: rgba(137,170,204,0.5); }
+        /* Environment icon selected state */
+        .env-icon.selected svg { color: #89AACC !important; }
+        .env-icon.selected span { color: #89AACC !important; }
+        .env-icon.selected .active-indicator { opacity: 1; }
+        .modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); }
+        .modal-content { max-width: 600px; width: 90%; background: #141414; border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 48px; position: relative; }
+        #modal-text { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
+        /* Range slider */
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #89AACC; cursor: pointer; border: 2px solid #141414; box-shadow: 0 0 8px rgba(137,170,204,0.4); }
+        input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: #89AACC; cursor: pointer; border: 2px solid #141414; box-shadow: 0 0 8px rgba(137,170,204,0.4); }
+        #modal-text { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
+        /* Improved contrast for accessibility */
+        .text-gray-400 { color: #a0a0a0 !important; }
+        .text-gray-500 { color: #8a8a8a !important; }
+        /* Mobile hamburger menu */
+        .mobile-menu-btn { display: none; }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.05); cursor: pointer; }
+            .mobile-menu-btn span { display: block; width: 16px; height: 1.5px; background: white; transition: all 0.3s; position: relative; }
+            .mobile-menu-btn span::before, .mobile-menu-btn span::after { content: ''; position: absolute; width: 100%; height: 100%; background: white; transition: all 0.3s; }
+            .mobile-menu-btn span::before { top: -5px; }
+            .mobile-menu-btn span::after { top: 5px; }
+            .mobile-nav { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); z-index: 60; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; }
+            .mobile-nav.active { display: flex; }
+            .mobile-nav a { font-size: 1.5rem; color: #a0a0a0; text-transform: uppercase; letter-spacing: 0.2em; transition: color 0.3s; }
+            .mobile-nav a:hover { color: white; }
+        }
+        /* Reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+            .typing-dot { animation: none; opacity: 0.6; }
+        }
+        /* Network status bar */
+        #network-status { position: fixed; top: 0; left: 0; right: 0; background: #c0392b; color: white; text-align: center; padding: 8px; font-size: 12px; z-index: 200; transform: translateY(-100%); transition: transform 0.3s; }
+        #network-status.visible { transform: translateY(0); }
+        #network-status.reconnected { background: #27ae60; }
+    

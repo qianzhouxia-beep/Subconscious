@@ -1,0 +1,23 @@
+# Zeabur 部署配置文件
+# 文档：https://zeabur.com/docs/zh-CN/deploy/config/zeabur-json
+
+{
+  "name": "subconscious-mirror",
+  "description": "Subconscious Mirror | Premium AI Dream Oracle",
+  "build": {
+    "python_version": "3.11"
+  },
+  "deploy": {
+    "port": "${PORT:-3000}",
+    "health_check": {
+      "path": "/health",
+      "interval": 30,
+      "timeout": 10
+    }
+  },
+  "environment": {
+    "FLASK_ENV": "production",
+    "LOG_LEVEL": "info",
+    "GUNICORN_WORKERS": "2"
+  }
+}
