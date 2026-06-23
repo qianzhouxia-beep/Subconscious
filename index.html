@@ -287,37 +287,77 @@
                     </div>
                     <!-- Premium Unlock Section -->
                     <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
-                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2" id="t-res-destiny">
+                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
                             <span class="text-accent text-lg">🔮</span> Eastern Destiny Path
                         </h4>
-                        <!-- Unlock prompt -->
-                        <p class="text-xs text-gray-400 mb-4 leading-relaxed" id="t-unlock-hint"></p>
-                        <div id="res-paid-blur" class="blurred"><div id="res-paid" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div></div>
-                        <div id="pay-overlay" class="absolute inset-0 flex items-center justify-center pt-4">
-                            <div class="text-center px-6 py-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl max-w-sm mx-auto shadow-2xl">
-                                <p class="text-xs text-gray-400 uppercase tracking-[0.2em] mb-4" id="t-unlock-msg">Unlock your full destiny path</p>
-                                <div class="flex flex-col gap-3">
-                                    <div id="paypal-unlock"><button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="block w-full py-4 bg-white/5 border border-white/10 rounded-full text-white text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Buy The Spark — $4.99</button></div>
+
+                        <!-- 锁定预览：展示隐藏内容清单（未付费时显示） -->
+                        <div id="locked-preview">
+                            <p class="text-xs text-gray-500 mb-5 leading-relaxed" id="t-locked-intro">The full destiny path contains 4 hidden sections:</p>
+
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="text-lg mt-0.5">🃏</span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-1-title">Tarot Guidance</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-1-desc">A Major Arcana card matched to your dream's core energy, with upright/reversed interpretation</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="text-lg mt-0.5">🔍</span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-2-title">Real-Life Mirror</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-2-desc">How your dream patterns connect to unresolved situations and inner conflicts in waking life</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="text-lg mt-0.5">💫</span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-3-title">Actionable Wisdom</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-3-desc">3-5 concrete, personalized steps you can take starting today</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="text-lg mt-0.5">🔮</span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-4-title">Prophecy</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-4-desc">A cryptic, poetic closing line — the oracle's final word, distilled from your dream's essence</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 支付卡片 -->
+                            <div class="text-center px-5 py-6 bg-black/40 backdrop-blur-sm border border-white/[0.06] rounded-2xl">
+                                <div class="flex flex-col gap-3 max-w-sm mx-auto">
+                                    <div id="paypal-unlock"><button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="block w-full py-3.5 bg-gradient-to-r from-[#4E85BF] to-[#5B9BD5] rounded-full text-white text-[11px] uppercase tracking-widest font-semibold hover:brightness-110 transition-all">Unlock Full Destiny Path — $4.99</button></div>
                                     <noscript><button type="button" class="block w-full py-4 bg-[#0070ba] text-white rounded-full font-bold text-sm cursor-not-allowed opacity-50">PayPal requires JavaScript</button></noscript>
-                                    <div class="flex items-center gap-2 my-1">
-                                        <div class="flex-1 h-px bg-white/10"></div>
-                                        <span class="text-[8px] text-gray-500 uppercase tracking-widest" id="t-or-divider">or</span>
-                                        <div class="flex-1 h-px bg-white/10"></div>
+                                    <div class="flex items-center gap-2 my-0.5">
+                                        <div class="flex-1 h-px bg-white/5"></div>
+                                        <span class="text-[8px] text-gray-600 uppercase tracking-widest" id="t-or-divider2">or</span>
+                                        <div class="flex-1 h-px bg-white/5"></div>
                                     </div>
                                     <div id="license-area">
-                                        <button onclick="showLicenseInput()" class="text-[9px] text-white/40 hover:text-white uppercase tracking-widest transition-all" id="t-have-key">Use redemption code</button>
+                                        <button onclick="showLicenseInput()" class="text-[9px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-all" id="t-have-key">Have a redemption code?</button>
                                         <div id="license-input-wrapper" class="hidden mt-3 space-y-2">
                                             <input type="text" id="t-key-placeholder"
-                                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white focus:border-accent transition-all outline-none"
-                                                placeholder="Enter License Key" aria-label="License key">
+                                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white focus:border-accent transition-all outline-none text-center"
+                                                placeholder="Enter license key" aria-label="License key">
                                             <button onclick="verifyLicense()" id="t-verify-btn"
                                                 class="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] uppercase tracking-widest transition-all">
-                                                Verify Key
+                                                Verify & Unlock
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- 付费内容区（解锁后显示） -->
+                        <div id="res-paid-wrapper" class="hidden">
+                            <div id="res-paid" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                         </div>
                     </div>
 
@@ -906,8 +946,8 @@
                 const data = await res.json();
                 if (data.status === 'unlocked') {
                     isPremiumUser = true;
-                    document.getElementById('res-paid-blur').classList.remove('blurred');
-                    document.getElementById('pay-overlay').classList.add('hidden');
+                    document.getElementById('locked-preview').classList.add('hidden');
+                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
                 }
             } catch (e) {
                 console.error('Check premium error:', e);
@@ -963,8 +1003,8 @@
         async function checkReferralStatus() {
             // Server-side premium check
             if (isPremiumUser) {
-                document.getElementById('res-paid-blur').classList.remove('blurred');
-                document.getElementById('pay-overlay').classList.add('hidden');
+                document.getElementById('locked-preview').classList.add('hidden');
+                document.getElementById('res-paid-wrapper').classList.remove('hidden');
                 return;
             }
             if (!refId) return;
@@ -978,8 +1018,8 @@
                 if (count >= 2) {
                     if (data.unlocked === 1) {
                         isPremiumUser = true;
-                        document.getElementById('res-paid-blur').classList.remove('blurred');
-                        document.getElementById('pay-overlay').classList.add('hidden');
+                        document.getElementById('locked-preview').classList.add('hidden');
+                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
                     }
                     closeReferralModal();
                 }
@@ -1082,8 +1122,8 @@
 
                 if (res.ok && data.status === 'unlocked') {
                     isPremiumUser = true;
-                    document.getElementById('res-paid-blur').classList.remove('blurred');
-                    document.getElementById('pay-overlay').classList.add('hidden');
+                    document.getElementById('locked-preview').classList.add('hidden');
+                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
                     checkReferralStatus();
                 } else {
                     alert(data.message || data.error || "Verification failed");
@@ -1223,8 +1263,8 @@
 
                             if (result.status === 'full') {
                                 isPremiumUser = true;
-                                document.getElementById('res-paid-blur').classList.remove('blurred');
-                                document.getElementById('pay-overlay').classList.add('hidden');
+                                document.getElementById('locked-preview').classList.add('hidden');
+                                document.getElementById('res-paid-wrapper').classList.remove('hidden');
                             }
                         }
 
