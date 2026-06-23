@@ -121,9 +121,11 @@ def verify_password(password, hashed):
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
-def create_jwt(user_id):
+def create_jwt(user_id, email=None, email_verified=False):
     payload = {
         "sub": user_id,
+        "email": email or "",
+        "ev": int(bool(email_verified)),
         "iat": datetime.now(timezone.utc),
         "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRE_HOURS),
     }
@@ -172,13 +174,11 @@ def require_auth(f):
         try:
             payload = decode_jwt(token)
             user_id = payload["sub"]
-            conn = get_db_conn()
-            user = conn.execute("SELECT id FROM users WHERE id=?", (user_id,)).fetchone()
-            conn.close()
-            if not user:
-                return jsonify({"detail": "User not found"}), 401
-            # Pass user_id as keyword argument
+            # Read user info directly from JWT to avoid cross-worker DB issues
             kwargs['current_user_id'] = user_id
+            kwargs['current_user_email'] = payload.get("email", "")
+            kwargs['current_user_verified'] = payload.get("ev", 0)
+            kwargs['current_user_created'] = ""
             return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify({"detail": "Token expired"}), 401
@@ -332,7 +332,7 @@ def auth_login():
 
     conn.execute("UPDATE users SET failed_attempts=0, locked_until=NULL, updated_at=datetime('now') WHERE id=?", (user["id"],))
     conn.commit()
-    token = create_jwt(user["id"])
+    token = create_jwt(user["id"], user["email"], user["email_verified"])
     conn.close()
 
     return cors_response({
@@ -405,21 +405,16 @@ def auth_reset_password():
 
 # --- USER ---
 
-def user_me(current_user_id=None):
+def user_me(current_user_id=None, current_user_email=None, current_user_verified=None, current_user_created=None):
     if request.method == "OPTIONS":
         return handle_options()
     try:
-        user_id = current_user_id
-        conn = get_db_conn()
-        user = conn.execute("SELECT id, email, email_verified, created_at FROM users WHERE id=?", (user_id,)).fetchone()
-        conn.close()
-        if not user:
-            return cors_response({"detail": "User not found"}, 404)
+        # Use data passed from require_auth decorator to avoid cross-worker DB issues
         return cors_response({
-            "id": user["id"],
-            "email": user["email"],
-            "email_verified": bool(user["email_verified"]),
-            "created_at": user["created_at"],
+            "id": current_user_id,
+            "email": current_user_email or "",
+            "email_verified": bool(current_user_verified),
+            "created_at": current_user_created or "",
         })
     except Exception as e:
         import traceback
