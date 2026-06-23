@@ -64,6 +64,12 @@ logger = logging.getLogger("subconscious-mirror")
 DEEPSEEK_API_BASE = os.environ.get("DEEPSEEK_API_BASE", "https://api.deepseek.com/v1/chat/completions")
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 
+# --- DeepSeek V4 模型命名（2026/07/24 旧模型 deepseek-chat / deepseek-reasoner 将到期） ---
+# deepseek-chat → deepseek-v4-flash (non-thinking, 快速低成本的通用模型)
+# deepseek-reasoner → deepseek-v4-pro + thinking (链式推理, 适合深度分析)
+DEEPSEEK_CHAT_MODEL = os.environ.get("DEEPSEEK_CHAT_MODEL", "deepseek-v4-flash")
+DEEPSEEK_REPORT_MODEL = os.environ.get("DEEPSEEK_REPORT_MODEL", "deepseek-v4-pro")
+
 # --- 备用 AI 模型（OpenAI 兼容 API） ---
 # 主模型（DeepSeek）不可用时，自动降级到备选模型，防止服务中断
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
@@ -77,7 +83,13 @@ FALLBACK_MODEL = os.environ.get("FALLBACK_MODEL", "")
 
 # 模型供应商注册表（按优先级排序）
 AI_PROVIDERS = [
-    {"name": "deepseek", "api_key": DEEPSEEK_API_KEY, "api_base": DEEPSEEK_API_BASE},
+    {
+        "name": "deepseek",
+        "api_key": DEEPSEEK_API_KEY,
+        "api_base": DEEPSEEK_API_BASE,
+        "chat_model": DEEPSEEK_CHAT_MODEL,
+        "report_model": DEEPSEEK_REPORT_MODEL,
+    },
     {"name": "openai",   "api_key": OPENAI_API_KEY,   "api_base": OPENAI_API_BASE,   "default_model": OPENAI_MODEL},
     {"name": "fallback", "api_key": FALLBACK_API_KEY, "api_base": FALLBACK_API_BASE, "default_model": FALLBACK_MODEL},
 ]
@@ -141,7 +153,7 @@ def _call_llm_with_fallback(payload_builder, timeout=120, mode='chat', report_mo
         payload_builder: 接收 (provider_config, model_override) 返回 (payload_dict, model_name) 的回调
         timeout: 请求超时秒数（主模型用完整超时，降级模型减半）
         mode: 用于日志标记 ('chat', 'symbol', 'clean', 'polish')
-        report_mode: 是否为报告模式（控制 R1 vs 普通模型选择）
+        report_mode: 是否为报告模式（控制 deepseek-v4-pro+thinking vs deepseek-v4-flash）
     
     Returns:
         (response_json, provider_name) — 成功即返回
@@ -162,9 +174,10 @@ def _call_llm_with_fallback(payload_builder, timeout=120, mode='chat', report_mo
         # 降级模型超时减半（已有一个失败，快速失败优于长时间等待）
         actual_timeout = timeout if not providers_tried else max(timeout // 2, 30)
         
-        # 决定模型名
+        # 决定模型名（DeepSeek V4 新命名体系）
+        # 旧模型 deepseek-chat / deepseek-reasoner 将于 2026/07/24 到期
         if provider["name"] == "deepseek":
-            model_override = "deepseek-reasoner" if report_mode else "deepseek-chat"
+            model_override = provider.get("report_model", "deepseek-v4-pro") if report_mode else provider.get("chat_model", "deepseek-v4-flash")
         else:
             model_override = provider.get("default_model", "")
         
@@ -562,9 +575,20 @@ def chat():
                 "messages": [{"role": "system", "content": system_content}] + messages,
                 "max_tokens": 4096,
             }
-            # R1 不支持 temperature；降级到非 DeepSeek 模型时也设置 temperature
-            if not (provider["name"] == "deepseek" and report_mode):
-                payload["temperature"] = 0.7 if provider["name"] != "deepseek" else 0.5
+            # DeepSeek V4 Thinking 控制
+            if provider["name"] == "deepseek":
+                if report_mode:
+                    # 报告模式：用 deepseek-v4-pro + thinking 做深度推理
+                    payload["thinking"] = {"type": "enabled"}
+                    payload["reasoning_effort"] = "high"
+                    # Thinking 模式不支持 temperature
+                else:
+                    # 问答模式：deepseek-v4-flash，关闭 thinking 节省成本加速
+                    payload["thinking"] = {"type": "disabled"}
+                    payload["temperature"] = 0.5
+            else:
+                # 非 DeepSeek 降级模型
+                payload["temperature"] = 0.7
             return payload
         
         res_json, used_provider = _call_llm_with_fallback(
@@ -610,12 +634,17 @@ def symbol_lookup():
     system_content = f"You are a dream symbol oracle. The user asks about the dream symbol '{symbol}'. Provide a concise but insightful interpretation (2-4 paragraphs) covering: common psychological meaning, archetypal/cultural significance, and what this symbol may reveal about the dreamer's inner state. Do NOT ask follow-up questions. Respond in {'Chinese' if lang == 'zh' else 'English'}."
     try:
         def _build_symbol_payload(provider, model_override):
-            return {
+            payload = {
                 "model": model_override,
                 "messages": [{"role": "system", "content": system_content}],
-                "temperature": 0.7,
                 "max_tokens": 1024,
             }
+            if provider["name"] == "deepseek":
+                payload["thinking"] = {"type": "disabled"}  # 符号查询不需要链式推理
+                payload["temperature"] = 0.7
+            else:
+                payload["temperature"] = 0.7
+            return payload
         res_json, used_provider = _call_llm_with_fallback(
             _build_symbol_payload, timeout=60, mode='symbol'
         )
@@ -662,15 +691,20 @@ def clean_text():
 
     try:
         def _build_clean_payload(provider, model_override):
-            return {
+            payload = {
                 "model": model_override,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": raw_text}
                 ],
-                "temperature": 0.1,
                 "max_tokens": 2048,
             }
+            if provider["name"] == "deepseek":
+                payload["thinking"] = {"type": "disabled"}  # 语音清理不需要链式推理
+                payload["temperature"] = 0.1
+            else:
+                payload["temperature"] = 0.1
+            return payload
         res_json, used_provider = _call_llm_with_fallback(
             _build_clean_payload, timeout=30, mode='clean'
         )
@@ -711,15 +745,20 @@ def _polish_via_llm(text, lang='zh'):
     )
     try:
         def _build_polish_payload(provider, model_override):
-            return {
+            payload = {
                 "model": model_override,
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text}
                 ],
-                "temperature": 0.1,
                 "max_tokens": 1024,
             }
+            if provider["name"] == "deepseek":
+                payload["thinking"] = {"type": "disabled"}
+                payload["temperature"] = 0.1
+            else:
+                payload["temperature"] = 0.1
+            return payload
         res_json, used_provider = _call_llm_with_fallback(
             _build_polish_payload, timeout=8, mode='polish'
         )
