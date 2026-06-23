@@ -25,6 +25,14 @@ except ImportError:
     send_inactive_reengagement_email = None
     print("[Warning] email_templates not found, email features disabled")
 
+# ── User Account System ──────────────────────────────────
+try:
+    from account_module import init_account_tables, register_account_routes, activate_entitlement, get_db_conn, PLAN_CONFIG
+    ACCOUNT_SYSTEM_READY = True
+except ImportError as e:
+    print(f"[Warning] account_module not found, user account features disabled: {e}")
+    ACCOUNT_SYSTEM_READY = False
+
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app, supports_credentials=True)
@@ -289,6 +297,12 @@ def init_db():
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
 
 init_db()
+
+# ── Initialize User Account System ───────────────────────
+if ACCOUNT_SYSTEM_READY:
+    init_account_tables()
+    register_account_routes(app)
+    print("[INFO] User account system initialized — /api/auth/* /api/user/* /api/license/* registered")
 
 # --- REQUEST LOGGING MIDDLEWARE ---
 @app.before_request
