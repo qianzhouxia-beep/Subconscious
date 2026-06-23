@@ -21,13 +21,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
     <!-- Tailwind CSS: locked version, CDN runtime compile (small project, acceptable) -->
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <!-- Locked CDN versions (no @latest) -->
+    <!-- Locked CDN versions (no @latest) — defer to not block render -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
     <link rel="stylesheet" href="/static/css/aetheris.css">
-    <!-- External JS modules -->
+    <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js"></script>
     <script src="/static/js/tarot.js"></script>
     <script src="/static/js/optimizer.js"></script>
