@@ -28,6 +28,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
     <link rel="stylesheet" href="/static/css/aetheris.css">
+    <link rel="stylesheet" href="/static/css/sm-icons.css">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js"></script>
     <script src="/static/js/tarot.js"></script>
@@ -215,7 +216,7 @@
                 <!-- Left: 清醒程度 + 关键词 -->
                 <div class="glass-card px-5 py-5 rounded-xl space-y-5" style="border:1px solid rgba(255,255,255,0.06)">
                     <div class="flex items-center gap-2 border-b border-accent/20 pb-2">
-                        <span class="text-[11px]" id="t-context-icon-left">🎭</span>
+                        <span class="sm-icon" id="t-context-icon-left"><svg viewBox="0 0 24 24"><path d="M3 12c0-3 1.5-6 4-7 2.5 1 4 4 4 7s-1.5 6-4 7c-2.5-1-4-4-4-7z"/><path d="M21 12c0-3-1.5-6-4-7-2.5 1-4 4-4 7s1.5 6 4 7c2.5-1 4-4 4-7z"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/></svg></span>
                         <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold" id="t-context-title-left">梦境感知</h3>
                     </div>
                     <!-- 清醒程度（唯一保留的滑块） -->
@@ -242,7 +243,7 @@
                 <!-- Right: 梦境类型 + 压力等级（平铺按钮，无弹窗） -->
                 <div class="glass-card px-5 py-5 rounded-xl space-y-4" style="border:1px solid rgba(255,255,255,0.06)">
                     <div class="flex items-center gap-2 border-b border-accent/20 pb-2">
-                        <span class="text-[11px]" id="t-context-icon-right">🌙</span>
+                        <span class="sm-icon" id="t-context-icon-right"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg></span>
                         <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold" id="t-context-title-right">环境与状态</h3>
                     </div>
                     <!-- 梦境类型 -->
@@ -281,14 +282,14 @@
                         <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
                     <div class="space-y-4">
                         <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2" id="t-res-psych">
-                            <span class="text-accent text-lg">🧠</span> Psychology Analysis
+                            <span class="sm-icon"><svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span> Psychology Analysis
                         </h4>
                         <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                     </div>
                     <!-- Premium Unlock Section -->
                     <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
                         <h4 class="text-[10px] text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
-                            <span class="text-accent text-lg">🔮</span> Eastern Destiny Path
+                            <span class="sm-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v4"/><path d="M9 20h6"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/></svg></span> Eastern Destiny Path
                         </h4>
 
                         <!-- 锁定预览：展示隐藏内容清单（未付费时显示） -->
@@ -297,7 +298,7 @@
 
                             <div class="space-y-3 mb-6">
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                                    <span class="text-lg mt-0.5">🃏</span>
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span>
                                     <div>
                                         <div class="text-sm text-white/80 font-medium" id="t-locked-1-title">Tarot Guidance</div>
                                         <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-1-desc">A Major Arcana card matched to your dream's core energy, with upright/reversed interpretation</div>
@@ -305,7 +306,7 @@
                                 </div>
 
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                                    <span class="text-lg mt-0.5">🔍</span>
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/><path d="M11 8a3 3 0 0 0-3 3"/></svg></span>
                                     <div>
                                         <div class="text-sm text-white/80 font-medium" id="t-locked-2-title">Real-Life Mirror</div>
                                         <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-2-desc">How your dream patterns connect to unresolved situations and inner conflicts in waking life</div>
@@ -313,7 +314,7 @@
                                 </div>
 
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                                    <span class="text-lg mt-0.5">💫</span>
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><path d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z"/></svg></span>
                                     <div>
                                         <div class="text-sm text-white/80 font-medium" id="t-locked-3-title">Actionable Wisdom</div>
                                         <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-3-desc">3-5 concrete, personalized steps you can take starting today</div>
@@ -321,7 +322,7 @@
                                 </div>
 
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                                    <span class="text-lg mt-0.5">🔮</span>
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
                                     <div>
                                         <div class="text-sm text-white/80 font-medium" id="t-locked-4-title">Prophecy</div>
                                         <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-4-desc">A cryptic, poetic closing line — the oracle's final word, distilled from your dream's essence</div>
@@ -364,7 +365,7 @@
                     <!-- Tarot Card Display -->
                     <div id="tarot-section" class="hidden border-t border-white/10 pt-6 mt-6">
                         <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
-                            <span class="text-accent text-lg">🃏</span> Tarot Guidance
+                            <span class="sm-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span> Tarot Guidance
                         </h4>
                         <div class="flex flex-col md:flex-row items-center gap-8">
                             <div class="w-40 h-60 rounded-2xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
@@ -2166,6 +2167,31 @@
             document.querySelectorAll('a[href^="#"]').length + ' anchors, ' +
             document.querySelectorAll('img').length + ' images checked.');
     })();
+    </script>
+
+    <!-- ═══ SVG Icons ═══ -->
+    <script>
+    // Unified SVG icon set — clean line-art, blue accent (#89AACC)
+    const smIcons = {
+      brain:     '<svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg>',
+      crystal:   '<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v4"/><path d="M9 20h6"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/></svg>',
+      tarot:     '<svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg>',
+      search:    '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/><path d="M11 8a3 3 0 0 0-3 3"/></svg>',
+      star:      '<svg viewBox="0 0 24 24"><path d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z"/></svg>',
+      prophecy:  '<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+      mask:      '<svg viewBox="0 0 24 24"><path d="M3 12c0-3 1.5-6 4-7 2.5 1 4 4 4 7s-1.5 6-4 7c-2.5-1-4-4-4-7z"/><path d="M21 12c0-3-1.5-6-4-7-2.5 1-4 4-4 7s1.5 6 4 7c2.5-1 4-4 4-7z"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/></svg>',
+      moon:      '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>',
+      btc:       '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M9.5 8.5v7M9.5 12H14a2 2 0 1 0 0-4H9.5z"/><path d="M9.5 12H15a2 2 0 1 1 0 4H9.5"/></svg>',
+      close:     '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
+      // Shortcut: wrap icon in span
+      span: function(name, cls='') {
+        return `<span class="sm-icon ${cls}">${this[name] || ''}</span>`;
+      },
+      // Shortcut: icon + text label for headings
+      label: function(name, text) {
+        return `<span class="sm-icon">${this[name] || ''}</span> ${text}`;
+      },
+    };
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->

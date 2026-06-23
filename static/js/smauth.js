@@ -75,7 +75,7 @@ const SMAuth = (function () {
   }
 
   function showLoginModal() {
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Welcome Back</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">Log in to access your dream interpretations</p>' +
       '<div id="sm-error" style="display:none;color:#ff6b6b;font-size:13px;margin-bottom:12px;"></div>' +
@@ -95,7 +95,7 @@ const SMAuth = (function () {
   }
 
   function showRegisterModal() {
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Create Account</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">Secure your purchases across devices</p>' +
       '<div id="sm-error" style="display:none;color:#ff6b6b;font-size:13px;margin-bottom:12px;"></div>' +
@@ -115,7 +115,7 @@ const SMAuth = (function () {
   }
 
   function showForgotModal() {
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Reset Password</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">Enter your email for a reset link</p>' +
       '<div id="sm-error" style="display:none;color:#ff6b6b;font-size:13px;margin-bottom:12px;"></div>' +
@@ -132,7 +132,7 @@ const SMAuth = (function () {
 
   function showPaymentPrompt(planType, planLabel, price) {
     if (token) { showMethodChoice(planType, planLabel, price); return; }
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Secure Your Purchase</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">Create an account to save your purchase</p>' +
       '<button onclick="SMAuth._continuePay(\'' + planType + '\',\'' + planLabel + '\',' + price + ')" style="' + btnP() + 'margin-bottom:8px;">Create Account / Log In</button>' +
@@ -142,7 +142,7 @@ const SMAuth = (function () {
 
   function _continuePay(pt, pl, pr) { sessionStorage.setItem("sm_pending", JSON.stringify({ pt, pl, pr })); showLoginModal(); }
   function _guestPay(pt, pl, pr) {
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Guest Checkout</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">Enter your email for access link</p>' +
       '<div id="sm-error" style="display:none;color:#ff6b6b;font-size:13px;margin-bottom:12px;"></div>' +
@@ -161,11 +161,11 @@ const SMAuth = (function () {
   }
 
   function showMethodChoice(pt, pl, pr) {
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button>' +
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Choose Payment</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">' + pl + ' — <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p>' +
       '<div onclick="SMAuth.closeModal();SMAuth._startPP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:#0070ba;color:#fff;font-size:16px;font-weight:700;padding:4px 8px;border-radius:4px;min-width:50px;text-align:center;">PayPal</span><span style="flex:1;">Credit Card / PayPal</span><span style="color:#666;">\u2192</span></div>' +
-      '<div onclick="SMAuth.closeModal();SMAuth._startNP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:linear-gradient(135deg,#F7931A,#8DC63F);color:#fff;font-size:14px;font-weight:700;padding:4px 8px;border-radius:4px;min-width:50px;text-align:center;">\u0243</span><span style="flex:1;">Crypto (BTC, ETH, USDT...)</span><span style="color:#666;">\u2192</span></div>');
+      '<div onclick="SMAuth.closeModal();SMAuth._startNP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:linear-gradient(135deg,#F7931A,#8DC63F);border-radius:4px;min-width:50px;text-align:center;display:flex;align-items:center;justify-content:center;padding:4px 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><span style="flex:1;">Crypto (BTC, ETH, USDT...)</span><span style="color:#666;">\u2192</span></div>');
   }
 
   async function _startPP(pt, pl, pr) {
@@ -197,7 +197,7 @@ const SMAuth = (function () {
       var d = await r.json();
       if (!r.ok) throw new Error(d.detail);
       closeModal();
-      showModal('<div style="text-align:center;"><div style="font-size:36px;margin-bottom:12px;">\u0243</div><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">Crypto Payment</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;"><strong>' + pl + '</strong></p><p style="margin:0 0 20px;color:#888;font-size:13px;">Amount: <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p><a href="' + d.invoice_url + '" target="_blank" style="display:inline-block;padding:12px 28px;background:' + BLUE_GRADIENT + ';border:none;border-radius:999px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;">Pay with Crypto \u2192</a><p style="margin-top:16px;color:#666;font-size:12px;">BTC, ETH, USDT, LTC, BCH, XRP, DOGE +50 more</p><p style="margin-top:8px;color:#555;font-size:11px;">Powered by NOWPayments</p></div>');
+      showModal('<div style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-bottom:12px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#89AACC" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">Crypto Payment</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;"><strong>' + pl + '</strong></p><p style="margin:0 0 20px;color:#888;font-size:13px;">Amount: <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p><a href="' + d.invoice_url + '" target="_blank" style="display:inline-block;padding:12px 28px;background:' + BLUE_GRADIENT + ';border:none;border-radius:999px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;">Pay with Crypto \u2192</a><p style="margin-top:16px;color:#666;font-size:12px;">BTC, ETH, USDT, LTC, BCH, XRP, DOGE +50 more</p><p style="margin-top:8px;color:#555;font-size:11px;">Powered by NOWPayments</p></div>');
     } catch (e) { showModal('<p style="color:#ff6b6b;">' + e.message + '</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
   }
 
