@@ -171,7 +171,6 @@ const SMAuth = (function () {
 
   function showMethodChoice(pt, pl, pr) {
     showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Choose Payment</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">' + pl + ' — <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p>' +
       '<div onclick="SMAuth.closeModal();SMAuth._startPP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:#0070ba;color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:4px;min-width:52px;text-align:center;line-height:1;">PayPal</span><span style="flex:1;">Credit Card / PayPal</span><span style="color:#666;">\u2192</span></div>' +
