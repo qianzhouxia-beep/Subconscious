@@ -18,7 +18,7 @@ from functools import wraps
 
 import bcrypt
 import jwt
-from flask import request, jsonify, make_response, g
+from flask import request, jsonify, make_response
 
 # ── Config ───────────────────────────────────────────────
 JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_hex(32))
@@ -176,7 +176,8 @@ def require_auth(f):
             conn.close()
             if not user:
                 return jsonify({"detail": "User not found"}), 401
-            g.current_user_id = user_id
+            # Pass user_id as keyword argument
+            kwargs['current_user_id'] = user_id
             return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify({"detail": "Token expired"}), 401
@@ -403,11 +404,11 @@ def auth_reset_password():
 
 # --- USER ---
 
-def user_me():
+def user_me(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
     try:
-        user_id = g.current_user_id
+        user_id = current_user_id
         conn = get_db_conn()
         user = conn.execute("SELECT id, email, email_verified, created_at FROM users WHERE id=?", (user_id,)).fetchone()
         conn.close()
@@ -425,10 +426,10 @@ def user_me():
         return cors_response({"detail": f"Server error: {str(e)}"}, 500)
 
 
-def user_entitlements():
+def user_entitlements(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = g.current_user_id
+    user_id = current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, plan_type, total_count, used_count, expires_at, created_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
@@ -447,10 +448,10 @@ def user_entitlements():
     return cors_response({"entitlements": result})
 
 
-def user_orders():
+def user_orders(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = g.current_user_id
+    user_id = current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, paypal_order_id, amount, currency, plan_type, status, created_at FROM user_orders WHERE user_id=? ORDER BY created_at DESC",
@@ -460,11 +461,11 @@ def user_orders():
     return cors_response({"orders": [dict(r) for r in rows]})
 
 
-def user_premium_status():
+def user_premium_status(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
     try:
-        user_id = g.current_user_id
+        user_id = current_user_id
         conn = get_db_conn()
         rows = conn.execute(
             "SELECT plan_type, total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
@@ -513,10 +514,10 @@ def license_verify():
     return cors_response({"valid": True, "plan_type": row["plan_type"], "plan_label": PLAN_CONFIG.get(row["plan_type"], {}).get("label", "")})
 
 
-def license_redeem():
+def license_redeem(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = g.current_user_id
+    user_id = current_user_id
     data = request.get_json()
     key = data.get("key", "")
     if not key:
@@ -566,10 +567,10 @@ def admin_generate_license_keys():
 
 # --- ENTITLEMENT CONSUMPTION ---
 
-def entitlements_consume():
+def entitlements_consume(current_user_id=None):
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = g.current_user_id
+    user_id = current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, plan_type, total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
@@ -598,11 +599,11 @@ def entitlements_consume():
     return cors_response({"detail": "No active entitlement. Please purchase a plan."}, 403)
 
 
-def entitlements_activate():
+def entitlements_activate(current_user_id=None):
     """Activate entitlement after payment success. Called by frontend after PayPal capture."""
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = g.current_user_id
+    user_id = current_user_id
     data = request.get_json()
     plan_type = data.get("plan_type", "")
     order_id = data.get("order_id", "")
