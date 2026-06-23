@@ -297,7 +297,7 @@
                             <div class="text-center px-6 py-8 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl max-w-sm mx-auto shadow-2xl">
                                 <p class="text-xs text-gray-400 uppercase tracking-[0.2em] mb-4" id="t-unlock-msg">Unlock your full destiny path</p>
                                 <div class="flex flex-col gap-3">
-                                    <div id="paypal-unlock" class="paypal-sdk-container" data-amount="4.99"></div>
+                                    <div id="paypal-unlock"><button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="block w-full py-4 bg-white/5 border border-white/10 rounded-full text-white text-xs uppercase tracking-widest hover:bg-white/10 transition-all">Buy The Spark — $4.99</button></div>
                                     <noscript><button type="button" class="block w-full py-4 bg-[#0070ba] text-white rounded-full font-bold text-sm cursor-not-allowed opacity-50">PayPal requires JavaScript</button></noscript>
                                     <div class="flex items-center gap-2 my-1">
                                         <div class="flex-1 h-px bg-white/10"></div>
@@ -481,7 +481,7 @@
                         <li id="t-tier1-f2">Eastern Wisdom Alignment</li>
                         <li id="t-tier1-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
                     </ul>
-                    <div id="paypal-4-99" class="paypal-sdk-container" data-amount="4.99"></div>
+                    <div id="paypal-4-99"><button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
                 </div>
                 <div class="glass-card p-12 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
                     <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Most Popular</div>
@@ -492,7 +492,7 @@
                         <li id="t-tier2-f2">Personalized Destiny Map</li>
                         <li id="t-tier2-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
                     </ul>
-                    <div id="paypal-12-99" class="paypal-sdk-container" data-amount="12.99"></div>
+                    <div id="paypal-12-99"><button onclick="SMAuth.showPaymentPrompt('seeker','The Seeker',12.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
                 </div>
                 <div class="glass-card p-12 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
                     <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-6" id="t-tier3-name">The Oracle</span>
@@ -502,7 +502,7 @@
                         <li id="t-tier3-f2">DeepSeek R1 High-Priority</li>
                         <li id="t-tier3-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Nous Hermes 3 Integration</li>
                     </ul>
-                    <div id="paypal-29-99" class="paypal-sdk-container" data-amount="29.99"></div>
+                    <div id="paypal-29-99"><button onclick="SMAuth.showPaymentPrompt('oracle','The Oracle',29.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
                 </div>
             </div>
         </div>

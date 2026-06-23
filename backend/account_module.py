@@ -650,22 +650,7 @@ def auth_social_google_callback():
 
 # ── Apple OAuth Placeholder ─────────────────────────────
 
-def auth_social_apple():
-    """Initiate Apple OAuth login."""
-    client_id = os.environ.get("APPLE_OAUTH_CLIENT_ID", "")
-    if not client_id:
-        return cors_response({"detail": "Apple login not configured", "code": "NOT_CONFIGURED"}, 501)
-    redirect_uri = f"{SITE_URL}/api/auth/social/callback/apple"
-    return cors_response({"auth_url": f"https://appleid.apple.com/auth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=email%20name"})
-
-
-def auth_social_github():
-    """Initiate GitHub OAuth login."""
-    client_id = os.environ.get("GITHUB_OAUTH_CLIENT_ID", "")
-    if not client_id:
-        return cors_response({"detail": "GitHub login not configured", "code": "NOT_CONFIGURED"}, 501)
-    redirect_uri = f"{SITE_URL}/api/auth/social/callback/github"
-    return cors_response({"auth_url": f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=user:email"})
+# ── Apple / GitHub Placeholder (removed, only Google active) ──
 
 
 # ── Register Routes ──────────────────────────────────────
@@ -692,5 +677,3 @@ def register_account_routes(app):
     # Social auth
     app.add_url_rule('/api/auth/social/google', 'auth_social_google', auth_social_google, methods=['GET'])
     app.add_url_rule('/api/auth/social/google/callback', 'auth_social_google_callback', auth_social_google_callback, methods=['GET'])
-    app.add_url_rule('/api/auth/social/apple', 'auth_social_apple', auth_social_apple, methods=['GET'])
-    app.add_url_rule('/api/auth/social/github', 'auth_social_github', auth_social_github, methods=['GET'])
