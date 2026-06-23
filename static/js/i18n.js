@@ -8,8 +8,6 @@
                 symbol_label: "Keywords", symbol_hint2: "Enter to add · Click to remove",
                 symbol_placeholder2: "Flight · Deep Sea · Falling",
                 env_dreamtype_label: "Dream Type", env_stress_label: "Stress Level",
-                engine_eyebrow: "Motion Engine", engine_title: 'The Aetheris <span class="text-accent">Motion</span> Engine',
-                engine_desc: "Our updated JavaScript logic ensures that interaction feels like a natural extension of thought. Every movement ripples through the background fabric, creating a dance of light and darkness.",
 
                 pill_ordinary: "Ordinary", pill_lucid: "Lucid", pill_nightmare: "Nightmare", pill_repeating: "Repeating",
                 pill_none: "None", pill_mild: "Mild", pill_moderate: "Moderate", pill_high: "High",
@@ -85,8 +83,6 @@
                 symbol_label: "关键词", symbol_hint2: "回车添加 · 点击删除",
                 symbol_placeholder2: "飞行 · 深海 · 坠落",
                 env_dreamtype_label: "梦境类型", env_stress_label: "压力等级",
-                engine_eyebrow: "运动引擎", engine_title: '以太<span class="text-accent">运动</span>引擎',
-                engine_desc: "优化的JavaScript逻辑使交互成为思想的自然延伸，每一次动作都在背景中泛起涟漪，创造光与影的舞蹈。",
                 pill_ordinary: "普通梦", pill_lucid: "清醒梦", pill_nightmare: "噩梦", pill_repeating: "重复梦",
                 pill_none: "无", pill_mild: "轻度", pill_moderate: "中等", pill_high: "高压",
                 hero_eyebrow: "揭示未见之象", hero_title: "潜意识之<span class='accent-gradient pr-4'>镜</span>", hero_desc: "一座<span class='text-white font-display italic'>解梦神谕</span>,为你解读潜意识深处的隐藏信息。", hero_start: "开始解梦",
