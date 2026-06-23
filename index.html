@@ -173,6 +173,15 @@
                     </div>
                     <div class="absolute bottom-4 right-4 flex items-center gap-3">
                         <div id="turn-indicator" class="text-[9px] text-accent/60 uppercase tracking-widest hidden md:inline opacity-0">Connection 0 / 5</div>
+                        <!-- 分析深度指示器 P1 -->
+                        <div id="depth-indicator" class="hidden md:flex items-center gap-2 mr-1" title="分析深度">
+                            <span class="text-[8px] text-gray-500 uppercase tracking-widest" id="t-depth-label">基础</span>
+                            <div class="flex items-center gap-1">
+                                <span class="depth-dot" data-depth="atmo" style="width:6px;height:6px;border-radius:50%;background:rgba(137,170,204,0.3);transition:all 0.3s;"></span>
+                                <span class="depth-dot" data-depth="env" style="width:6px;height:6px;border-radius:50%;background:rgba(137,170,204,0.3);transition:all 0.3s;"></span>
+                                <span class="depth-dot" data-depth="sym" style="width:6px;height:6px;border-radius:50%;background:rgba(137,170,204,0.3);transition:all 0.3s;"></span>
+                            </div>
+                        </div>
                         <button class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1.5 select-none" id="t-voice-btn">
                             <svg class="w-3.5 h-3.5" id="t-voice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2"/></svg>
                             <span id="t-voice-label">Voice</span>
@@ -237,27 +246,27 @@
                             <!-- 1. 睡前状态 -->
                             <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="presleep" onclick="openEnvPopup('presleep')">
                                 <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
-                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-presleep">睡前状态</span>
+                                <span class="env-label text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-presleep" data-value="平静">平静</span>
                             </div>
                             <!-- 2. 睡眠质量 -->
                             <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="quality" onclick="openEnvPopup('quality')">
                                 <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
-                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-quality">睡眠质量</span>
+                                <span class="env-label text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-quality" data-value="一般">一般</span>
                             </div>
                             <!-- 3. 梦境情绪基调 -->
                             <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="mood" onclick="openEnvPopup('mood')">
                                 <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z"/></svg>
-                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-mood">梦境情绪</span>
+                                <span class="env-label text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-mood" data-value="平静">平静</span>
                             </div>
                             <!-- 4. 梦境类型 -->
                             <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="dreamtype" onclick="openEnvPopup('dreamtype')">
                                 <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"/></svg>
-                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-dreamtype">梦境类型</span>
+                                <span class="env-label text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-dreamtype" data-value="普通梦">普通梦</span>
                             </div>
                             <!-- 5. 近期压力 -->
                             <div class="flex flex-col items-center gap-1.5 group cursor-pointer env-icon" data-env="stress" onclick="openEnvPopup('stress')">
                                 <svg class="w-6 h-6 text-gray-500 group-hover:text-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
-                                <span class="text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-stress">近期压力</span>
+                                <span class="env-label text-[8px] text-gray-500 uppercase tracking-tight" id="t-env-stress" data-value="轻度">轻度</span>
                             </div>
                         </div>
                     </div>
@@ -1084,6 +1093,61 @@
             }
         }
 
+        // === P1: 分析深度指示器 ===
+        function updateDepthIndicator() {
+            // Atmosphere: 滑块始终有值 — 检查用户是否调整过（值不等于默认位置）
+            const atmoVal = document.getElementById('atmo-intensity-val')?.textContent || '';
+            const atmoDefault = currentLang === 'zh' ? '中等' : 'Medium';
+            const atmoLit = atmoVal !== atmoDefault || document.getElementById('atmo-lucidity-val')?.textContent !== (currentLang === 'zh' ? '模糊' : 'Vague');
+            
+            // Environment: 至少有一个图标被点击过（data-engaged）
+            const envLit = document.querySelector('.env-icon[data-engaged="true"]') !== null;
+            
+            // Symbols: 至少有一个标签
+            const symLit = document.querySelectorAll('.symbol-tag-item').length > 0;
+            
+            const depthDots = document.querySelectorAll('.depth-dot');
+            if (depthDots.length === 3) {
+                depthDots[0].style.background = atmoLit ? 'rgba(137,170,204,0.9)' : 'rgba(137,170,204,0.2)';
+                depthDots[0].style.boxShadow = atmoLit ? '0 0 6px rgba(137,170,204,0.5)' : 'none';
+                depthDots[1].style.background = envLit ? 'rgba(137,170,204,0.9)' : 'rgba(137,170,204,0.2)';
+                depthDots[1].style.boxShadow = envLit ? '0 0 6px rgba(137,170,204,0.5)' : 'none';
+                depthDots[2].style.background = symLit ? 'rgba(137,170,204,0.9)' : 'rgba(137,170,204,0.2)';
+                depthDots[2].style.boxShadow = symLit ? '0 0 6px rgba(137,170,204,0.5)' : 'none';
+            }
+            
+            // 计算总深度
+            const litCount = (atmoLit ? 1 : 0) + (envLit ? 1 : 0) + (symLit ? 1 : 0);
+            const label = document.getElementById('t-depth-label');
+            if (label) {
+                if (currentLang === 'zh') {
+                    label.innerText = litCount >= 3 ? '深度' : litCount >= 2 ? '增强' : '基础';
+                } else {
+                    label.innerText = litCount >= 3 ? 'Deep' : litCount >= 2 ? 'Enhanced' : 'Basic';
+                }
+            }
+        }
+
+        // 模块变化时自动更新指示器
+        document.addEventListener('DOMContentLoaded', () => {
+            // 环境图标点击时更新
+            document.querySelectorAll('.env-icon').forEach(el => {
+                el.addEventListener('click', () => setTimeout(updateDepthIndicator, 100));
+            });
+            // 符号标签变化时更新（通过 MutationObserver 监听标签容器）
+            const tagContainer = document.getElementById('symbol-tag-container');
+            if (tagContainer) {
+                const observer = new MutationObserver(updateDepthIndicator);
+                observer.observe(tagContainer, { childList: true, subtree: true });
+            }
+            // 初始更新
+            setTimeout(updateDepthIndicator, 500);
+        });
+        // 滑块变化时更新
+        document.querySelectorAll('input[type="range"][data-label]').forEach(slider => {
+            slider.addEventListener('input', () => setTimeout(updateDepthIndicator, 50));
+        });
+
         function showLicenseInput() {
             document.getElementById('license-input-wrapper').classList.remove('hidden');
             document.getElementById('t-have-key').classList.add('hidden');
@@ -1158,23 +1222,31 @@
             sendBtn.disabled = true;
 
             const thinking = addThinkingBubble();
-            // Collect atmosphere data
+            // Collect atmosphere data (always available — sliders have defaults)
             const atmoIntensity = document.getElementById('atmo-intensity-val')?.textContent || '中等';
             const atmoLucidity = document.getElementById('atmo-lucidity-val')?.textContent || '模糊';
             const atmoVivid = document.getElementById('atmo-vivid-val')?.textContent || '真切';
-            // Collect environment variables
-            const envPresleep = document.getElementById('t-env-presleep')?.innerText || '';
-            const envQuality = document.getElementById('t-env-quality')?.innerText || '';
-            const envMood = document.getElementById('t-env-mood')?.innerText || '';
-            const envDreamtype = document.getElementById('t-env-dreamtype')?.innerText || '';
-            const envStress = document.getElementById('t-env-stress')?.innerText || '';
+            // Collect environment variables — only include categories the user engaged with
+            const envConfigs = [
+                { id: 't-env-presleep', key: 'Presleep', engaged: document.querySelector('.env-icon[data-env="presleep"]')?.getAttribute('data-engaged') === 'true' },
+                { id: 't-env-quality', key: 'Quality', engaged: document.querySelector('.env-icon[data-env="quality"]')?.getAttribute('data-engaged') === 'true' },
+                { id: 't-env-mood', key: 'Mood', engaged: document.querySelector('.env-icon[data-env="mood"]')?.getAttribute('data-engaged') === 'true' },
+                { id: 't-env-dreamtype', key: 'Type', engaged: document.querySelector('.env-icon[data-env="dreamtype"]')?.getAttribute('data-engaged') === 'true' },
+                { id: 't-env-stress', key: 'Stress', engaged: document.querySelector('.env-icon[data-env="stress"]')?.getAttribute('data-engaged') === 'true' },
+            ];
+            const envParts = envConfigs
+                .filter(c => c.engaged)
+                .map(c => `${c.key}=${document.getElementById(c.id)?.dataset?.value || document.getElementById(c.id)?.innerText || ''}`);
             const symbolTags = [...document.querySelectorAll('.symbol-tag-item')].map(el => {
                 return el.textContent.replace('✕', '').trim();
             }).join(', ');
             const atmoContext = ` [Atmosphere: intensity=${atmoIntensity}, lucidity=${atmoLucidity}, vividness=${atmoVivid}]`;
-            const envContext = ` [Environment: Presleep=${envPresleep}, Quality=${envQuality}, Mood=${envMood}, Type=${envDreamtype}, Stress=${envStress}]`;
+            const envContext = envParts.length ? ` [Environment: ${envParts.join(', ')}]` : '';
             const symContext = symbolTags ? ` [Symbols: ${symbolTags}]` : '';
             chatHistory.push({ "role": "user", "content": `Dream: ${content}${atmoContext}${envContext}${symContext}` });
+            
+            // 更新分析深度指示器（在发送时实时计算）
+            updateDepthIndicator();
 
             const slowToast = setTimeout(() => {
                 const tip = document.createElement('div');
@@ -1970,7 +2042,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
                     btn.innerText = o;
-                    btn.onclick = () => { document.getElementById('t-env-presleep').innerText = o; document.getElementById('t-env-presleep').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    btn.onclick = () => { const el = document.getElementById('t-env-presleep'); el.innerText = o; el.dataset.value = o; el.closest('.env-icon')?.setAttribute('data-engaged', 'true'); el.closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
                     grid.appendChild(btn);
                 });
                 body.appendChild(grid);
@@ -1985,7 +2057,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
                     btn.innerText = o;
-                    btn.onclick = () => { document.getElementById('t-env-quality').innerText = o; document.getElementById('t-env-quality').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    btn.onclick = () => { const el = document.getElementById('t-env-quality'); el.innerText = o; el.dataset.value = o; el.closest('.env-icon')?.setAttribute('data-engaged', 'true'); el.closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
                     grid.appendChild(btn);
                 });
                 body.appendChild(grid);
@@ -2000,7 +2072,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
                     btn.innerText = o;
-                    btn.onclick = () => { document.getElementById('t-env-mood').innerText = o; document.getElementById('t-env-mood').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    btn.onclick = () => { const el = document.getElementById('t-env-mood'); el.innerText = o; el.dataset.value = o; el.closest('.env-icon')?.setAttribute('data-engaged', 'true'); el.closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
                     grid.appendChild(btn);
                 });
                 body.appendChild(grid);
@@ -2015,7 +2087,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
                     btn.innerText = o;
-                    btn.onclick = () => { document.getElementById('t-env-dreamtype').innerText = o; document.getElementById('t-env-dreamtype').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    btn.onclick = () => { const el = document.getElementById('t-env-dreamtype'); el.innerText = o; el.dataset.value = o; el.closest('.env-icon')?.setAttribute('data-engaged', 'true'); el.closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
                     grid.appendChild(btn);
                 });
                 body.appendChild(grid);
@@ -2030,7 +2102,7 @@
                     const btn = document.createElement('button');
                     btn.className = 'px-3 py-2 rounded-lg text-xs bg-white/5 hover:bg-accent/20 hover:text-white text-gray-400 border border-white/10 transition-all text-center';
                     btn.innerText = o;
-                    btn.onclick = () => { document.getElementById('t-env-stress').innerText = o; document.getElementById('t-env-stress').closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
+                    btn.onclick = () => { const el = document.getElementById('t-env-stress'); el.innerText = o; el.dataset.value = o; el.closest('.env-icon')?.setAttribute('data-engaged', 'true'); el.closest('.env-icon')?.classList.add('selected'); closeEnvPopup(); };
                     grid.appendChild(btn);
                 });
                 body.appendChild(grid);

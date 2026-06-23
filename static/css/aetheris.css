@@ -233,6 +233,13 @@
         .env-icon.selected svg { color: #89AACC !important; }
         .env-icon.selected span { color: #89AACC !important; }
         .env-icon.selected .active-indicator { opacity: 1; }
+        .env-icon.selected { filter: drop-shadow(0 0 6px rgba(137,170,204,0.3)); }
+        /* Depth indicator dot animation */
+        .depth-dot[style*="rgba(137,170,204,0.9)"] { animation: depthPulse 2s ease-in-out infinite; }
+        @keyframes depthPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+        }
         .modal { position: fixed; inset: 0; z-index: 100; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); }
         .modal-content { max-width: 600px; width: 90%; background: #141414; border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 48px; position: relative; }
         #modal-text { max-height: 60vh; overflow-y: auto; padding-right: 12px; }
