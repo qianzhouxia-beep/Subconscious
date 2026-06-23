@@ -105,6 +105,11 @@ AI_PROVIDERS = [
 PAYPAL_CLIENT_ID = os.environ.get("PAYPAL_CLIENT_ID", "")
 PAYPAL_SECRET = os.environ.get("PAYPAL_SECRET", "")
 PAYPAL_WEBHOOK_ID = os.environ.get("PAYPAL_WEBHOOK_ID", "")
+PAYPAL_SANDBOX = os.environ.get("PAYPAL_SANDBOX", "false") == "true"
+PAYPAL_API_BASE = "https://api-m.sandbox.paypal.com" if PAYPAL_SANDBOX else "https://api-m.paypal.com"
+# Sandbox credentials (used when PAYPAL_SANDBOX=true)
+SANDBOX_PAYPAL_CLIENT_ID = os.environ.get("SANDBOX_PAYPAL_CLIENT_ID", PAYPAL_CLIENT_ID)
+SANDBOX_PAYPAL_SECRET = os.environ.get("SANDBOX_PAYPAL_SECRET", PAYPAL_SECRET)
 WHISPER_API_BASE = os.environ.get("WHISPER_API_BASE", "https://api-tokenmaster.com/v1/audio/transcriptions")
 WHISPER_API_KEY = os.environ.get("WHISPER_API_KEY", os.environ.get("DEEPSEEK_API_KEY", ""))
 HTML_FILE = "index.html"
@@ -1009,7 +1014,7 @@ def paypal_debug():
         "paypal_status": None,
     }
     try:
-        test_res = requests.get('https://api-m.paypal.com/v1/oauth2/token', timeout=10)
+        test_res = requests.get(f'{PAYPAL_API_BASE}/v1/oauth2/token', timeout=10)
         info["paypal_reachable"] = True
         info["paypal_status"] = f"HTTP {test_res.status_code}"
     except requests.Timeout:
@@ -1024,8 +1029,9 @@ def paypal_debug():
 @app.route('/api/paypal/config', methods=['GET'])
 def paypal_config():
     """Return PayPal client ID for frontend SDK initialization"""
+    cid = SANDBOX_PAYPAL_CLIENT_ID if PAYPAL_SANDBOX else PAYPAL_CLIENT_ID
     return _cors(jsonify({
-        "clientId": PAYPAL_CLIENT_ID,
+        "clientId": cid,
         "intent": "capture",
         "currency": "USD"
     }))
@@ -1039,14 +1045,16 @@ def paypal_capture_order():
     
     if not order_id:
         return _cors(jsonify({"error": "Missing orderID"}), 400)
-    if not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
+    cid = SANDBOX_PAYPAL_CLIENT_ID if PAYPAL_SANDBOX else PAYPAL_CLIENT_ID
+    secret = SANDBOX_PAYPAL_SECRET if PAYPAL_SANDBOX else PAYPAL_SECRET
+    if not cid or not secret:
         return _cors(jsonify({"error": "PayPal credentials not configured"}), 503)
     
     try:
         # Get access token
         auth_res = requests.post(
-            'https://api-m.paypal.com/v1/oauth2/token',
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+            f'{PAYPAL_API_BASE}/v1/oauth2/token',
+            auth=(cid, secret),
             headers={'Accept': 'application/json', 'Accept-Language': 'en_US'},
             data={'grant_type': 'client_credentials'},
             timeout=15
@@ -1056,7 +1064,7 @@ def paypal_capture_order():
         
         # Capture the order
         capture_res = requests.post(
-            f'https://api-m.paypal.com/v2/checkout/orders/{order_id}/capture',
+            f'{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}/capture',
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {access_token}'
@@ -1138,14 +1146,16 @@ def paypal_create_order():
     amount = data.get('amount', '4.99')
     
     # Quick sanity check
-    if not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
+    cid = SANDBOX_PAYPAL_CLIENT_ID if PAYPAL_SANDBOX else PAYPAL_CLIENT_ID
+    secret = SANDBOX_PAYPAL_SECRET if PAYPAL_SANDBOX else PAYPAL_SECRET
+    if not cid or not secret:
         return _cors(jsonify({"error": "PayPal credentials not configured on server", "code": "MISSING_CREDS"}), 503)
     
     try:
-        # Get access token from PayPal LIVE API
+        # Get access token from PayPal API
         auth_res = requests.post(
-            'https://api-m.paypal.com/v1/oauth2/token',
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+            f'{PAYPAL_API_BASE}/v1/oauth2/token',
+            auth=(cid, secret),
             headers={'Accept': 'application/json', 'Accept-Language': 'en_US'},
             data={'grant_type': 'client_credentials'},
             timeout=15
@@ -1156,7 +1166,7 @@ def paypal_create_order():
         # Create order with application_context for redirect URLs
         base_url = BRAND_URL.rstrip('/')
         order_res = requests.post(
-            'https://api-m.paypal.com/v2/checkout/orders',
+            f'{PAYPAL_API_BASE}/v2/checkout/orders',
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {access_token}'
@@ -1202,12 +1212,15 @@ def paypal_return():
     token = request.args.get('token', '')  # PayPal order token
     payer_email = ''
     
+    cid = SANDBOX_PAYPAL_CLIENT_ID if PAYPAL_SANDBOX else PAYPAL_CLIENT_ID
+    secret = SANDBOX_PAYPAL_SECRET if PAYPAL_SANDBOX else PAYPAL_SECRET
+
     if status == 'success' and token:
         # Capture the order server-side (optional: webhook also handles this)
         try:
             auth_res = requests.post(
-                'https://api-m.paypal.com/v1/oauth2/token',
-                auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+                f'{PAYPAL_API_BASE}/v1/oauth2/token',
+                auth=(cid, secret),
                 headers={'Accept': 'application/json'},
                 data={'grant_type': 'client_credentials'},
                 timeout=15
@@ -1216,7 +1229,7 @@ def paypal_return():
             
             if access_token:
                 capture_res = requests.post(
-                    f'https://api-m.paypal.com/v2/checkout/orders/{token}/capture',
+                    f'{PAYPAL_API_BASE}/v2/checkout/orders/{token}/capture',
                     headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {access_token}'},
                     timeout=15
                 )
