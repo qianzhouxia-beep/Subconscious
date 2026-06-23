@@ -530,19 +530,125 @@ def nowpayments_status(payment_id):
         return cors_response({"detail": str(e)}, 502)
 
 
-# ── Social Auth Placeholder ───────────────────────────────
-# These endpoints will be fully implemented when OAuth providers are configured.
-# Currently they return the URLs that need to be configured.
+# ═══ GOOGLE OAUTH ═══════════════════════════════════════
 
 def auth_social_google():
-    """Initiate Google OAuth login."""
+    """Initiate Google OAuth login — redirect user to Google consent screen."""
     client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
     if not client_id:
         return cors_response({"detail": "Google login not configured", "code": "NOT_CONFIGURED"}, 501)
-    redirect_uri = f"{SITE_URL}/api/auth/social/callback/google"
-    params = f"client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=email%20profile"
-    return cors_response({"auth_url": f"https://accounts.google.com/o/oauth2/auth?{params}"})
+    redirect_uri = f"{SITE_URL}/api/auth/social/google/callback"
+    params = (
+        f"client_id={client_id}"
+        f"&redirect_uri={redirect_uri}"
+        f"&response_type=code"
+        f"&scope=openid%20email%20profile"
+        f"&access_type=offline"
+        f"&prompt=select_account"
+    )
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{params}"
+    # Return auth_url so frontend can redirect (supports both popup and full redirect)
+    return cors_response({"auth_url": auth_url})
 
+
+def auth_social_google_callback():
+    """
+    Handle Google OAuth callback.
+    Flow: Google redirects here with ?code=... → exchange code for tokens →
+    fetch user info → create/log in user → redirect to frontend with JWT.
+    """
+    code = request.args.get("code", "")
+    error = request.args.get("error", "")
+    if error:
+        print(f"[Google OAuth] User denied or error: {error}")
+        from flask import redirect as flask_redirect
+        return flask_redirect(f"{SITE_URL}/?oauth_error={error}")
+
+    if not code:
+        return cors_response({"detail": "Missing authorization code"}, 400)
+
+    client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
+    client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+    redirect_uri = f"{SITE_URL}/api/auth/social/google/callback"
+
+    if not client_id or not client_secret:
+        return cors_response({"detail": "Google OAuth not fully configured"}, 500)
+
+    import requests as http_req
+
+    # Step 1: Exchange authorization code for tokens
+    try:
+        token_resp = http_req.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+        token_resp.raise_for_status()
+        token_data = token_resp.json()
+        access_token = token_data.get("access_token", "")
+        if not access_token:
+            print(f"[Google OAuth] No access_token in response: {token_data}")
+            return cors_response({"detail": "Failed to get access token"}, 502)
+    except Exception as e:
+        print(f"[Google OAuth] Token exchange failed: {e}")
+        return cors_response({"detail": "Google token exchange failed"}, 502)
+
+    # Step 2: Fetch user info from Google
+    try:
+        user_resp = http_req.get(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
+        )
+        user_resp.raise_for_status()
+        google_user = user_resp.json()
+        google_email = google_user.get("email", "").lower()
+        google_name = google_user.get("name", google_email.split("@")[0])
+        google_id = google_user.get("id", "")
+        google_verified = google_user.get("verified_email", False)
+
+        if not google_email:
+            print(f"[Google OAuth] No email in user info: {google_user}")
+            return cors_response({"detail": "Google account has no email"}, 400)
+    except Exception as e:
+        print(f"[Google OAuth] User info fetch failed: {e}")
+        return cors_response({"detail": "Failed to fetch Google user info"}, 502)
+
+    # Step 3: Find or create user
+    conn = get_db_conn()
+    user = conn.execute("SELECT * FROM users WHERE email=?", (google_email,)).fetchone()
+
+    if user:
+        # Existing user — log them in
+        user_id = user["id"]
+        conn.execute("UPDATE users SET updated_at=datetime('now') WHERE id=?", (user_id,))
+    else:
+        # New user — create account with a random password
+        user_id = str(uuid.uuid4())
+        random_password = secrets.token_urlsafe(32)
+        conn.execute(
+            "INSERT INTO users (id, email, password_hash, email_verified) VALUES (?,?,?,?)",
+            (user_id, google_email, hash_password(random_password), 1 if google_verified else 0),
+        )
+        print(f"[Google OAuth] Created new user: {google_email}")
+
+    conn.commit()
+    conn.close()
+
+    # Step 4: Generate JWT and redirect to frontend
+    token = create_jwt(user_id, google_email, True)
+    from flask import redirect as flask_redirect
+    return flask_redirect(f"{SITE_URL}/?oauth_token={token}&email={google_email}")
+
+
+# ── Apple OAuth Placeholder ─────────────────────────────
 
 def auth_social_apple():
     """Initiate Apple OAuth login."""
@@ -553,12 +659,13 @@ def auth_social_apple():
     return cors_response({"auth_url": f"https://appleid.apple.com/auth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=email%20name"})
 
 
-def auth_social_callback(provider):
-    """Handle OAuth callback (placeholder — not yet implemented)."""
-    code = request.args.get("code", "")
-    if not code:
-        return cors_response({"detail": "Missing authorization code"}, 400)
-    return cors_response({"message": f"{provider} OAuth is being configured. Please use email login for now."})
+def auth_social_github():
+    """Initiate GitHub OAuth login."""
+    client_id = os.environ.get("GITHUB_OAUTH_CLIENT_ID", "")
+    if not client_id:
+        return cors_response({"detail": "GitHub login not configured", "code": "NOT_CONFIGURED"}, 501)
+    redirect_uri = f"{SITE_URL}/api/auth/social/callback/github"
+    return cors_response({"auth_url": f"https://github.com/login/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&scope=user:email"})
 
 
 # ── Register Routes ──────────────────────────────────────
@@ -582,6 +689,8 @@ def register_account_routes(app):
     app.add_url_rule('/api/nowpayments/create-payment', 'nowpayments_create_payment', nowpayments_create_payment, methods=['POST', 'OPTIONS'])
     app.add_url_rule('/api/nowpayments/webhook', 'nowpayments_webhook', nowpayments_webhook, methods=['POST', 'OPTIONS'])
 
-    # Social auth (placeholder — configure GOOGLE_OAUTH_CLIENT_ID etc to enable)
+    # Social auth
     app.add_url_rule('/api/auth/social/google', 'auth_social_google', auth_social_google, methods=['GET'])
+    app.add_url_rule('/api/auth/social/google/callback', 'auth_social_google_callback', auth_social_google_callback, methods=['GET'])
     app.add_url_rule('/api/auth/social/apple', 'auth_social_apple', auth_social_apple, methods=['GET'])
+    app.add_url_rule('/api/auth/social/github', 'auth_social_github', auth_social_github, methods=['GET'])

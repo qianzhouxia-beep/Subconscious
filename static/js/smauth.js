@@ -69,8 +69,12 @@ const SMAuth = (function () {
     try {
       var resp = await fetch("/api/auth/social/" + provider);
       var data = await resp.json();
-      if (data.auth_url) { window.open(data.auth_url, "_blank", "width=600,height=700"); }
-      else { alert(data.detail || provider + " login is being configured. Please use email."); }
+      if (data.auth_url) {
+        // Full page redirect — most reliable for OAuth flow
+        window.location.href = data.auth_url;
+      } else {
+        alert(data.detail || provider + " login is being configured. Please use email.");
+      }
     } catch (e) { alert(provider + " login not available yet."); }
   }
 
@@ -252,6 +256,32 @@ const SMAuth = (function () {
   }
 
   async function init() {
+    // Handle OAuth redirect back with token
+    var params = new URLSearchParams(window.location.search);
+    var oauthToken = params.get("oauth_token");
+    if (oauthToken) {
+      token = oauthToken;
+      localStorage.setItem("sm_token", token);
+      // Clean URL — remove oauth_token param without reloading
+      var url = new URL(window.location);
+      url.searchParams.delete("oauth_token");
+      url.searchParams.delete("email");
+      url.searchParams.delete("oauth_error");
+      window.history.replaceState({}, "", url);
+      await fetchMe();
+      if (currentUser) { await fetchPremiumStatus(); }
+      updateNavbar();
+      return;
+    }
+    // Check for OAuth error
+    var oauthError = params.get("oauth_error");
+    if (oauthError) {
+      var url = new URL(window.location);
+      url.searchParams.delete("oauth_error");
+      window.history.replaceState({}, "", url);
+      alert("Google login was cancelled or encountered an error. Please try again.");
+    }
+
     if (token) { await fetchMe(); if (currentUser) { await fetchPremiumStatus(); await _checkPending(); } }
     updateNavbar();
     // Inject loader style
