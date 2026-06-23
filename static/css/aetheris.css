@@ -229,11 +229,9 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         .scrollbar-lucent::-webkit-scrollbar-thumb { background: rgba(137,170,204,0.25); border-radius: 10px; border: 1px solid rgba(137,170,204,0.1); transition: background 0.3s; }
         .scrollbar-lucent::-webkit-scrollbar-thumb:hover { background: rgba(137,170,204,0.5); }
-        /* Environment icon selected state */
-        .env-icon.selected svg { color: #89AACC !important; }
-        .env-icon.selected span { color: #89AACC !important; }
-        .env-icon.selected .active-indicator { opacity: 1; }
-        .env-icon.selected { filter: drop-shadow(0 0 6px rgba(137,170,204,0.3)); }
+        /* Environment pill selected state */
+        .env-pill.active { border-color: rgba(137,170,204,0.4) !important; color: #89AACC !important; background: rgba(137,170,204,0.1) !important; }
+        .env-pill:hover { border-color: rgba(137,170,204,0.3) !important; color: rgba(137,170,204,0.8) !important; }
         /* Depth indicator dot animation */
         .depth-dot[style*="rgba(137,170,204,0.9)"] { animation: depthPulse 2s ease-in-out infinite; }
         @keyframes depthPulse {
