@@ -21,7 +21,8 @@ import jwt
 from flask import request, jsonify, make_response
 
 # ── Config ───────────────────────────────────────────────
-JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_hex(32))
+# Fixed default secret — MUST be overridden via JWT_SECRET env var in production
+JWT_SECRET = os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 72
 MAX_LOGIN_ATTEMPTS = 5
