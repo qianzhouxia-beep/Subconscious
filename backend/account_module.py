@@ -434,6 +434,7 @@ def nowpayments_create_payment():
         payload = {
             "price_amount": config["price"],
             "price_currency": "usd",
+            "pay_currency": "usdt",
             "order_id": str(uuid.uuid4()),
             "order_description": f"Subconscious Mirror - {config['label']}",
             "ipn_callback_url": f"{SITE_URL}/api/nowpayments/webhook",
