@@ -38,6 +38,11 @@ PLAN_CONFIG = {
     "oracle": {"price": 29.99, "total_count": -1, "expires_days": 30,    "label": "The Oracle"},
 }
 
+# NOWPayments (crypto)
+NOWPAYMENTS_API_KEY = os.environ.get("NOWPAYMENTS_API_KEY", "")
+NOWPAYMENTS_IPN_SECRET = os.environ.get("NOWPAYMENTS_IPN_SECRET", "")
+NOWPAYMENTS_API_BASE = "https://api.nowpayments.io/v1"
+
 
 # ── Database ─────────────────────────────────────────────
 def init_account_tables():
@@ -70,6 +75,14 @@ def init_account_tables():
         CREATE TABLE IF NOT EXISTS license_keys (
             id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
             is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS crypto_payments (
+            id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
+            plan_type TEXT NOT NULL, amount REAL NOT NULL,
+            currency TEXT DEFAULT 'USD', crypto_currency TEXT,
+            crypto_amount REAL, nowpayments_id TEXT,
+            pay_address TEXT, status TEXT DEFAULT 'pending',
             created_at TEXT DEFAULT (datetime('now'))
         );
         CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token);
@@ -401,6 +414,153 @@ def admin_generate_license_keys():
     return cors_response({"generated": len(keys), "plan_type": plan_type, "keys": keys})
 
 
+# ═══ NOWPAYMENTS (CRYPTO) ═══════════════════════════════
+
+def nowpayments_create_payment():
+    """Create a NOWPayments invoice for crypto payment."""
+    if request.method == "OPTIONS": return handle_options()
+    try:
+        user = get_user_from_token()
+        data = request.get_json()
+        plan_type = data.get("plan_type", "")
+        if plan_type not in PLAN_CONFIG: return cors_response({"detail": "Invalid plan type"}, 400)
+        config = PLAN_CONFIG[plan_type]
+
+        import requests as http_req
+        headers = {
+            "x-api-key": NOWPAYMENTS_API_KEY,
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "price_amount": config["price"],
+            "price_currency": "usd",
+            "order_id": str(uuid.uuid4()),
+            "order_description": f"Subconscious Mirror - {config['label']}",
+            "ipn_callback_url": f"{SITE_URL}/api/nowpayments/webhook",
+            "success_url": f"{SITE_URL}/payment/success?plan={plan_type}",
+            "cancel_url": f"{SITE_URL}/payment/cancel",
+            "is_fixed_rate": True,
+            "is_fee_paid_by_user": True,
+        }
+
+        resp = http_req.post(f"{NOWPAYMENTS_API_BASE}/invoice", json=payload, headers=headers, timeout=15)
+        if resp.status_code not in (200, 201):
+            return cors_response({"detail": f"NOWPayments error: {resp.text}"}, 502)
+
+        result = resp.json()
+        payment_id = result.get("id")
+        invoice_url = result.get("invoice_url", "")
+
+        # Store in DB
+        conn = get_db_conn()
+        conn.execute(
+            "INSERT INTO crypto_payments (id, user_id, plan_type, amount, nowpayments_id, pay_address, status) VALUES (?,?,?,?,?,?,?)",
+            (str(uuid.uuid4()), user["id"], plan_type, config["price"], str(payment_id), "", "pending"),
+        )
+        conn.commit(); conn.close()
+
+        return cors_response({
+            "payment_id": payment_id,
+            "invoice_url": invoice_url,
+            "amount": config["price"],
+            "currency": "USD",
+            "plan_type": plan_type,
+            "plan_label": config["label"],
+        })
+    except Exception as e:
+        return cors_response({"detail": str(e)}, 500)
+
+
+def nowpayments_webhook():
+    """Receive NOWPayments IPN (Instant Payment Notification)."""
+    if request.method == "OPTIONS": return handle_options()
+    data = request.get_json()
+    payment_id = data.get("payment_id", "")
+    payment_status = data.get("payment_status", "")
+    order_id = data.get("order_id", "")
+    pay_amount = data.get("pay_amount", 0)
+    actually_paid = data.get("actually_paid", 0)
+
+    # Verify IPN secret
+    if NOWPAYMENTS_IPN_SECRET:
+        received_secret = request.headers.get("x-nowpayments-sig", "")
+        import hashlib
+        expected = hashlib.sha256(f"{payment_id}:{pay_amount}:{NOWPAYMENTS_IPN_SECRET}".encode()).hexdigest()
+        if received_secret and received_secret != expected:
+            return cors_response({"status": "invalid_signature"}, 403)
+
+    conn = get_db_conn()
+    row = conn.execute("SELECT id, user_id, plan_type, status FROM crypto_payments WHERE nowpayments_id=?", (str(payment_id),)).fetchone()
+    if not row:
+        conn.close()
+        return cors_response({"status": "payment_not_found"}, 404)
+
+    if row["status"] == "finished":
+        conn.close()
+        return cors_response({"status": "already_processed"})
+
+    if payment_status == "finished":
+        conn.execute("UPDATE crypto_payments SET status='finished', crypto_amount=? WHERE id=?", (actually_paid, row["id"]))
+        activate_entitlement(conn, row["user_id"], row["plan_type"])
+        conn.commit()
+        conn.close()
+        return cors_response({"status": "activated"})
+
+    conn.execute("UPDATE crypto_payments SET status=? WHERE id=?", (payment_status, row["id"]))
+    conn.commit()
+    conn.close()
+    return cors_response({"status": "updated", "payment_status": payment_status})
+
+
+def nowpayments_status(payment_id):
+    """Check payment status by nowpayments payment ID."""
+    if not NOWPAYMENTS_API_KEY:
+        return cors_response({"detail": "NOWPayments not configured"}, 503)
+    import requests as http_req
+    try:
+        resp = http_req.get(
+            f"{NOWPAYMENTS_API_BASE}/payment/{payment_id}",
+            headers={"x-api-key": NOWPAYMENTS_API_KEY},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            return cors_response({"detail": "Failed to get payment status"}, 502)
+        return cors_response(resp.json())
+    except Exception as e:
+        return cors_response({"detail": str(e)}, 502)
+
+
+# ── Social Auth Placeholder ───────────────────────────────
+# These endpoints will be fully implemented when OAuth providers are configured.
+# Currently they return the URLs that need to be configured.
+
+def auth_social_google():
+    """Initiate Google OAuth login."""
+    client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
+    if not client_id:
+        return cors_response({"detail": "Google login not configured", "code": "NOT_CONFIGURED"}, 501)
+    redirect_uri = f"{SITE_URL}/api/auth/social/callback/google"
+    params = f"client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=email%20profile"
+    return cors_response({"auth_url": f"https://accounts.google.com/o/oauth2/auth?{params}"})
+
+
+def auth_social_apple():
+    """Initiate Apple OAuth login."""
+    client_id = os.environ.get("APPLE_OAUTH_CLIENT_ID", "")
+    if not client_id:
+        return cors_response({"detail": "Apple login not configured", "code": "NOT_CONFIGURED"}, 501)
+    redirect_uri = f"{SITE_URL}/api/auth/social/callback/apple"
+    return cors_response({"auth_url": f"https://appleid.apple.com/auth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=email%20name"})
+
+
+def auth_social_callback(provider):
+    """Handle OAuth callback (placeholder — not yet implemented)."""
+    code = request.args.get("code", "")
+    if not code:
+        return cors_response({"detail": "Missing authorization code"}, 400)
+    return cors_response({"message": f"{provider} OAuth is being configured. Please use email login for now."})
+
+
 # ── Register Routes ──────────────────────────────────────
 def register_account_routes(app):
     app.add_url_rule('/api/auth/register', 'auth_register', auth_register, methods=['POST', 'OPTIONS'])
@@ -417,3 +577,11 @@ def register_account_routes(app):
     app.add_url_rule('/api/entitlements/consume', 'entitlements_consume', entitlements_consume, methods=['POST', 'OPTIONS'])
     app.add_url_rule('/api/entitlements/activate', 'entitlements_activate', entitlements_activate, methods=['POST', 'OPTIONS'])
     app.add_url_rule('/api/admin/generate-license-keys', 'admin_generate_license_keys', admin_generate_license_keys, methods=['POST'])
+
+    # NOWPayments
+    app.add_url_rule('/api/nowpayments/create-payment', 'nowpayments_create_payment', nowpayments_create_payment, methods=['POST', 'OPTIONS'])
+    app.add_url_rule('/api/nowpayments/webhook', 'nowpayments_webhook', nowpayments_webhook, methods=['POST', 'OPTIONS'])
+
+    # Social auth (placeholder — configure GOOGLE_OAUTH_CLIENT_ID etc to enable)
+    app.add_url_rule('/api/auth/social/google', 'auth_social_google', auth_social_google, methods=['GET'])
+    app.add_url_rule('/api/auth/social/apple', 'auth_social_apple', auth_social_apple, methods=['GET'])
