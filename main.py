@@ -446,8 +446,32 @@ def chat():
     messages = req_data.get('messages', [])
     lang = req_data.get('lang', 'zh')
     user_email = req_data.get('email')
+    sm_token = req_data.get('token', '')
     is_premium = False
-    if user_email:
+
+    # Check SMAuth JWT token for premium status
+    if sm_token:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(sm_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+            if user_id:
+                with get_db() as conn:
+                    rows = conn.execute(
+                        "SELECT total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
+                        (user_id,)
+                    ).fetchall()
+                    for r in rows:
+                        if r["expires_at"] and datetime.fromisoformat(r["expires_at"]) < datetime.now(timezone.utc):
+                            continue
+                        if r["total_count"] < 0 or r["used_count"] < r["total_count"]:
+                            is_premium = True
+                            break
+        except Exception as e:
+            print(f"[Chat] JWT check failed: {e}")
+
+    # Fallback: check old payments table by email
+    if not is_premium and user_email:
         with get_db() as conn:
             row = conn.execute("SELECT status FROM payments WHERE email = ?", (user_email,)).fetchone()
             if row and row['status'] == 'paid': is_premium = True
@@ -628,6 +652,26 @@ def chat():
                     "解锁完整命运报告，获取塔罗指引、现实映照、行动建议与命运预言。" if lang == 'zh'
                     else "Unlock the full destiny report for Tarot guidance, real-life reflections, action steps, and your personal prophecy."
                 )
+            # If premium user generated a report, consume one entitlement
+            if is_premium and sm_token:
+                try:
+                    import jwt as pyjwt
+                    payload = pyjwt.decode(sm_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+                    uid = payload.get("sub", "")
+                    if uid:
+                        with get_db() as conn:
+                            rows = conn.execute(
+                                "SELECT id, total_count, used_count FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
+                                (uid,)
+                            ).fetchall()
+                            for r in rows:
+                                if r["total_count"] > 0 and r["used_count"] < r["total_count"]:
+                                    conn.execute("UPDATE entitlements SET used_count=used_count+1 WHERE id=?", (r["id"],))
+                                    conn.commit()
+                                    break
+                except Exception as e:
+                    print(f"[Chat] Entitlement consume failed: {e}")
+
             return _cors(jsonify({"mode": "report", "status": "full" if is_premium else "partial", "data": {"free_part": free, "paid_part": paid}}))
     except requests.Timeout:
         logger.error("chat_all_timeout", extra={"user_msgs": user_msg_count, "lang": lang})

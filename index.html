@@ -1170,7 +1170,7 @@
             try {
                 const res = await apiFetch('/chat', {
                     method: 'POST',
-                    body: JSON.stringify({ lang: currentLang, messages: chatHistory, refBy: refBy, sessionId: sessionId })
+                    body: JSON.stringify({ lang: currentLang, messages: chatHistory, refBy: refBy, sessionId: sessionId, token: localStorage.getItem('sm_token') || null })
                 });
                 clearTimeout(slowToast);
 
