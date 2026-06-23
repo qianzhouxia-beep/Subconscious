@@ -296,7 +296,8 @@ const SMAuth = (function () {
     verifyLicense: function (k) { return api("/api/license/verify", "POST", { key: k }); },
     redeemLicense: function (k) { return api("/api/license/redeem", "POST", { key: k }); },
     get isLoggedIn() { return !!token; }, get user() { return currentUser; }, get premium() { return premiumStatus; },
-    _doLogin, _doRegister, _doForgot, _continuePay, _guestPay, _guestDo, _toggleMenu, _goStart
+    _doLogin, _doRegister, _doForgot, _continuePay, _guestPay, _guestDo, _toggleMenu, _goStart,
+    _startPP, _startNP
   };
 })();
 
