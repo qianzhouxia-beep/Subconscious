@@ -106,6 +106,9 @@
             position: relative;
             overflow: hidden;
         }
+        .glass-card.overflow-visible {
+            overflow: visible !important;
+        }
         .glass-card::before {
             content: '';
             position: absolute;
