@@ -17,6 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <!-- Fonts: Google Fonts with system fallback stack -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
     <!-- Tailwind CSS: locked version, CDN runtime compile (small project, acceptable) -->
@@ -39,9 +40,9 @@
             theme: {
                 extend: {
                     fontFamily: { 
-                        body: ['Inter', 'sans-serif'], 
-                        display: ['Instrument Serif', 'serif'],
-                        serif: ['Source Serif 4', 'Instrument Serif', 'serif']
+                        body: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'], 
+                        display: ['Instrument Serif', 'Georgia', 'Times New Roman', 'serif'],
+                        serif: ['Source Serif 4', 'Instrument Serif', 'Georgia', 'serif']
                     },
                     colors: { 
                         bg: '#0a0a0a', 
@@ -117,7 +118,7 @@
 
     <!-- Hero Section -->
     <section id="hero" class="relative h-screen w-full flex items-center justify-center">
-        <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline></video>
+        <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline crossorigin="anonymous" poster="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg"></video>
         <div class="absolute inset-0 video-overlay z-10"></div>
         <div class="relative z-20 text-center px-6 pt-24 max-w-6xl">
             <span class="text-[10px] text-gray-500 uppercase tracking-[0.5em] mb-12 block" id="t-hero-eyebrow">Revealing the Unseen</span>
@@ -729,6 +730,22 @@
             document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
             document.title = t.page_title;
             updateTurnIndicator();
+            // Update env pill text based on language
+            const pillMap = {
+                '普通梦': t.pill_ordinary, '清醒梦': t.pill_lucid, '噩梦': t.pill_nightmare, '重复梦': t.pill_repeating,
+                '无': t.pill_none, '轻度': t.pill_mild, '中等': t.pill_moderate, '高压': t.pill_high,
+            };
+            document.querySelectorAll('.env-pill').forEach(p => {
+                const zhText = p.getAttribute('data-zh');
+                if (zhText && pillMap[zhText]) {
+                    p.innerText = pillMap[zhText];
+                } else {
+                    // First call: store current text as data-zh
+                    p.setAttribute('data-zh', p.innerText);
+                    const enText = pillMap[p.innerText];
+                    if (enText) p.innerText = enText;
+                }
+            });
         }
 
         function toggleLang() {
@@ -813,6 +830,9 @@
                 const config = await res.json();
                 if (!config.clientId) {
                     console.log('[PayPal SDK] No client ID configured');
+                    document.querySelectorAll('.paypal-sdk-container').forEach(c => {
+                        c.innerHTML = `<div class="text-[9px] text-gray-500 text-center py-4 italic">Payment not configured</div>`;
+                    });
                     return;
                 }
                 await new Promise((resolve, reject) => {
