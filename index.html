@@ -542,18 +542,15 @@
             <div class="reveal-on-scroll space-y-8" style="transition-delay:0.2s">
                 <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-archive-eyebrow">THE ARCHIVE</span>
                 <h2 class="text-4xl md:text-5xl font-display italic text-white leading-tight" id="t-archive-title">The Archive of <br><span class="text-amber-400/80">Dream Resonance</span></h2>
-                <p class="text-gray-400 text-base leading-relaxed" id="t-archive-desc">Every night is a transmission. Our institute provides the tools to store, search, and synchronize your dreams into a comprehensive digital repository of your hidden self.</p>
+                <p class="text-gray-400 text-base leading-relaxed" id="t-archive-desc">Your dream journal data will appear here — tracking patterns, symbols, and emotional arcs across every session.</p>
 
-                <!-- Tab Buttons -->
-                <div class="flex flex-wrap justify-center gap-3 pt-4" id="archive-tabs">
-                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300 active-tab" data-tab="0" style="background:rgba(137,170,204,0.12);color:#89AACC;border-color:rgba(137,170,204,0.25);" id="t-tag1">Lucid Dreaming</button>
-                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300" data-tab="1" style="color:rgba(251,191,36,0.6);border-color:rgba(251,191,36,0.1);background:rgba(251,191,36,0.05);" id="t-tag2">Archetypal Symbols</button>
-                    <button class="px-5 py-2.5 rounded-full text-[9px] uppercase tracking-widest border transition-all duration-300" data-tab="2" style="color:rgba(137,170,204,0.6);border-color:rgba(137,170,204,0.1);background:rgba(137,170,204,0.05);" id="t-tag3">Deep REM Analysis</button>
-                </div>
-
-                <!-- Demo Dashboard -->
-                <div class="glass-card p-8 rounded-2xl text-left" style="border:1px solid rgba(255,255,255,0.06);min-height:320px;" id="archive-dashboard">
-                    <!-- Content swapped by JS below -->
+                <!-- Archive placeholder（预览占位） -->
+                <div class="glass-card p-10 rounded-2xl text-center mt-6" style="border:1px solid rgba(255,255,255,0.06);min-height:200px;background:rgba(10,10,10,0.3);">
+                    <div class="flex flex-col items-center gap-4 py-6">
+                        <span class="text-2xl opacity-30">📜</span>
+                        <p class="text-sm text-gray-500 leading-relaxed max-w-md" id="t-archive-placeholder">Archive functionality is under development. Begin by recording your dreams above — your personal patterns will appear here.</p>
+                        <span class="text-[8px] text-gray-600 uppercase tracking-widest mt-2" id="t-archive-coming">coming soon</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1098,12 +1095,13 @@
         }
 
         // === P1: 分析深度指示器（精简版） ===
+        let lucidityInteracted = false;  // 追踪用户是否动过滑块
+        
         function updateDepthIndicator() {
-            // Atmosphere: 清醒程度滑块是否被调过（从默认值"模糊"移开）
-            const lucidityVal = document.getElementById('atmo-lucidity-val')?.textContent || '';
-            const atmoLit = lucidityVal !== (currentLang === 'zh' ? '模糊' : 'Hazy');
+            // Atmosphere: 滑块是否被用户主动调整过（而非比较当前值）
+            const atmoLit = lucidityInteracted;
             
-            // Environment: 至少有一个 pill 被激活
+            // Environment: 至少有一个 pill 被激活且不是默认值
             const envLit = document.querySelector('.env-pill.active') !== null;
             
             // Symbols: 至少有一个标签
@@ -1142,9 +1140,12 @@
             // 初始更新
             setTimeout(updateDepthIndicator, 500);
         });
-        // 滑块变化时更新
+        // 滑块变化时更新（仅剩清醒程度滑块，标记交互）
         document.querySelectorAll('input[type="range"][data-label]').forEach(slider => {
-            slider.addEventListener('input', () => setTimeout(updateDepthIndicator, 50));
+            slider.addEventListener('input', () => {
+                lucidityInteracted = true;
+                setTimeout(updateDepthIndicator, 50);
+            });
         });
 
         function showLicenseInput() {
@@ -1186,6 +1187,7 @@
 
         function resetOracle() {
             chatHistory = []; turnCount = 0; updateTurnIndicator();
+            lucidityInteracted = false;  // 重置滑块交互标记
             // Reset quote card to welcome state
             const welcomeContainer = document.getElementById('chat-welcome');
             welcomeContainer.innerHTML = '<p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">' +
@@ -1621,30 +1623,42 @@
         }
 
         async function polishAndFill(rawText) {
-            // Call /api/clean-text to add punctuation and clean fillers
+            // 立即填入原始文本，用户不用等待
+            _fillVoiceText(rawText);
+            
+            // 异步优化：后台整理文字，5秒超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
             try {
                 const resp = await fetch(API_BASE + API_PREFIX + '/clean-text', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: rawText, lang: currentLang || 'zh' })
+                    body: JSON.stringify({ text: rawText, lang: currentLang || 'zh' }),
+                    signal: controller.signal,
                 });
+                clearTimeout(timeoutId);
                 if (resp.ok) {
                     const data = await resp.json();
                     const cleaned = (data.cleaned || '').trim();
-                    if (cleaned && cleaned.length >= rawText.length * 0.3) {
+                    if (cleaned && cleaned.length >= rawText.length * 0.3 && cleaned !== rawText) {
                         console.log('[Voice] Polished:', JSON.stringify(cleaned));
-                        _fillVoiceText(cleaned);
-                    } else {
-                        console.log('[Voice] Polish returned degraded output, using raw');
-                        _fillVoiceText(rawText);
+                        // 替换成优化后的文本（用户已看到原始输入，此处静默更新）
+                        const ta = document.getElementById('t-chat-placeholder');
+                        const currentVal = ta.value;
+                        // 只替换末尾的原始文本部分
+                        if (currentVal.endsWith(rawText)) {
+                            ta.value = currentVal.slice(0, -rawText.length) + cleaned;
+                            ta.dispatchEvent(new Event('input'));
+                        }
                     }
-                } else {
-                    console.warn('[Voice] Polish failed HTTP', resp.status);
-                    _fillVoiceText(rawText);
                 }
             } catch (err) {
-                console.warn('[Voice] Polish error:', err);
-                _fillVoiceText(rawText);
+                if (err.name === 'AbortError') {
+                    console.log('[Voice] Polish timed out (5s), keeping raw text');
+                } else {
+                    console.warn('[Voice] Polish error:', err);
+                }
             }
             isProcessing = false;
             setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 600);
@@ -1679,7 +1693,12 @@
             formData.append('audio', blob, 'recording.webm');
             formData.append('lang', currentLang === 'zh' ? 'zh' : 'en');
             try {
-                const resp = await fetch(API_BASE + API_PREFIX + '/transcribe', { method: 'POST', body: formData });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 12000);  // 12秒超时
+                const resp = await fetch(API_BASE + API_PREFIX + '/transcribe', { 
+                    method: 'POST', body: formData, signal: controller.signal 
+                });
+                clearTimeout(timeoutId);
                 if (!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + await resp.text().catch(() => ''));
                 const data = await resp.json();
                 const text = (data.text || '').trim();
@@ -1690,7 +1709,11 @@
                 setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 600);
             } catch (err) {
                 console.error('[Voice] Whisper failed:', err);
-                document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别失败，请重试' : 'Transcription failed';
+                if (err.name === 'AbortError') {
+                    document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别超时，请重试' : 'Timed out, please retry';
+                } else {
+                    document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别失败，请重试' : 'Transcription failed';
+                }
                 document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-red-500';
                 document.getElementById('voice-bar-status').innerText = 'Error';
                 isProcessing = false;
@@ -2168,34 +2191,8 @@
             }
         ];
 
-        function switchArchiveTab(idx) {
-            const dashboard = document.getElementById('archive-dashboard');
-            const tabs = document.querySelectorAll('#archive-tabs button');
-            if (!dashboard) return;
-            tabs.forEach((btn, i) => {
-                if (i === idx) {
-                    btn.style.background = 'rgba(137,170,204,0.12)';
-                    btn.style.color = '#89AACC';
-                    btn.style.borderColor = 'rgba(137,170,204,0.25)';
-                } else {
-                    const isAmber = i === 1;
-                    btn.style.background = isAmber ? 'rgba(251,191,36,0.05)' : 'rgba(137,170,204,0.05)';
-                    btn.style.color = isAmber ? 'rgba(251,191,36,0.6)' : 'rgba(137,170,204,0.6)';
-                    btn.style.borderColor = isAmber ? 'rgba(251,191,36,0.1)' : 'rgba(137,170,204,0.1)';
-                }
-            });
-            const data = archivePanels[idx][currentLang] || archivePanels[idx].en;
-            dashboard.innerHTML = data;
-            gsap.from(dashboard.children, { opacity: 0, y: 12, duration: 0.3, stagger: 0.05 });
-        }
-
-        // Init archive tabs
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('#archive-tabs button').forEach(btn => {
-                btn.addEventListener('click', () => switchArchiveTab(parseInt(btn.dataset.tab)));
-            });
-            switchArchiveTab(0);
-        });
+        // Archive tab (no-op，改为占位展示)
+        function switchArchiveTab(idx) {}
 
         // ===== Symbol Quick Search =====
         async function lookupSymbol() {
