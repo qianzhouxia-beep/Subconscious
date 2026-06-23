@@ -160,7 +160,17 @@ const SMAuth = (function () {
     } catch (e) { showError(e.message); }
   }
 
+  // Safe JSON parser — handles HTML error pages gracefully
+  async function _safeJson(r) {
+    try { return await r.json(); }
+    catch(e) {
+      if (r.status >= 500) throw new Error("Payment service is temporarily unavailable. Please try again.");
+      throw new Error("Unexpected response from server.");
+    }
+  }
+
   function showMethodChoice(pt, pl, pr) {
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
     showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Choose Payment</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">' + pl + ' — <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p>' +
@@ -173,8 +183,8 @@ const SMAuth = (function () {
     showModal('<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';">Processing</h2><p style="margin:0 0 24px;color:#888;font-size:14px;">Creating order...</p><div style="text-align:center;padding:20px;"><div class="sm-loader"></div></div>');
     try {
       var r = await fetch("/api/paypal/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: pr.toFixed(2) }) });
-      var d = await r.json();
-      if (!r.ok) throw new Error(d.error);
+      var d = await _safeJson(r);
+      if (!r.ok) throw new Error(d.error || d.detail || "Payment failed");
       closeModal();
       if (window.paypal) {
         var c = document.createElement("div"); c.id = "sm-pp"; c.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:#1a1a2e;padding:30px;border-radius:16px;border:1px solid " + BLUE_LIGHT + ";";
@@ -194,8 +204,8 @@ const SMAuth = (function () {
     showModal('<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';">Crypto Payment</h2><p style="margin:0 0 24px;color:#888;font-size:14px;">Generating invoice...</p><div style="text-align:center;padding:20px;"><div class="sm-loader"></div></div>');
     try {
       var r = await fetch("/api/nowpayments/create-payment", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ plan_type: pt }) });
-      var d = await r.json();
-      if (!r.ok) throw new Error(d.detail);
+      var d = await _safeJson(r);
+      if (!r.ok) throw new Error(d.detail || "Payment failed");
       closeModal();
       showModal('<div style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-bottom:12px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#89AACC" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">Crypto Payment</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;"><strong>' + pl + '</strong></p><p style="margin:0 0 20px;color:#888;font-size:13px;">Amount: <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p><a href="' + d.invoice_url + '" target="_blank" style="display:inline-block;padding:12px 28px;background:' + BLUE_GRADIENT + ';border:none;border-radius:999px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;">Pay with Crypto \u2192</a><p style="margin-top:16px;color:#666;font-size:12px;">BTC, ETH, USDT, LTC, BCH, XRP, DOGE +50 more</p><p style="margin-top:8px;color:#555;font-size:11px;">Powered by NOWPayments</p></div>');
     } catch (e) { showModal('<p style="color:#ff6b6b;">' + e.message + '</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
