@@ -18,7 +18,7 @@ from functools import wraps
 
 import bcrypt
 import jwt
-from flask import request, jsonify, make_response
+from flask import request, jsonify, make_response, g
 
 # ── Config ───────────────────────────────────────────────
 JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_hex(32))
@@ -176,12 +176,16 @@ def require_auth(f):
             conn.close()
             if not user:
                 return jsonify({"detail": "User not found"}), 401
-            request.current_user_id = user_id
+            g.current_user_id = user_id
             return f(*args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify({"detail": "Token expired"}), 401
         except jwt.InvalidTokenError:
             return jsonify({"detail": "Invalid token"}), 401
+        except Exception as e:
+            import traceback
+            print(f"[AUTH ERROR] {e}\n{traceback.format_exc()}")
+            return jsonify({"detail": f"Auth error: {str(e)}"}), 500
     return decorated
 
 
@@ -402,24 +406,29 @@ def auth_reset_password():
 def user_me():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
-    conn = get_db_conn()
-    user = conn.execute("SELECT id, email, email_verified, created_at FROM users WHERE id=?", (user_id,)).fetchone()
-    conn.close()
-    if not user:
-        return cors_response({"detail": "User not found"}, 404)
-    return cors_response({
-        "id": user["id"],
-        "email": user["email"],
-        "email_verified": bool(user["email_verified"]),
-        "created_at": user["created_at"],
-    })
+    try:
+        user_id = g.current_user_id
+        conn = get_db_conn()
+        user = conn.execute("SELECT id, email, email_verified, created_at FROM users WHERE id=?", (user_id,)).fetchone()
+        conn.close()
+        if not user:
+            return cors_response({"detail": "User not found"}, 404)
+        return cors_response({
+            "id": user["id"],
+            "email": user["email"],
+            "email_verified": bool(user["email_verified"]),
+            "created_at": user["created_at"],
+        })
+    except Exception as e:
+        import traceback
+        print(f"[user_me ERROR] {e}\n{traceback.format_exc()}")
+        return cors_response({"detail": f"Server error: {str(e)}"}, 500)
 
 
 def user_entitlements():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
+    user_id = g.current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, plan_type, total_count, used_count, expires_at, created_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
@@ -441,7 +450,7 @@ def user_entitlements():
 def user_orders():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
+    user_id = g.current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, paypal_order_id, amount, currency, plan_type, status, created_at FROM user_orders WHERE user_id=? ORDER BY created_at DESC",
@@ -454,29 +463,34 @@ def user_orders():
 def user_premium_status():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
-    conn = get_db_conn()
-    rows = conn.execute(
-        "SELECT plan_type, total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
-        (user_id,),
-    ).fetchall()
-    conn.close()
+    try:
+        user_id = g.current_user_id
+        conn = get_db_conn()
+        rows = conn.execute(
+            "SELECT plan_type, total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
+            (user_id,),
+        ).fetchall()
+        conn.close()
 
-    for r in rows:
-        is_expired = False
-        if r["expires_at"]:
-            is_expired = datetime.fromisoformat(r["expires_at"]) < datetime.now(timezone.utc)
-        if is_expired:
-            continue
-        remaining = r["total_count"] - r["used_count"] if r["total_count"] > 0 else -1
-        return cors_response({
-            "premium": True,
-            "plan_type": r["plan_type"],
-            "plan_label": PLAN_CONFIG.get(r["plan_type"], {}).get("label", ""),
-            "remaining": remaining,
-            "total": r["total_count"],
-        })
-    return cors_response({"premium": False, "plan_type": None, "remaining": 0, "total": 0})
+        for r in rows:
+            is_expired = False
+            if r["expires_at"]:
+                is_expired = datetime.fromisoformat(r["expires_at"]) < datetime.now(timezone.utc)
+            if is_expired:
+                continue
+            remaining = r["total_count"] - r["used_count"] if r["total_count"] > 0 else -1
+            return cors_response({
+                "premium": True,
+                "plan_type": r["plan_type"],
+                "plan_label": PLAN_CONFIG.get(r["plan_type"], {}).get("label", ""),
+                "remaining": remaining,
+                "total": r["total_count"],
+            })
+        return cors_response({"premium": False, "plan_type": None, "remaining": 0, "total": 0})
+    except Exception as e:
+        import traceback
+        print(f"[premium_status ERROR] {e}\n{traceback.format_exc()}")
+        return cors_response({"detail": f"Server error: {str(e)}"}, 500)
 
 
 # --- LICENSE ---
@@ -502,7 +516,7 @@ def license_verify():
 def license_redeem():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
+    user_id = g.current_user_id
     data = request.get_json()
     key = data.get("key", "")
     if not key:
@@ -555,7 +569,7 @@ def admin_generate_license_keys():
 def entitlements_consume():
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
+    user_id = g.current_user_id
     conn = get_db_conn()
     rows = conn.execute(
         "SELECT id, plan_type, total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
@@ -588,7 +602,7 @@ def entitlements_activate():
     """Activate entitlement after payment success. Called by frontend after PayPal capture."""
     if request.method == "OPTIONS":
         return handle_options()
-    user_id = request.current_user_id
+    user_id = g.current_user_id
     data = request.get_json()
     plan_type = data.get("plan_type", "")
     order_id = data.get("order_id", "")
