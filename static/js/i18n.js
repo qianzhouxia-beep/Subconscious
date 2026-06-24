@@ -3,8 +3,8 @@
             en: {
                 nav_home: "Home", nav_oracle: "Oracle", nav_interpret: "Interpretation", nav_journal: "Journal", nav_features: "Celestial", nav_pricing: "Pricing", nav_hi: "Say Hi ↗", nav_balance: "Ready", nav_symbols: "Symbols",
                 mob_home: "Home", mob_oracle: "Oracle", mob_pricing: "Pricing",
-                context_icon_left: "🎭", context_title_left: "Dream Awareness",
-                context_icon_right: "🌙", context_title_right: "Context & State",
+                context_title_left: "Dream Awareness",
+                context_title_right: "Context & State",
                 symbol_label: "Keywords", symbol_hint2: "Enter to add · Click to remove",
                 symbol_placeholder2: "Flight · Deep Sea · Falling",
                 env_dreamtype_label: "Dream Type", env_stress_label: "Stress Level",
@@ -78,8 +78,8 @@
             zh: {
                 nav_home: "首页", nav_oracle: "解梦神谕", nav_interpret: "梦境解读", nav_journal: "梦境日记", nav_features: "星象解析", nav_pricing: "定价方案", nav_hi: "打个招呼 ↗", nav_balance: "已就绪", nav_symbols: "符号查询",
                 mob_home: "首页", mob_oracle: "解梦神谕", mob_pricing: "价格方案",
-                context_icon_left: "🎭", context_title_left: "梦境感知",
-                context_icon_right: "🌙", context_title_right: "环境与状态",
+                context_title_left: "梦境感知",
+                context_title_right: "环境与状态",
                 symbol_label: "关键词", symbol_hint2: "回车添加 · 点击删除",
                 symbol_placeholder2: "飞行 · 深海 · 坠落",
                 env_dreamtype_label: "梦境类型", env_stress_label: "压力等级",
