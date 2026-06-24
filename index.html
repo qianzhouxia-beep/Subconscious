@@ -1589,27 +1589,6 @@
                         if (isRecording) stopVoiceInput();
                     }
                 };
-                    
-                    // ★ 实时填入文本框 — 即使识别没结束，文字也同步到输入框
-                    if (full.trim()) {
-                        const ta = document.getElementById('t-chat-placeholder');
-                        if (ta) {
-                            ta.value = full.trim();
-                            ta.dispatchEvent(new Event('input'));
-                        }
-                    }
-                };
-                wsRecognition.onerror = (e) => {
-                    if (e.error === 'no-speech' || e.error === 'aborted') return;
-                    // network error → silently fall through to MediaRecorder fallback
-                    console.log('[Voice] WebSpeech error:', e.error, '(will use MediaRecorder fallback)');
-                };
-                wsRecognition.onend = () => {
-                    // auto-restart if still recording and no result yet
-                    if (isRecording && !wsHadResult && wsRecognition) {
-                        try { wsRecognition.start(); } catch (ex) {}
-                    }
-                };
                 try { wsRecognition.start(); console.log('[Voice] WebSpeech started, lang:', wsRecognition.lang); }
                 catch (ex) { console.log('[Voice] WebSpeech start failed:', ex); wsRecognition = null; }
             }
