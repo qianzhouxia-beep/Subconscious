@@ -353,6 +353,7 @@ const SMAuth = (function () {
   }
 
   async function init() {
+    console.log("[SMAuth] init() token=" + (token ? "EXISTS" : "null") + " url=" + window.location.href.substring(0,120));
     // Handle OAuth redirect back with token
     var params = new URLSearchParams(window.location.search);
     var oauthToken = params.get("oauth_token");
@@ -381,6 +382,7 @@ const SMAuth = (function () {
 
     if (token) { await fetchMe(); if (currentUser) { await fetchPremiumStatus(); await _checkPending(); } }
     updateNavbar();
+    console.log("[SMAuth] init done loggedIn=" + !!token + " user=" + (currentUser ? currentUser.email : "null") + " premium=" + JSON.stringify(premiumStatus));
     // Inject loader style
     if (!document.getElementById("sm-loader-style")) {
       var s = document.createElement("style"); s.id = "sm-loader-style"; s.textContent = ".sm-loader{display:inline-block;width:36px;height:36px;border:3px solid rgba(78,133,191,0.2);border-top-color:" + BLUE_TEXT + ";border-radius:50%;animation:sm-spin 1s linear infinite;}@keyframes sm-spin{to{transform:rotate(360deg)}}";
