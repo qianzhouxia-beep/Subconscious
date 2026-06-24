@@ -1493,7 +1493,17 @@
                     wsFinalText = full;
                     const last = event.results[event.results.length - 1];
                     const interim = last.isFinal ? '' : last[0].transcript;
-                    document.getElementById('voice-bar-text').innerHTML = full + (interim ? ' <span class="text-white/30">' + interim + '</span>' : '') || '&#8203;';
+                    const displayText = full + (interim ? ' ' + interim : '') || '';
+                    document.getElementById('voice-bar-text').innerHTML = displayText || '&#8203;';
+                    
+                    // ★ 实时填入文本框 — 即使识别没结束，文字也同步到输入框
+                    if (full.trim()) {
+                        const ta = document.getElementById('t-chat-placeholder');
+                        if (ta) {
+                            ta.value = full.trim();
+                            ta.dispatchEvent(new Event('input'));
+                        }
+                    }
                 };
                 wsRecognition.onerror = (e) => {
                     if (e.error === 'no-speech' || e.error === 'aborted') return;
@@ -1543,6 +1553,13 @@
                 try { mediaRecorder.stop(); } catch (e) {}
                 mediaRecorder = null; audioChunks = [];
                 if (voiceStream) { voiceStream.getTracks().forEach(t => t.stop()); voiceStream = null; }
+
+                // ★ 确保文字已填入文本框（如果实时填入没成功，这里补填）
+                const ta = document.getElementById('t-chat-placeholder');
+                if (ta && !ta.value.trim()) {
+                    ta.value = rawText;
+                    ta.dispatchEvent(new Event('input'));
+                }
 
                 // Show polishing state
                 document.getElementById('voice-bar-icon').innerHTML =
