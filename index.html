@@ -289,7 +289,7 @@
                         <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                     </div>
                     <!-- Tarot Card Display (always visible when report is generated) -->
-                    <div id="tarot-section" class="border-t border-white/10 pt-6 mt-6">
+                    <div id="tarot-section" class="hidden border-t border-white/10 pt-6 mt-6">
                         <h4 class="text-sm text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
                             <span class="sm-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span> Tarot Guidance
                         </h4>
@@ -1232,35 +1232,35 @@
                         document.getElementById('final-report').classList.remove('hidden');
                         document.getElementById('res-free').innerHTML = formatReportText(result.data.free_part);
 
-                        // Parse tarot card and display paid part
-                        if (result.data.paid_part) {
-                            let paidText = result.data.paid_part;
-                            const tarotMatch = paidText.match(/\[TAROT:\s*(\d+)\]/);
-                            let tarotIndex = -1;
-                            if (tarotMatch) {
-                                tarotIndex = parseInt(tarotMatch[1]);
-                                paidText = paidText.replace(/\[TAROT:\s*\d+\]/, '').trim();
-                            }
+                        // Parse tarot card from paid part, or fall back to free part
+                        var tarotSearchText = result.data.paid_part || result.data.free_part || '';
+                        var paidText = result.data.paid_part || '';
+                        const tarotMatch = tarotSearchText.match(/\[TAROT:\s*(\d+)\]/);
+                        let tarotIndex = -1;
+                        if (tarotMatch) {
+                            tarotIndex = parseInt(tarotMatch[1]);
+                            if (paidText) paidText = paidText.replace(/\[TAROT:\s*\d+\]/, '').trim();
+                        }
+                        if (paidText) {
                             document.getElementById('res-paid').innerHTML = formatReportText(paidText);
+                        }
 
-                            if (tarotIndex >= 0 && tarotIndex <= 21) {
-                                const tarotSection = document.getElementById('tarot-section');
-                                tarotSection.classList.remove('hidden');
-                                const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
-                                document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
-                                document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
-                                // Extract full tarot meaning from the paid text
-                                const meaningEl = document.getElementById('tarot-card-meaning');
-                                const tarotSectionText = paidText.split('**Tarot Guidance**')[1] || paidText.split('**塔罗指引**')[1] || paidText.split('🃏')[1] || '';
-                                if (tarotSectionText) {
-                                    // Take everything until the next ** section header or end
-                                    var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
-                                    if (fullMeaning.length > 20) {
-                                        // Full explanation (not limited to 200 chars)
-                                        meaningEl.innerText = fullMeaning;
-                                    }
+                        if (tarotIndex >= 0 && tarotIndex <= 21) {
+                            const tarotSection = document.getElementById('tarot-section');
+                            tarotSection.classList.remove('hidden');
+                            const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                            document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                            document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
+                            // Extract full tarot meaning from the paid/free text
+                            const meaningEl = document.getElementById('tarot-card-meaning');
+                            const tarotSectionText = tarotSearchText.split('**Tarot Guidance**')[1] || tarotSearchText.split('**塔罗指引**')[1] || tarotSearchText.split('塔罗指引')[1] || tarotSearchText.split('🃏')[1] || '';
+                            if (tarotSectionText) {
+                                var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
+                                if (fullMeaning.length > 20) {
+                                    meaningEl.innerText = fullMeaning;
                                 }
                             }
+                        }
 
                             if (result.status === 'full') {
                                 isPremiumUser = true;
@@ -1296,9 +1296,29 @@
                 if (!text) { paraLines = []; return; }
                 // Convert inline **bold** to <strong>
                 text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90">$1</strong>');
-                html += '<p class="mb-4 last:mb-0">' + text + '</p>';
+                html += '<p class="mb-5 last:mb-0 text-[15px] leading-[1.8]">' + text + '</p>';
                 paraLines = [];
             }
+
+            const SECTION_KEYS = {
+                'dream narrative': { icon: '🌊', color: '#4FC3F7' },
+                'psychological analysis': { icon: '🧠', color: '#F06292' },
+                'symbol decoding': { icon: '🔍', color: '#FFB74D' },
+                'emotional landscape': { icon: '💜', color: '#CE93D8' },
+                'tarot guidance': { icon: '🃏', color: '#FFD54F' },
+                'real-life mirror': { icon: '🪞', color: '#81C784' },
+                'actionable wisdom': { icon: '⭐', color: '#4DD0E1' },
+                'prophecy': { icon: '🔮', color: '#BA68C8' },
+                '梦境叙事': { icon: '🌊', color: '#4FC3F7' },
+                '心理学分析': { icon: '🧠', color: '#F06292' },
+                '心理分析': { icon: '🧠', color: '#F06292' },
+                '符号解码': { icon: '🔍', color: '#FFB74D' },
+                '情感地图': { icon: '💜', color: '#CE93D8' },
+                '塔罗指引': { icon: '🃏', color: '#FFD54F' },
+                '现实映照': { icon: '🪞', color: '#81C784' },
+                '可落地的智慧': { icon: '⭐', color: '#4DD0E1' },
+                '预言': { icon: '🔮', color: '#BA68C8' },
+            };
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
@@ -1312,8 +1332,34 @@
                 if (headerMatch) {
                     flushParagraph(); // close current paragraph
                     const headerText = headerMatch[1];
-                    html += '<h4 class="text-sm font-semibold text-accent/90 tracking-wide mt-6 mb-3 first:mt-0">' + headerText + '</h4>';
+                    // Try to match known section and add icon + separator
+                    let icon = '', color = '#F0B34B';
+                    const hkey = headerText.toLowerCase().replace(/[:\d\s（）\(\)\[\]]+/g, '');
+                    for (const [k, v] of Object.entries(SECTION_KEYS)) {
+                        if (hkey.includes(k) || k.includes(hkey)) {
+                            icon = v.icon + ' ';
+                            color = v.color;
+                            break;
+                        }
+                    }
+                    html += '<h4 class="text-base font-bold tracking-wide mt-10 mb-4 pb-3" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.06);">' + icon + headerText + '</h4>';
                     continue;
+                }
+                // Check for emoji-only lines that precede section titles
+                const emojiMatch = trimmed.match(/^([\u{1F300}-\u{1FAFF}])\s*$/u);
+                if (emojiMatch && i + 1 < lines.length && lines[i+1].trim()) {
+                    flushParagraph();
+                    const nextLine = lines[i+1].trim();
+                    if (!nextLine.startsWith('*')) {
+                        let color = '#F0B34B';
+                        const nkey = nextLine.toLowerCase();
+                        for (const [k, v] of Object.entries(SECTION_KEYS)) {
+                            if (nkey.includes(k)) { color = v.color; break; }
+                        }
+                        html += '<h4 class="text-base font-bold tracking-wide mt-10 mb-4 pb-3" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.06);">' + emojiMatch[1] + ' ' + nextLine + '</h4>';
+                        i++; // skip next line
+                        continue;
+                    }
                 }
                 // Regular text line
                 paraLines.push(trimmed);
