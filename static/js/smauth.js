@@ -35,8 +35,8 @@ const SMAuth = (function () {
     token = null; currentUser = null; premiumStatus = null;
     localStorage.removeItem("sm_token"); updateNavbar();
   }
-  async function fetchMe() { if (!token) return null; try { currentUser = await api("/api/user/me"); return currentUser; } catch (e) { logout(); return null; } }
-  async function fetchPremiumStatus() { if (!token) return null; try { premiumStatus = await api("/api/user/premium-status"); return premiumStatus; } catch (e) { return null; } }
+  async function fetchMe() { if (!token) return null; try { currentUser = await api("/api/user/me"); console.log("[SMAuth] fetchMe OK: " + (currentUser ? currentUser.email : "null")); return currentUser; } catch (e) { console.error("[SMAuth] fetchMe FAILED:", e.message); logout(); return null; } }
+  async function fetchPremiumStatus() { if (!token) return null; try { premiumStatus = await api("/api/user/premium-status"); console.log("[SMAuth] premiumStatus:", JSON.stringify(premiumStatus)); return premiumStatus; } catch (e) { console.error("[SMAuth] premiumStatus FAILED:", e.message); return null; } }
 
   function showModal(html) {
     const overlay = document.createElement("div");
@@ -360,6 +360,7 @@ const SMAuth = (function () {
     if (oauthToken) {
       token = oauthToken;
       localStorage.setItem("sm_token", token);
+      console.log("[SMAuth] OAuth token found, stored in localStorage");
       // Clean URL — remove oauth_token param without reloading
       var url = new URL(window.location);
       url.searchParams.delete("oauth_token");
@@ -367,7 +368,8 @@ const SMAuth = (function () {
       url.searchParams.delete("oauth_error");
       window.history.replaceState({}, "", url);
       await fetchMe();
-      if (currentUser) { await fetchPremiumStatus(); }
+      console.log("[SMAuth] OAuth fetchMe done, currentUser=" + (currentUser ? currentUser.email : "null"));
+      if (currentUser) { await fetchPremiumStatus(); console.log("[SMAuth] OAuth premium=" + JSON.stringify(premiumStatus)); }
       updateNavbar();
       return;
     }
