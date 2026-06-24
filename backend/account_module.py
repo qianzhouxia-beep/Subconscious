@@ -658,6 +658,45 @@ def auth_social_google_callback():
 # ── Apple / GitHub Placeholder (removed, only Google active) ──
 
 
+# ── Admin grant entitlement (protected by JWT_SECRET as password) ──
+def admin_grant_entitlement():
+    """Admin endpoint to grant entitlements to a user by email. Protected by secret key."""
+    if request.method == "OPTIONS": return handle_options()
+    try:
+        data = request.get_json()
+        admin_key = data.get("admin_key", "")
+        email = (data.get("email") or "").strip().lower()
+        plan_type = data.get("plan_type", "seeker")
+
+        if admin_key != JWT_SECRET:
+            return cors_response({"detail": "Unauthorized"}, 403)
+        if not email or plan_type not in PLAN_CONFIG:
+            return cors_response({"detail": "Invalid email or plan_type"}, 400)
+
+        conn = get_db_conn()
+        user = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+        if not user:
+            conn.close()
+            return cors_response({"detail": "User not found"}, 404)
+
+        user_id = user["id"]
+        existing = conn.execute(
+            "SELECT id FROM entitlements WHERE user_id=? AND plan_type=? AND (expires_at IS NULL OR expires_at > datetime('now'))",
+            (user_id, plan_type)
+        ).fetchone()
+        if existing:
+            conn.close()
+            return cors_response({"message": f"User already has active {plan_type} entitlement", "plan_type": plan_type})
+
+        activate_entitlement(conn, user_id, plan_type)
+        conn.commit()
+        conn.close()
+        config = PLAN_CONFIG[plan_type]
+        return cors_response({"message": f"Granted {config['label']} to {email}", "plan_type": plan_type, "plan_label": config["label"], "total_count": config["total_count"]})
+    except Exception as e:
+        return cors_response({"detail": str(e)}, 500)
+
+
 # ── Register Routes ──────────────────────────────────────
 def register_account_routes(app):
     app.add_url_rule('/api/auth/register', 'auth_register', auth_register, methods=['POST', 'OPTIONS'])
@@ -674,6 +713,9 @@ def register_account_routes(app):
     app.add_url_rule('/api/entitlements/consume', 'entitlements_consume', entitlements_consume, methods=['POST', 'OPTIONS'])
     app.add_url_rule('/api/entitlements/activate', 'entitlements_activate', entitlements_activate, methods=['POST', 'OPTIONS'])
     app.add_url_rule('/api/admin/generate-license-keys', 'admin_generate_license_keys', admin_generate_license_keys, methods=['POST'])
+
+    # ── Admin grant entitlement (protected by JWT_SECRET as password) ──
+    app.add_url_rule('/api/admin/grant-entitlement', 'admin_grant_entitlement', admin_grant_entitlement, methods=['POST', 'OPTIONS'])
 
     # NOWPayments
     app.add_url_rule('/api/nowpayments/create-payment', 'nowpayments_create_payment', nowpayments_create_payment, methods=['POST', 'OPTIONS'])
