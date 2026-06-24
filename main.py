@@ -251,55 +251,65 @@ def _call_llm_with_fallback(payload_builder, timeout=120, mode='chat', report_mo
 # --- DATABASE LAYER ---
 from contextlib import contextmanager
 
-@contextmanager
-def get_db():
-    """获取数据库连接（context manager，自动关闭，启用 WAL 模式提升并发）"""
-    conn = sqlite3.connect(DB_FILE, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    conn.execute("PRAGMA foreign_keys=ON")
-    try:
-        yield conn
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+if DATABASE_URL:
+    from backend.db import get_db as _pg_get_db, get_db_conn as _pg_get_conn
+    from backend.db import init_tables as _pg_init_tables
+    def get_db(): return _pg_get_db()
+    def get_db_connection(): return _pg_get_conn()
+    def init_db(): _pg_init_tables()
+else:
+    DB_FILE = os.environ.get("DB_FILE", "mirror_data.db")
 
-# 保留旧接口兼容性（逐步迁移）
-def get_db_connection():
-    conn = sqlite3.connect(DB_FILE, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    @contextmanager
+    def get_db():
+        conn = sqlite3.connect(DB_FILE, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA foreign_keys=ON")
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
-def init_db():
-    with get_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS referrals (
-                            ref_id TEXT PRIMARY KEY,
-                            inviter_email TEXT,
-                            count INTEGER DEFAULT 0,
-                            unlocked INTEGER DEFAULT 0,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS referral_logs (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            ref_id TEXT,
-                            visitor_ip TEXT,
-                            user_agent TEXT,
-                            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            UNIQUE(ref_id, visitor_ip, user_agent))''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS payments (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            email TEXT NOT NULL UNIQUE,
-                            status TEXT,
-                            license_key TEXT,
-                            timestamp REAL)''')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
+    def get_db_connection():
+        conn = sqlite3.connect(DB_FILE, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
+
+    def init_db():
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''CREATE TABLE IF NOT EXISTS referrals (
+                                ref_id TEXT PRIMARY KEY,
+                                inviter_email TEXT,
+                                count INTEGER DEFAULT 0,
+                                unlocked INTEGER DEFAULT 0)''')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS referral_logs (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                ref_id TEXT NOT NULL,
+                                visitor_ip TEXT,
+                                user_agent TEXT,
+                                created_at TEXT DEFAULT (datetime('now')))''')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS payments (
+                                email TEXT,
+                                status TEXT,
+                                license_key TEXT,
+                                timestamp REAL)''')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
+        try:
+            from backend.account_module import init_account_tables
+            init_account_tables()
+        except ImportError:
+            pass
 
 init_db()
 

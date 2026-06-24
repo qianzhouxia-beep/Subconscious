@@ -46,60 +46,70 @@ NOWPAYMENTS_API_BASE = "https://api.nowpayments.io/v1"
 
 # ── Database ─────────────────────────────────────────────
 def init_account_tables():
-    conn = sqlite3.connect(DB_FILE, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    conn.executescript("""
-        CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL, email_verified INTEGER DEFAULT 0,
-            failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
-            created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE TABLE IF NOT EXISTS email_tokens (
-            id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
-            purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE TABLE IF NOT EXISTS entitlements (
-            id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
-            total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
-            expires_at TEXT, created_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE TABLE IF NOT EXISTS user_orders (
-            id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
-            amount REAL NOT NULL, currency TEXT DEFAULT 'USD', plan_type TEXT NOT NULL,
-            status TEXT DEFAULT 'pending', created_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE TABLE IF NOT EXISTS license_keys (
-            id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
-            is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
-            created_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE TABLE IF NOT EXISTS crypto_payments (
-            id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
-            plan_type TEXT NOT NULL, amount REAL NOT NULL,
-            currency TEXT DEFAULT 'USD', crypto_currency TEXT,
-            crypto_amount REAL, nowpayments_id TEXT,
-            pay_address TEXT, status TEXT DEFAULT 'pending',
-            created_at TEXT DEFAULT (datetime('now'))
-        );
-        CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token);
-        CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
-        CREATE INDEX IF NOT EXISTS idx_user_orders_user ON user_orders(user_id);
-        CREATE INDEX IF NOT EXISTS idx_license_keys_key ON license_keys(key);
-    """)
-    conn.commit()
-    conn.close()
+    try:
+        from backend.db import init_tables
+        init_tables()
+    except ImportError:
+        # Fallback: direct SQLite init
+        import sqlite3
+        conn = sqlite3.connect(DB_FILE, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL, email_verified INTEGER DEFAULT 0,
+                failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
+                created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS email_tokens (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
+                purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS entitlements (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
+                total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
+                expires_at TEXT, created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS user_orders (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
+                amount REAL NOT NULL, currency TEXT DEFAULT 'USD', plan_type TEXT NOT NULL,
+                status TEXT DEFAULT 'pending', created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS license_keys (
+                id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
+                is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE TABLE IF NOT EXISTS crypto_payments (
+                id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
+                plan_type TEXT NOT NULL, amount REAL NOT NULL,
+                currency TEXT DEFAULT 'USD', crypto_currency TEXT,
+                crypto_amount REAL, nowpayments_id TEXT,
+                pay_address TEXT, status TEXT DEFAULT 'pending',
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+            CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token);
+            CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
+            CREATE INDEX IF NOT EXISTS idx_user_orders_user ON user_orders(user_id);
+            CREATE INDEX IF NOT EXISTS idx_license_keys_key ON license_keys(key);
+        """)
+        conn.commit()
+        conn.close()
 
 
 def get_db_conn():
-    conn = sqlite3.connect(DB_FILE, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA busy_timeout=5000")
-    return conn
+    try:
+        from backend.db import get_db_conn as _db_get
+        return _db_get()
+    except ImportError:
+        conn = sqlite3.connect(DB_FILE, timeout=10)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
+        return conn
 
 
 # ── Auth Helpers ─────────────────────────────────────────
