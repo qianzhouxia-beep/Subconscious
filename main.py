@@ -1477,27 +1477,32 @@ def tarot_wallpaper():
             font_small = font_large
         
         # Draw the tarot card image (centered, upper area)
-        card_img_url = f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/{str(card_index).zfill(2)}-{card_name.lower().replace('the ', '').replace(' ', '-')}.png"
-        import requests as img_req
+        slug = card_name.lower().replace('the ', '').replace(' ', '-')
+        local_path = f"static/tarot/{str(card_index).zfill(2)}-{slug}.png"
+        card_asset = None
         try:
-            resp = img_req.get(card_img_url, timeout=10)
-            if resp.status_code == 200:
-                card_asset = Image.open(io.BytesIO(resp.content))
-                # Resize to fit nicely
-                card_h = 500
-                card_w = int(card_asset.width * card_h / card_asset.height)
-                card_asset = card_asset.resize((card_w, card_h), Image.LANCZOS)
-                # Paste centered
-                x_off = (W - card_w) // 2
-                y_off = 160
-                if card_asset.mode == 'RGBA':
-                    img.paste(card_asset, (x_off, y_off), card_asset)
-                else:
-                    img.paste(card_asset, (x_off, y_off))
-                y_text = y_off + card_h + 30
-            else:
-                y_text = 180
+            if os.path.exists(local_path):
+                card_asset = Image.open(local_path)
         except:
+            pass
+        if card_asset is None:
+            card_img_url = f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/{str(card_index).zfill(2)}-{slug}.png"
+            import requests as img_req
+            try:
+                resp = img_req.get(card_img_url, timeout=10)
+                if resp.status_code == 200:
+                    card_asset = Image.open(io.BytesIO(resp.content))
+            except:
+                pass
+        if card_asset:
+            card_h = 500
+            card_w = int(card_asset.width * card_h / card_asset.height)
+            card_asset = card_asset.resize((card_w, card_h), Image.LANCZOS)
+            x_off = (W - card_w) // 2; y_off = 160
+            if card_asset.mode == 'RGBA': img.paste(card_asset, (x_off, y_off), card_asset)
+            else: img.paste(card_asset, (x_off, y_off))
+            y_text = y_off + card_h + 30
+        else:
             y_text = 180
         
         # Card name
