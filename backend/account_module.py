@@ -434,7 +434,6 @@ def nowpayments_create_payment():
         payload = {
             "price_amount": config["price"],
             "price_currency": "usd",
-            "pay_currency": "usdt",
             "order_id": str(uuid.uuid4()),
             "order_description": f"Subconscious Mirror - {config['label']}",
             "ipn_callback_url": f"{SITE_URL}/api/nowpayments/webhook",
@@ -444,9 +443,14 @@ def nowpayments_create_payment():
             "is_fee_paid_by_user": True,
         }
 
+        if not NOWPAYMENTS_API_KEY:
+            return cors_response({"detail": "NOWPayments not configured (missing API key). Please contact support."}, 503)
+
         resp = http_req.post(f"{NOWPAYMENTS_API_BASE}/invoice", json=payload, headers=headers, timeout=15)
         if resp.status_code not in (200, 201):
-            return cors_response({"detail": f"NOWPayments error: {resp.text}"}, 502)
+            error_detail = resp.text[:300]
+            print(f"[NOWPayments] API error {resp.status_code}: {error_detail}")
+            return cors_response({"detail": f"Payment provider error. Please try again later."}, 502)
 
         result = resp.json()
         payment_id = result.get("id")

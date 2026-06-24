@@ -173,29 +173,49 @@ const SMAuth = (function () {
     showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;cursor:pointer;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M6 6l12 12M18 6l-12 12"/></svg></button>' +
       '<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';font-weight:600;">Choose Payment</h2>' +
       '<p style="margin:0 0 20px;color:#666;font-size:13px;">' + pl + ' — <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p>' +
-      '<div onclick="SMAuth.closeModal();SMAuth._startPP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:#0070ba;color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:4px;min-width:52px;text-align:center;line-height:1;">PayPal</span><span style="flex:1;">Credit Card / PayPal</span><span style="color:#666;">\u2192</span></div>' +
-      '<div onclick="SMAuth.closeModal();SMAuth._startNP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:linear-gradient(135deg,#F7931A,#8DC63F);border-radius:4px;min-width:52px;text-align:center;display:flex;align-items:center;justify-content:center;padding:5px 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><span style="flex:1;">Crypto (USDT)</span><span style="color:#666;">\u2192</span></div>');
+      '<div onclick="SMAuth.closeModal();SMAuth._startPP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:#0070ba;color:#fff;font-size:12px;font-weight:700;padding:5px 0;border-radius:4px;width:56px;text-align:center;display:inline-block;line-height:16px;">PayPal</span><span style="flex:1;">Credit Card / PayPal</span><span style="color:#666;">\u2192</span></div>' +
+      '<div onclick="SMAuth.closeModal();SMAuth._startNP(\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="width:100%;padding:14px 20px;margin-bottom:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:#ccc;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:12px;box-sizing:border-box;"><span style="background:linear-gradient(135deg,#F7931A,#8DC63F);border-radius:4px;width:56px;text-align:center;display:inline-flex;align-items:center;justify-content:center;padding:5px 0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><span style="flex:1;">Crypto (USDT)</span><span style="color:#666;">\u2192</span></div>');
   }
 
   async function _startPP(pt, pl, pr) {
     if (!token) { showPaymentPrompt(pt, pl, pr); return; }
-    showModal('<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';">Processing</h2><p style="margin:0 0 24px;color:#888;font-size:14px;">Creating order...</p><div style="text-align:center;padding:20px;"><div class="sm-loader"></div></div>');
+    showModal('<h2 style="margin:0 0 6px;font-size:22px;color:' + BLUE_TEXT + ';">Processing</h2><p style="margin:0 0 24px;color:#888;font-size:14px;">Preparing PayPal...</p><div style="text-align:center;padding:20px;"><div class="sm-loader"></div></div>');
     try {
       var r = await fetch("/api/paypal/create-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: pr.toFixed(2) }) });
       var d = await _safeJson(r);
       if (!r.ok) throw new Error(d.error || d.detail || "Payment failed");
       closeModal();
-      if (window.paypal) {
+
+      // Wait for PayPal SDK to load (up to 8 seconds)
+      var ppReady = !!window.paypal;
+      if (!ppReady) {
+        for (var w = 0; w < 40; w++) {
+          await new Promise(r2 => setTimeout(r2, 200));
+          if (window.paypal) { ppReady = true; break; }
+        }
+      }
+
+      if (ppReady) {
         var c = document.createElement("div"); c.id = "sm-pp"; c.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:#1a1a2e;padding:30px;border-radius:16px;border:1px solid " + BLUE_LIGHT + ";";
         document.body.appendChild(c);
         window.paypal.Buttons({
-          createOrder: function () { return Promise.resolve(d.orderID); },
+          createOrder: function () { return Promise.resolve(d.id || d.orderID); },
           onApprove: async function (ev) { c.remove(); await paySuccess(ev.orderID, pt, pl, pr); },
           onCancel: function () { c.remove(); },
-          onError: function () { c.remove(); }
+          onError: function () { c.remove(); showModal('<p style="color:#ff6b6b;">PayPal payment failed. Please try again.</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
         }).render("#sm-pp");
-      } else { await paySuccess(d.orderID, pt, pl, pr); }
+      } else {
+        // Fallback: open PayPal checkout page in new tab
+        var orderId = d.id || d.orderID;
+        window.open("https://www.sandbox.paypal.com/checkoutnow?token=" + orderId, "_blank");
+        showModal('<div style="text-align:center;"><div style="font-size:36px;margin-bottom:12px;">💳</div><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">PayPal Checkout</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;">Complete payment in the new tab.</p><p style="margin:0 0 20px;color:#888;font-size:13px;">After payment, click the button below to activate your plan.</p><button onclick="SMAuth._activateAfterPay(\'' + orderId + '\',\'' + pt + '\',\'' + pl + '\',' + pr + ')" style="' + btnP() + '">I\'ve Completed Payment</button></div>');
+      }
     } catch (e) { showModal('<p style="color:#ff6b6b;">' + e.message + '</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
+  }
+
+  async function _activateAfterPay(orderId, pt, pl, pr) {
+    closeModal();
+    await paySuccess(orderId, pt, pl, pr);
   }
 
   async function _startNP(pt, pl, pr) {
