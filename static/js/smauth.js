@@ -275,6 +275,78 @@ const SMAuth = (function () {
     } catch (e) { document.getElementById("sm-acct").innerHTML = '<p style="color:#ff6b6b;">' + e.message + "</p>"; }
   }
 
+  // ═══ Report Email ═══════════════════════════════════════
+
+  async function sendReportEmail() {
+    // Get user email and payment info
+    var userEmail = currentUser?.email || '';
+    if (!userEmail) {
+      // If not logged in, prompt for email
+      userEmail = prompt("Enter your email to receive the report:");
+      if (!userEmail) return;
+    }
+
+    // Collect report content
+    var freeEl = document.getElementById('res-free');
+    var paidEl = document.getElementById('res-paid');
+    var isUnlocked = document.getElementById('locked-preview')?.classList.contains('hidden');
+    var reportHTML = '<h2>Psychology Analysis</h2>' + (freeEl?.innerHTML || '');
+    if (isUnlocked && paidEl?.innerHTML) {
+      reportHTML += '<h2>Eastern Destiny Path</h2>' + paidEl.innerHTML;
+    }
+
+    // Get order info
+    var orderInfo = null;
+    if (token) {
+      try {
+        var ord = await api("/api/user/orders");
+        if (ord.orders && ord.orders.length > 0) {
+          var last = ord.orders[ord.orders.length - 1];
+          orderInfo = {
+            plan_type: last.plan_type,
+            amount: last.amount,
+            currency: last.currency || 'USD',
+            order_id: last.id,
+            status: last.status
+          };
+        }
+      } catch(e) {}
+    }
+
+    if (!reportHTML || reportHTML === '<h2>Psychology Analysis</h2>') {
+      alert('No report content available.');
+      return;
+    }
+
+    // Show loading
+    var overlay = showModal('<div style="text-align:center;padding:20px;"><div class="sm-loader"></div><p style="margin-top:16px;color:#888;font-size:13px;">Sending report...</p></div>');
+
+    try {
+      var r = await fetch("/api/send-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          html: reportHTML,
+          dream_title: "Your Dream Analysis Report",
+          lang: document.documentElement.lang || 'zh',
+          customer_name: currentUser?.email?.split('@')[0] || 'Seeker',
+          order_data: orderInfo
+        })
+      });
+      var d = await r.json();
+      closeModal();
+      if (d.ok) {
+        alert('✅ Report sent to ' + userEmail);
+      } else {
+        alert(d.error || 'Failed to send email');
+      }
+    } catch (e) {
+      closeModal();
+      alert('Error: ' + e.message);
+    }
+  }
+
   async function _checkPending() {
     var p = sessionStorage.getItem("sm_pending");
     if (p && token) { sessionStorage.removeItem("sm_pending"); var d = JSON.parse(p); showMethodChoice(d.pt, d.pl, d.pr); }
@@ -326,7 +398,8 @@ const SMAuth = (function () {
     redeemLicense: function (k) { return api("/api/license/redeem", "POST", { key: k }); },
     get isLoggedIn() { return !!token; }, get user() { return currentUser; }, get premium() { return premiumStatus; },
     _doLogin, _doRegister, _doForgot, _continuePay, _guestPay, _guestDo, _toggleMenu, _goStart,
-    _startPP, _startNP
+    _startPP, _startNP,
+    sendReportEmail
   };
 })();
 

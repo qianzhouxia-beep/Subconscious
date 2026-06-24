@@ -274,21 +274,23 @@
             <div id="final-report" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background:rgba(5,5,5,0.85);backdrop-filter:blur(12px);">
                 <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
                     <div class="w-full max-w-3xl mx-auto">
-                        <!-- Close button -->
-                        <div class="flex justify-end mb-4">
-                            <button onclick="resetOracle()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-close">Close</button>
+                        <!-- Close + Download buttons -->
+                        <div class="flex justify-end mb-4 gap-2">
+                            <button onclick="SMAuth.sendReportEmail()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-email">📧 Email</button>
+                            <button onclick="downloadReport()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-pdf">📄 PDF</button>
+                            <button onclick="resetOracle()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-close">Close</button>
                         </div>
                         <!-- Report card -->
                         <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
                     <div class="space-y-4">
-                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2" id="t-res-psych">
+                        <h4 class="text-sm text-gray-500 uppercase tracking-widest flex items-center gap-2" id="t-res-psych">
                             <span class="sm-icon"><svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span> Psychology Analysis
                         </h4>
                         <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                     </div>
                     <!-- Premium Unlock Section -->
                     <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
-                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
+                        <h4 class="text-sm text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
                             <span class="sm-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v4"/><path d="M9 20h6"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/></svg></span> Eastern Destiny Path
                         </h4>
 
@@ -364,7 +366,7 @@
 
                     <!-- Tarot Card Display -->
                     <div id="tarot-section" class="hidden border-t border-white/10 pt-6 mt-6">
-                        <h4 class="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
+                        <h4 class="text-sm text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
                             <span class="sm-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span> Tarot Guidance
                         </h4>
                         <div class="flex flex-col md:flex-row items-center gap-8">
@@ -374,12 +376,13 @@
                             <div class="flex-1">
                                 <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name">The Fool</h5>
                                 <p class="text-sm text-gray-400 leading-relaxed" id="tarot-card-meaning"></p>
+                                <button onclick="downloadTarotWallpaper()" class="mt-4 px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-tarot-wallpaper">📱 Save as Wallpaper</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="text-center pt-8">
-                        <button onclick="resetOracle()" class="text-[9px] text-gray-500 uppercase tracking-[0.4em] hover:text-white transition-all underline underline-offset-8" id="t-oracle-new">Begin New Journey</button>
+                        <button onclick="resetOracle()" class="text-[9px] text-gray-500 uppercase tracking-[0.4em] hover:text-white transition-all" id="t-oracle-new">Begin New Journey</button>
                     </div>
                 </div>
             </div>
@@ -1254,11 +1257,16 @@
                                 const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
                                 document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
                                 document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
-                                // Try to extract tarot meaning from the paid text
+                                // Extract full tarot meaning from the paid text
                                 const meaningEl = document.getElementById('tarot-card-meaning');
-                                const tarotSectionText = paidText.split('**Tarot Guidance**')[1] || paidText.split('**塔罗指引**')[1] || '';
+                                const tarotSectionText = paidText.split('**Tarot Guidance**')[1] || paidText.split('**塔罗指引**')[1] || paidText.split('🃏')[1] || '';
                                 if (tarotSectionText) {
-                                    meaningEl.innerText = tarotSectionText.split('**')[0].trim().substring(0, 200);
+                                    // Take everything until the next ** section header or end
+                                    var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
+                                    if (fullMeaning.length > 20) {
+                                        // Full explanation (not limited to 200 chars)
+                                        meaningEl.innerText = fullMeaning;
+                                    }
                                 }
                             }
 
@@ -1321,6 +1329,75 @@
             flushParagraph(); // flush remaining
 
             return html;
+        }
+
+        // ═══ Report Download & Export Functions ═════════════════
+
+        function getReportHTML() {
+            // Collect the full report HTML for export
+            var freeHTML = document.getElementById('res-free')?.innerHTML || '';
+            var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
+            var psycLabel = document.querySelector('#t-res-psych')?.textContent || 'Psychology Analysis';
+            var destinyLabel = document.querySelector('#t-res-destiny')?.textContent || 'Eastern Destiny Path';
+            var report = '<h2>' + psycLabel + '</h2>' + freeHTML;
+            if (paidHTML && !document.getElementById('locked-preview')?.classList.contains('hidden') === false) {
+                report += '<h2>' + destinyLabel + '</h2>' + paidHTML;
+            }
+            return report;
+        }
+
+        async function downloadReport() {
+            var html = getReportHTML();
+            if (!html) { alert('No report content to download.'); return; }
+            try {
+                var r = await fetch('/api/report/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ html: html, lang: currentLang || 'zh' })
+                });
+                if (!r.ok) throw new Error('Download failed');
+                var blob = await r.blob();
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'subconscious-mirror-report.pdf';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('Download error: ' + e.message);
+            }
+        }
+
+        async function downloadTarotWallpaper() {
+            var img = document.getElementById('tarot-card-img');
+            var nameEl = document.getElementById('tarot-card-name');
+            var meaningEl = document.getElementById('tarot-card-meaning');
+            var dreamText = document.getElementById('t-chat-placeholder')?.value?.trim() || 'Your Dream';
+            if (!img || !nameEl) { alert('No tarot card to download.'); return; }
+            
+            // Extract card index from image URL
+            var src = img.src || '';
+            var match = src.match(/\/tarot\/(\d+)-/);
+            var cardIndex = match ? parseInt(match[1]) : 0;
+            var cardName = nameEl.innerText || 'The Fool';
+            
+            try {
+                var r = await fetch('/api/tarot/wallpaper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_index: cardIndex, card_name: cardName, dream_text: dreamText })
+                });
+                if (!r.ok) throw new Error('Wallpaper generation failed');
+                var blob = await r.blob();
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'tarot-wallpaper.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('Wallpaper error: ' + e.message);
+            }
         }
 
         function addBubble(text, side) {
