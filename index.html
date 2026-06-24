@@ -1572,6 +1572,23 @@
                     const interim = last.isFinal ? '' : last[0].transcript;
                     const displayText = full + (interim ? ' ' + interim : '') || '';
                     document.getElementById('voice-bar-text').innerHTML = displayText || '&#8203;';
+                    // 实时写入文本框（双写：语音条 + textarea）
+                    const ta = document.getElementById('t-chat-placeholder');
+                    if (ta) { ta.value = displayText; ta.dispatchEvent(new Event('input')); }
+                };
+                wsRecognition.onend = () => {
+                    console.log('[Voice] WebSpeech onend');
+                    if (isRecording && !voiceCanceled) {
+                        // 用户可能没有显式停止，自动触发停止
+                        stopVoiceInput();
+                    }
+                };
+                wsRecognition.onerror = (ev) => {
+                    console.warn('[Voice] WebSpeech error:', ev.error);
+                    if (ev.error !== 'no-speech' && ev.error !== 'aborted') {
+                        if (isRecording) stopVoiceInput();
+                    }
+                };
                     
                     // ★ 实时填入文本框 — 即使识别没结束，文字也同步到输入框
                     if (full.trim()) {
@@ -1781,6 +1798,7 @@
         }
 
         function resetVoiceUI() {
+            isProcessing = false;  // 安全重置：防止状态卡住
             const btn = document.getElementById('t-voice-btn');
             const label = document.getElementById('t-voice-label');
             btn.classList.remove('voice-recording');
@@ -1958,14 +1976,30 @@
             const voiceBtn = document.getElementById('t-voice-btn');
             if (voiceBtn) {
                 let voiceMouseDown = false;
+                let voiceSafetyTimer = null;
                 const onVoiceStart = (e) => { e.preventDefault(); voiceMouseDown = true; startVoiceInput(); };
                 const onVoiceEnd = (e) => { if (voiceMouseDown) { voiceMouseDown = false; stopVoiceInput(); } };
+                const onVoiceCancel = (e) => { voiceMouseDown = false; cancelVoiceInput(); };
                 voiceBtn.addEventListener('mousedown', onVoiceStart);
                 voiceBtn.addEventListener('mouseup', onVoiceEnd);
-                voiceBtn.addEventListener('mouseleave', onVoiceEnd);
+                // 安全超时：10秒后强制重置状态，防止卡死
+                function resetSafetyTimer() {
+                    if (voiceSafetyTimer) clearTimeout(voiceSafetyTimer);
+                    voiceSafetyTimer = setTimeout(function() {
+                        if (isProcessing || isRecording) {
+                            console.warn('[Voice] Safety timeout reset');
+                            isRecording = false; isProcessing = false;
+                            document.getElementById('voice-bar').classList.add('hidden');
+                            resetVoiceUI();
+                        }
+                    }, 10000);
+                }
+                // 每次录音/停止重置安全计时器
+                const origStart = startVoiceInput;
+                startVoiceInput = function() { resetSafetyTimer(); return origStart.apply(this, arguments); };
                 voiceBtn.addEventListener('touchstart', onVoiceStart, { passive: false });
                 voiceBtn.addEventListener('touchend', onVoiceEnd);
-                voiceBtn.addEventListener('touchcancel', onVoiceEnd);
+                voiceBtn.addEventListener('touchcancel', onVoiceCancel);
             }
 
             // PayPal JS SDK: load in background (doesn't block page)
