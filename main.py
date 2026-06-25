@@ -577,11 +577,14 @@ def chat():
         )
     else:
         system_content += (
-            "Rule: Deliver a detailed destiny report in TWO PARTS. "
+            "Rule: Deliver a destiny report in TWO PARTS. "
             "Separate with '[PROPHECY_DIVIDER]'.\n\n"
-            "PART 1 (free — must be substantial, 4-6 paragraphs):\n"
+            "PART 1 (free — concise preview, 1-2 paragraphs only):\n"
             "1. [DREAM NARRATIVE] Restate the user's dream in a poetic, refined way — "
-            "incorporate the [Atmosphere:] lucidity data into the narrative tone.\n"
+            "incorporate the [Atmosphere:] lucidity data into the narrative tone. "
+            "KEEP THIS SHORT — just one vivid paragraph that hints at deeper analysis to come. "
+            "End with a teaser line like 'The full psychological analysis, symbol decoding, and emotional landscape are revealed in the complete report.'\n\n"
+            "PART 2 (paid — comprehensive full analysis, 7-10 paragraphs, MUST deliver clear value):\n"
             "2. [PSYCHOLOGICAL ANALYSIS] Deep analysis from Jungian/analytical psychology perspective. "
             "Identify archetypes, shadow elements, anima/animus, and collective unconscious patterns. "
             "Use the [Stress:] and [DreamType:] data to contextualize why "
@@ -592,8 +595,7 @@ def chat():
             "4. [EMOTIONAL LANDSCAPE] Map the emotional journey through the dream — "
             "where emotions shifted, what triggered them, what they reveal. "
             "Cross-reference the user's [Atmosphere:] lucidity rating with "
-            "the actual dream narrative to identify discrepancies the user may not have noticed.\n\n"
-            "PART 2 (paid — 3-5 paragraphs, must deliver clear value):\n"
+            "the actual dream narrative to identify discrepancies the user may not have noticed.\n"
             "5. [TAROT GUIDANCE] Based on the dream's core energy, select the most fitting Major Arcana tarot card. "
             "Explain WHY this card matches the dream, its upright/reversed meaning, "
             "and what guidance it offers the dreamer. "
@@ -618,7 +620,8 @@ def chat():
             "This is used to display the correct tarot card image, so it must be accurate.\n\n"
             "Format: Each section should have a bold header (e.g. '**Psychological Analysis**'). "
             "Write in the same language the user has been using. "
-            "Make PART 1 satisfying on its own but leave PART 2 feeling essential."
+            "PART 1 should feel like a tempting preview — just enough to intrigue. "
+            "PART 2 should feel like the full feast — deep, detailed, and clearly worth paying for."
         )
     try:
         report_mode = (mode == 'report')

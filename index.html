@@ -292,23 +292,6 @@
                         </h4>
                         <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                     </div>
-                    <!-- Tarot Card Display (always visible when report is generated) -->
-                    <div id="tarot-section" class="hidden border-t border-white/10 pt-6 mt-6">
-                        <h4 class="text-sm text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-6" id="t-res-tarot">
-                            <span class="sm-icon"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span> Tarot Guidance
-                        </h4>
-                        <div class="flex flex-col md:flex-row items-center gap-8">
-                            <div class="w-40 h-60 rounded-2xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
-                                <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card">
-                            </div>
-                            <div class="flex-1">
-                                <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5>
-                                <p class="text-sm text-gray-400 leading-relaxed" id="tarot-card-meaning"></p>
-                                <button onclick="downloadTarotWallpaper()" class="mt-4 px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-tarot-wallpaper">📱 Save as Wallpaper</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Premium Content Section -->
                     <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
                         <h4 class="text-sm text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
@@ -317,30 +300,42 @@
 
                         <!-- 锁定预览：展示隐藏内容清单（未付费时显示） -->
                         <div id="locked-preview">
-                            <p class="text-xs text-gray-500 mb-5 leading-relaxed" id="t-locked-intro">The full destiny path contains 3 hidden sections:</p>
+                            <p class="text-xs text-gray-500 mb-5 leading-relaxed" id="t-locked-intro">Unlock 5 exclusive sections for a complete destiny report:</p>
 
                             <div class="space-y-3 mb-6">
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
-                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/><path d="M11 8a3 3 0 0 0-3 3"/></svg></span>
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#89AACC" opacity="0.3"/></svg></span>
                                     <div>
-                                        <div class="text-sm text-white/80 font-medium" id="t-locked-1-title">Real-Life Mirror</div>
-                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-1-desc">How your dream patterns connect to unresolved situations and inner conflicts in waking life</div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-1-title">🃏 Tarot Guidance</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-1-desc">A Major Arcana card matched to your dream's energy, with deep upright/reversed interpretation</div>
                                     </div>
                                 </div>
-
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-2-title">🧠 Psychology Analysis</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-2-desc">Jungian archetypes, shadow elements, and unconscious patterns decoded from your dream</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                                    <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/><path d="M11 8a3 3 0 0 0-3 3"/></svg></span>
+                                    <div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-3-title">🔍 Symbol Decoding</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-3-desc">Deep symbolic analysis of 2-3 key dream symbols — personal, cultural, and archetypal meanings</div>
+                                    </div>
+                                </div>
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
                                     <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><path d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z"/></svg></span>
                                     <div>
-                                        <div class="text-sm text-white/80 font-medium" id="t-locked-2-title">Actionable Wisdom</div>
-                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-2-desc">3-5 concrete, personalized steps you can take starting today</div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-4-title">⭐ Actionable Wisdom</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-4-desc">3-5 concrete, personalized steps you can take starting today</div>
                                     </div>
                                 </div>
-
                                 <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]">
                                     <span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>
                                     <div>
-                                        <div class="text-sm text-white/80 font-medium" id="t-locked-3-title">Prophecy</div>
-                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-3-desc">A cryptic, poetic closing line — the oracle's final word, distilled from your dream's essence</div>
+                                        <div class="text-sm text-white/80 font-medium" id="t-locked-5-title">🔮 Prophecy</div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-5-desc">A cryptic, poetic closing line — the oracle's final word, distilled from your dream's essence</div>
                                     </div>
                                 </div>
                             </div>
@@ -372,8 +367,27 @@
                         </div>
 
                         <!-- 付费内容区（解锁后显示） -->
-                        <div id="res-paid-wrapper" class="hidden">
-                            <div id="res-paid" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
+                        <div id="res-paid-wrapper" class="hidden space-y-6">
+                            <!-- Tarot Card (paid only) -->
+                            <div id="tarot-section" class="hidden" style="background:linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border:1px solid rgba(255,213,79,0.12); border-radius:16px; padding:20px;">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#FFD54F" opacity="0.3"/></svg></span>
+                                    <span class="text-[10px] uppercase tracking-widest font-bold" style="color:#FFD54F;">Tarot Guidance</span>
+                                    <span class="text-[8px] px-2 py-0.5 rounded-full" style="background:rgba(255,213,79,0.15);color:#FFD54F;border:1px solid rgba(255,213,79,0.2);">PREMIUM</span>
+                                </div>
+                                <div class="flex flex-col md:flex-row items-center gap-6">
+                                    <div class="w-32 h-48 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
+                                        <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card">
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5>
+                                        <p class="text-sm text-gray-300 leading-relaxed" id="tarot-card-meaning"></p>
+                                        <button onclick="downloadTarotWallpaper()" class="mt-3 px-3 py-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-tarot-wallpaper">📱 Save as Wallpaper</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Paid report content -->
+                            <div id="res-paid" class="space-y-4"></div>
                         </div>
                     </div>
 
@@ -1249,9 +1263,8 @@
                             document.getElementById('res-paid').innerHTML = formatReportText(paidText);
                         }
 
+                        // Pre-load tarot card data (section is inside paid wrapper, shown on unlock)
                         if (tarotIndex >= 0 && tarotIndex <= 21) {
-                            const tarotSection = document.getElementById('tarot-section');
-                            tarotSection.classList.remove('hidden');
                             const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
                             document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
                             document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
@@ -1264,11 +1277,15 @@
                                     meaningEl.innerText = fullMeaning;
                                 }
                             }
+                        }
 
-                            if (result.status === 'full') {
-                                isPremiumUser = true;
-                                document.getElementById('locked-preview').classList.add('hidden');
-                                document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                        if (result.status === 'full') {
+                            isPremiumUser = true;
+                            document.getElementById('locked-preview').classList.add('hidden');
+                            document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                            // Show tarot section inside paid wrapper (if card data was loaded)
+                            if (tarotIndex >= 0 && tarotIndex <= 21) {
+                                document.getElementById('tarot-section').classList.remove('hidden');
                             }
                         }
 
