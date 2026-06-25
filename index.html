@@ -12,6 +12,10 @@
     <meta property="og:image" content="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/logo.png">
+    <!-- Force no cache to ensure users always get latest JS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
     <!-- Preload critical resources -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,9 +34,9 @@
     <link rel="stylesheet" href="/static/css/aetheris.css">
     <link rel="stylesheet" href="/static/css/sm-icons.css">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js"></script>
-    <script src="/static/js/tarot.js"></script>
-    <script src="/static/js/optimizer.js"></script>
+    <script src="/static/js/i18n.js?v=2"></script>
+    <script src="/static/js/tarot.js?v=2"></script>
+    <script src="/static/js/optimizer.js?v=2"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
 
     <script>
@@ -2339,6 +2343,6 @@
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
-    <script src="/static/js/smauth.js?v=3"></script>
+    <script src="/static/js/smauth.js?v=4"></script>
 </body>
 </html>
