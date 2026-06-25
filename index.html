@@ -1264,7 +1264,6 @@
                                     meaningEl.innerText = fullMeaning;
                                 }
                             }
-                        }
 
                             if (result.status === 'full') {
                                 isPremiumUser = true;
@@ -1282,6 +1281,8 @@
                 sendBtn.disabled = false;
                 addBubble(i18n[currentLang].error_ether || 'Connection error. Please try again.', 'ai');
             }
+
+        }
 
         function formatReportText(raw) {
             // Convert AI markdown-style text into structured HTML with paragraphs and headers
