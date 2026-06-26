@@ -1399,8 +1399,9 @@
             var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
             var psycLabel = document.querySelector('#t-res-psych')?.textContent || 'Psychology Analysis';
             var destinyLabel = document.querySelector('#t-res-destiny')?.textContent || 'Eastern Destiny Path';
+            var isUnlocked = document.getElementById('locked-preview')?.classList.contains('hidden');
             var report = '<h2>' + psycLabel + '</h2>' + freeHTML;
-            if (paidHTML && !document.getElementById('locked-preview')?.classList.contains('hidden') === false) {
+            if (paidHTML && isUnlocked) {
                 report += '<h2>' + destinyLabel + '</h2>' + paidHTML;
             }
             return report;
@@ -1415,7 +1416,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ html: html, lang: currentLang || 'zh' })
                 });
-                if (!r.ok) throw new Error('Download failed');
+                if (!r.ok) {
+                    var errData;
+                    try { errData = await r.json(); } catch(_) {}
+                    throw new Error(errData?.error || 'Download failed (server error)');
+                }
                 var blob = await r.blob();
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
@@ -1424,7 +1429,7 @@
                 a.click();
                 URL.revokeObjectURL(url);
             } catch (e) {
-                alert('Download error: ' + e.message);
+                alert('PDF download failed: ' + e.message);
             }
         }
 

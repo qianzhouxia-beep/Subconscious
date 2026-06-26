@@ -1378,7 +1378,7 @@ def send_3day_reminder():
         return _cors(jsonify({"ok": False, "error": "Failed to send reminder."}), 500)
 
 
-# ═══ Report Download (PDF) ═══════════════════════���═══════
+# ═══ Report Download (PDF) ════════════════════════════════════
 
 @app.route('/api/report/download', methods=['POST', 'OPTIONS'])
 def report_download():
@@ -1422,23 +1422,58 @@ def report_download():
 </body>
 </html>"""
     
+    pdf_bytes = None
+    
+    # Method 1: weasyprint (best quality, needs system libs)
     try:
         import weasyprint
         pdf_bytes = weasyprint.HTML(string=full_html).write_pdf()
-        
+    except Exception as e:
+        logger.warning(f"weasyprint failed: {e}, trying fallback...")
+    
+    # Method 2: fallback — fpdf2 (no system deps, simpler)
+    if pdf_bytes is None:
+        try:
+            from fpdf import FPDF
+            import re as _pr
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.add_font("NotoSans", "", "/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf", uni=True) if __import__('os').path.exists("/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf") else None
+            
+            # Strip HTML tags for plain text fallback
+            text = _pr.sub(r'<[^>]+>', '', full_html)
+            text = _pr.sub(r'&[a-z]+;', '', text)
+            # Use built-in font (ASCII only)
+            pdf.set_font("Helvetica", size=9)
+            for line in text.split('\n'):
+                line = line.strip()
+                if not line: continue
+                # Try to write text
+                try:
+                    pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
+                except:
+                    # If Unicode fails, encode as ASCII
+                    safe = line.encode('ascii', 'replace').decode('ascii')
+                    pdf.cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
+            
+            pdf_bytes = pdf.output()
+        except Exception as e2:
+            logger.error(f"fpdf2 fallback also failed: {e2}")
+            return _cors(jsonify({"error": "Failed to generate PDF. PDF libraries unavailable on server."}), 500)
+    
+    try:
         from io import BytesIO
         pdf_io = BytesIO(pdf_bytes)
-        
-        from flask import send_file
         return send_file(
             pdf_io,
             mimetype='application/pdf',
             as_attachment=True,
-            download_name=f'subconscious-mirror-report.pdf'
+            download_name='subconscious-mirror-report.pdf'
         )
     except Exception as e:
-        logger.error(f"PDF generation error: {e}")
-        return _cors(jsonify({"error": "Failed to generate PDF"}), 500)
+        logger.error(f"PDF send_file error: {e}")
+        return _cors(jsonify({"error": "Failed to send PDF"}), 500)
 
 
 # ═══ Tarot Wallpaper ═══════════════════════════════════════
