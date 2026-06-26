@@ -1539,82 +1539,178 @@
             var dreamText = document.getElementById('t-chat-placeholder')?.value?.trim() || '';
 
             try {
-                // Generate wallpaper on client side with Canvas.
-                // The <img> is loaded from same-origin (/static/tarot/...),
-                // so Canvas will NOT be tainted — toBlob() works fine.
                 var W = 1080, H = 1920;
                 var canvas = document.createElement('canvas');
                 canvas.width = W;
                 canvas.height = H;
                 var ctx = canvas.getContext('2d');
 
-                // ── Background: dark purple gradient ──
-                var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-                bgGrad.addColorStop(0, '#1e1837');
-                bgGrad.addColorStop(1, '#0a0a14');
-                ctx.fillStyle = bgGrad;
+                // ═══ Background: deep purple gradient ═══
+                var bg = ctx.createLinearGradient(0, 0, 0, H);
+                bg.addColorStop(0, '#16122b');   // lighter purple at top
+                bg.addColorStop(0.5, '#0e0b1f');
+                bg.addColorStop(1, '#080612');    // near-black at bottom
+                ctx.fillStyle = bg;
                 ctx.fillRect(0, 0, W, H);
 
-                // Subtle radial glow behind card
+                // Subtle noise texture (optional — adds premium feel)
                 ctx.save();
-                ctx.globalAlpha = 0.08;
-                var glow = ctx.createRadialGradient(W/2, 420, 50, W/2, 420, 420);
-                glow.addColorStop(0, '#7c5cff');
-                glow.addColorStop(1, 'transparent');
-                ctx.fillStyle = glow;
+                ctx.globalAlpha = 0.03;
+                for (var ni = 0; ni < 8000; ni++) {
+                    var nx = Math.random() * W;
+                    var ny = Math.random() * H;
+                    ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#7c5cff';
+                    ctx.fillRect(nx, ny, 1, 1);
+                }
+                ctx.restore();
+
+                // ═══ Card positioning — large & centered (hero element) ═══
+                var cardH = Math.min(880, H * 0.44);   // ~44% of screen height
+                var cardW = Math.round(img.naturalWidth * cardH / img.naturalHeight);
+                // Cap width to not exceed 85% of screen
+                var maxCardW = Math.floor(W * 0.82);
+                if (cardW > maxCardW) {
+                    cardW = maxCardW;
+                    cardH = Math.round(img.naturalHeight * cardW / img.naturalWidth);
+                }
+                var cardX = Math.round((W - cardW) / 2);
+                var cardY = Math.round(H * 0.07);       // 7% from top
+
+                // ═══ Glow behind the card (purple aura) ═══
+                ctx.save();
+                ctx.globalAlpha = 0.15;
+                var auraGlow = ctx.createRadialGradient(
+                    W/2, cardY + cardH/2, cardH * 0.3,
+                    W/2, cardY + cardH/2, cardH * 0.9
+                );
+                auraGlow.addColorStop(0, '#7c5cff');
+                auraGlow.addColorStop(0.5, '#5a3fd9');
+                auraGlow.addColorStop(1, 'transparent');
+                ctx.fillStyle = auraGlow;
                 ctx.fillRect(0, 0, W, H);
                 ctx.restore();
 
-                // ── Draw tarot card image ──
-                var cardH = 500;
-                var cardW = Math.round(img.naturalWidth * cardH / img.naturalHeight);
-                var cardX = Math.round((W - cardW) / 2);
-                var cardY = 160;
+                // ═══ Draw tarot card with rounded corners + shadow ═══
+                var radius = Math.round(cardW * 0.03);   // 3% corner radius
+                // Clip path for rounded rectangle
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(cardX + radius, cardY);
+                ctx.lineTo(cardX + cardW - radius, cardY);
+                ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + radius);
+                ctx.lineTo(cardX + cardW, cardY + cardH - radius);
+                ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - radius, cardY + cardH);
+                ctx.lineTo(cardX + radius, cardY + cardH);
+                ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - radius);
+                ctx.lineTo(cardX, cardY + radius);
+                ctx.quadraticCurveTo(cardX, cardY, cardX + radius, cardY);
+                ctx.closePath();
+                ctx.clip();
+                // Draw image inside clipped region
                 ctx.drawImage(img, cardX, cardY, cardW, cardH);
+                ctx.restore();
 
-                // ── Card name ──
+                // Subtle inner border on the card
+                ctx.save();
+                ctx.strokeStyle = 'rgba(155,127,255,0.25)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.restore();
+
+                // Drop shadow under card (drawn after clip restore)
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 40;
+                ctx.shadowOffsetY = 15;
+                ctx.fillStyle = 'rgba(20,16,38,0.3)';
+                ctx.fillRect(cardX, cardY, cardW, cardH);
+                ctx.restore();
+
+                // Redraw card on top of shadow
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(cardX + radius, cardY);
+                ctx.arcTo(cardX, cardY, cardX + cardW, cardY, radius);
+                ctx.arcTo(cardX + cardW, cardY, cardX + cardW, cardY + cardH, radius);
+                ctx.arcTo(cardX + cardW, cardY + cardH, cardX, cardY + cardH, radius);
+                ctx.arcTo(cardX, cardY + cardH, cardX, cardY, radius);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(img, cardX, cardY, cardW, cardH);
+                ctx.restore();
+
+                // ═══ Text below card ═══
+                var textBaseY = cardY + cardH + 70;
+
+                // Card name (gold accent)
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 52px "Instrument Serif", Georgia, serif';
-                ctx.fillStyle = '#9b7fff';
-                ctx.fillText(cardName, W/2, cardY + cardH + 60);
+                ctx.textBaseline = 'middle';
+                ctx.font = '600 46px "Instrument Serif", Georgia, "Noto Serif SC", serif';
+                ctx.fillStyle = '#ffd54f';
+                // Letter spacing effect via slight shadow
+                ctx.fillText(cardName.toUpperCase(), W/2, textBaseY);
+                textBaseY += 55;
 
-                // ── Subtitle ──
-                ctx.font = '28px "Inter", system-ui, sans-serif';
-                ctx.fillStyle = '#888';
-                ctx.fillText(currentLang === 'zh' ? '你的梦境塔罗' : 'Your Dream Tarot', W/2, cardY + cardH + 100);
+                // Subtle divider line
+                ctx.save();
+                ctx.strokeStyle = 'rgba(124,92,255,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(W/2 - 80, textBaseY);
+                ctx.lineTo(W/2 + 80, textBaseY);
+                ctx.stroke();
+                ctx.restore();
+                textBaseY += 35;
 
-                // ── Dream text (simple wrap) ──
-                ctx.font = '22px "Inter", system-ui, sans-serif';
-                ctx.fillStyle = '#aaa';
-                var wrapW = W - 160;
-                var txt = dreamText.slice(0, 180);
-                // Split on spaces/punctuation for wrap
-                var words = txt.split(/(\s+)/);
-                var line = '', yCursor = cardY + cardH + 170;
-                for (var wi = 0; wi < words.length; wi++) {
-                    var testLine = line + words[wi];
-                    if (ctx.measureText(testLine).width > wrapW && line) {
-                        ctx.fillText(line.trim(), W/2, yCursor);
-                        line = words[wi];
-                        yCursor += 34;
-                        if (yCursor > H - 200) break;
-                    } else {
-                        line = testLine;
+                // Subtitle
+                ctx.font = '300 24px "Inter", system-ui, -apple-system, sans-serif';
+                ctx.fillStyle = '#888899';
+                ctx.fillText(currentLang === 'zh' ? '你的梦境塔罗指引' : 'Your Dream Tarot Guidance', W/2, textBaseY);
+                textBaseY += 55;
+
+                // Dream text (wrapped)
+                if (dreamText) {
+                    ctx.font = '300 21px "Inter", system-ui, sans-serif';
+                    ctx.fillStyle = '#666677';
+                    var maxTxtW = W - 120;
+                    var dTxt = dreamText.slice(0, 160);
+                    var dWords = dTxt.split(/(\s+)/);
+                    var dLine = '', dY = textBaseY;
+                    for (var di = 0; di < dWords.length; di++) {
+                        var tLine = dLine + dWords[di];
+                        if (ctx.measureText(tLine).width > maxTxtW && dLine) {
+                            ctx.fillText(dLine.trim(), W/2, dY);
+                            dLine = dWords[di];
+                            dY += 32;
+                            if (dY > H - 180) break;
+                        } else { dLine = tLine; }
+                    }
+                    if (dY <= H - 180 && dLine.trim()) {
+                        ctx.fillText(dLine.trim(), W/2, dY);
                     }
                 }
-                if (yCursor <= H - 200) {
-                    ctx.fillText(line.trim(), W/2, yCursor);
-                }
 
-                // ── Branding ──
-                ctx.font = 'bold 24px "Instrument Serif", Georgia, serif';
+                // ═══ Footer branding ═══
+                var fY = H - 90;
+                // Small decorative line above footer
+                ctx.save();
+                ctx.strokeStyle = 'rgba(124,92,255,0.15)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(W/2 - 60, fY - 30);
+                ctx.lineTo(W/2 + 60, fY - 30);
+        ctx.stroke();
+        ctx.restore();
+                ctx.textAlign = 'center';
+                ctx.font = '500 20px "Instrument Serif", Georgia, serif';
                 ctx.fillStyle = '#7c5cff';
-                ctx.fillText('Subconscious Mirror', W/2, H - 80);
-                ctx.font = '18px "Inter", system-ui, sans-serif';
-                ctx.fillStyle = '#555';
-                ctx.fillText('AI-Powered Dream Oracle', W/2, H - 45);
+                ctx.fillText('Subconscious Mirror', W/2, fY);
+                ctx.font = '300 15px "Inter", system-ui, sans-serif';
+                ctx.fillStyle = '#444455';
+                ctx.fillText('AI-Powered Dream Oracle · ' +
+                    (currentLang === 'zh' ? '潜意识镜像' : ''), W/2, fY + 26);
 
-                // ── Download ──
+                // ═══ Download ═══
                 canvas.toBlob(function(blob) {
                     if (!blob) throw new Error('Canvas toBlob failed');
                     var url = URL.createObjectURL(blob);
