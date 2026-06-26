@@ -7,7 +7,7 @@ const SMAuth = (function () {
   const BLUE = "#4E85BF";
   const BLUE_GRADIENT = "linear-gradient(135deg,#3A7ABF,#5B9BD5)";
   const BLUE_LIGHT = "rgba(78,133,191,0.3)";
-  const BLUE_TEXT = "#89AACC";
+  const BLUE_TEXT = "#7c5cff";
 
   let token = localStorage.getItem("sm_token");
   let currentUser = null;
@@ -226,7 +226,7 @@ const SMAuth = (function () {
       var d = await _safeJson(r);
       if (!r.ok) throw new Error(d.detail || "Payment failed");
       closeModal();
-      showModal('<div style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-bottom:12px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#89AACC" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">USDT Payment</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;"><strong>' + pl + '</strong></p><p style="margin:0 0 20px;color:#888;font-size:13px;">Amount: <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p><a href="' + d.invoice_url + '" target="_blank" style="display:inline-block;padding:12px 28px;background:' + BLUE_GRADIENT + ';border:none;border-radius:999px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;">Pay with USDT \u2192</a><p style="margin-top:16px;color:#666;font-size:12px;">Powered by NOWPayments</p></div>');
+      showModal('<div style="text-align:center;"><span style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;margin-bottom:12px;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7c5cff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M10 8.5v7M10 12h3.5a2 2 0 1 0 0-4H10z"/><path d="M10 12h4a2 2 0 1 1 0 4h-4"/></svg></span><h2 style="margin:0 0 6px;font-size:20px;color:' + BLUE_TEXT + ';">USDT Payment</h2><p style="margin:0 0 8px;color:#ccc;font-size:14px;"><strong>' + pl + '</strong></p><p style="margin:0 0 20px;color:#888;font-size:13px;">Amount: <strong style="color:#fff;">$' + pr.toFixed(2) + '</strong></p><a href="' + d.invoice_url + '" target="_blank" style="display:inline-block;padding:12px 28px;background:' + BLUE_GRADIENT + ';border:none;border-radius:999px;color:#fff;font-size:15px;font-weight:600;text-decoration:none;">Pay with USDT \u2192</a><p style="margin-top:16px;color:#666;font-size:12px;">Powered by NOWPayments</p></div>');
     } catch (e) { showModal('<p style="color:#ff6b6b;">' + e.message + '</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
   }
 
