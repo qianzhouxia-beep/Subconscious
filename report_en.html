@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subconscious Mirror — Complete Dream Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', 'Helvetica Neue', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+  .wrapper { max-width: 800px; width: 100%; }
+  .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 50px 56px; }
+  .main-title { display: flex; align-items: center; gap: 10px; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 20px; }
+  .main-title svg { width: 20px; height: 20px; stroke: #89AACC; fill: none; stroke-width: 1.5; }
+  .free-preview p { font-size: 14px; line-height: 1.9; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
+  .sub-h { font-size: 13px; font-weight: 500; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 8px; }
+  .teaser { font-size: 12px; font-style: italic; color: rgba(255,255,255,0.3); text-align: center; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 12px; }
+  .divider { display: flex; align-items: center; gap: 16px; margin: 36px 0 28px; color: rgba(255,255,255,0.15); font-size: 10px; text-transform: uppercase; letter-spacing: 4px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,213,79,0.15), transparent); }
+  .paid-title { display: flex; align-items: center; gap: 10px; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 16px; }
+  .paid-title svg { width: 20px; height: 20px; stroke: #89AACC; fill: none; stroke-width: 1.5; }
+  .pcard { background: linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border: 1px solid rgba(255,213,79,0.12); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .pcard p { font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+  .pcard p:last-child { margin-bottom: 0; }
+  .pcard p strong { color: rgba(255,255,255,0.85); }
+  .pcard .prophecy { font-style: italic; font-size: 15px; text-align: center; padding: 12px 0; }
+  .tarot-box { display: flex; gap: 24px; align-items: center; background: linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border: 1px solid rgba(255,213,79,0.12); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .tarot-box .img-wrap { width: 128px; height: 192px; border-radius: 12px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); }
+  .tarot-box .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .tarot-box .info { flex: 1; }
+  .tarot-box .info .tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .tarot-box .info .tag-row .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: #FFD54F; }
+  .tarot-box .info .tag-row .badge { font-size: 8px; padding: 2px 8px; border-radius: 20px; background: rgba(255,213,79,0.15); color: #FFD54F; border: 1px solid rgba(255,213,79,0.2); text-transform: uppercase; letter-spacing: 1px; }
+  .tarot-box .info h5 { font-size: 15px; font-style: italic; color: rgba(255,255,255,0.9); margin-bottom: 6px; }
+  .tarot-box .info p { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.65); }
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 28px; }
+  .actions .btn { padding: 10px 24px; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.5); background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; cursor: default; text-decoration: none; display: inline-block; }
+  .footer-note { text-align: center; margin-top: 24px; font-size: 11px; color: rgba(255,255,255,0.2); }
+  .footer-note span { color: rgba(255,255,255,0.4); font-weight: 600; }
+  .preview-badge { display: inline-block; background: rgba(137,170,204,0.12); border: 1px solid rgba(137,170,204,0.2); color: #89AACC; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; padding: 4px 14px; border-radius: 20px; margin-bottom: 24px; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<div style="text-align:center;margin-bottom:16px;">
+  <span class="preview-badge">Sample Report · Premium User View</span>
+</div>
+
+<div class="card">
+
+  <!-- ═══ FREE SECTION: Dream Preview ═══ -->
+  <div class="main-title">
+    <svg viewBox="0 0 24 24"><path d="M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z"/></svg>
+    Dream Preview
+  </div>
+  <div class="free-preview">
+    <div class="sub-h" style="color:#4FC3F7;">🌊 Dream Narrative</div>
+    <p>You stand on an endless gray beach. The waves don't crash — they breathe, rising and falling in slow motion. There is no horizon; the sky and sea blur into one another at an impossible distance. The sand beneath your feet is dry, but every footprint you leave slowly fills with cold, seeping water. The entire dream is saturated with a quiet, profound sense of the unknown — not fear, but something closer to waiting.</p>
+    <p>Your lucidity level registers as moderate (3/5), meaning you were neither fully lost in the dream nor fully in control. You exist in a state of passive observation — and this mirrors exactly where you stand on a significant life question right now.</p>
+    <div class="teaser">—— <span style="color:#4FC3F7;">Unlock the full report</span> for Psychology Analysis, Symbol Decoding, Tarot Guidance, and 4 more sections ——</div>
+  </div>
+
+  <div class="divider">⬡ Premium Content Below ⬡</div>
+
+  <!-- ═══ PAID SECTION: Complete Destiny Report ═══ -->
+  <div class="paid-title">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Complete Destiny Report
+  </div>
+
+  <!-- 1. Psychology Analysis -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#F06292;">🧠 Psychology Analysis</div>
+    <p>From a Jungian analytical psychology perspective, the gray beach imagery points to a <strong>liminal space</strong> experience you are currently navigating — a threshold between two life stages where the old self has dissolved and the new self has not yet crystallized. The beach, as a boundary between water (the unconscious) and land (consciousness), embodies this transitional terrain. Its gray, desaturated quality strips away any single emotional label — this is neither a safe nor a threatening place, but a space where you are asked to simply <strong>face the unknown</strong>.</p>
+    <p>Your moderate lucidity score (3/5) is physiologically consistent with mid-stage REM sleep, but from an analytical psychology standpoint, this "half-awake, half-dreaming" state is the optimal window for unconscious material to surface. The fact that you <strong>chose</strong> to stand on the beach and observe, rather than flee, is itself significant: it tells us that on an unconscious level, you are ready to sit with uncertainty, even if your conscious mind still hesitates.</p>
+  </div>
+
+  <!-- 2. Symbol Decoding -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#FFB74D;">🔍 Symbol Decoding</div>
+    <p><strong>The Gray Beach:</strong> Beaches in dream symbolism represent the threshold of consciousness — the boundary between water and land is the boundary between the known and the unknown. Gray, as a desaturated neutral, collapses the dimension of time: you cannot tell whether this is dawn or dusk. This loss of temporal orientation points to something more fundamental — you are not "waiting for a specific event." You are in an existential transition where the process itself is the destination.</p>
+    <p><strong>The Seeping Footprints:</strong> This is the most poetic detail of the entire dream. Every footprint you leave fills with cold water — meaning every time you "make a mark" in your life, you touch something deep in the unconscious. The water is cold, suggesting these are not warm memories but cognitions you have not yet fully processed or integrated. Given your reported high-stress state, this likely points to several key decisions you've made recently — each of which has stirred larger ripples beneath the surface than you anticipated.</p>
+  </div>
+
+  <!-- 3. Emotional Landscape -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#CE93D8;">💜 Emotional Landscape</div>
+    <p>Your dream's emotional trajectory follows a U-shaped curve: it begins with calm curiosity (the exploratory feeling of stepping onto the beach), passes through a valley of uncertainty (the mild警觉 of noticing water seeping into your footprints), and settles into a near-meditative state of peaceful desolation (accepting the boundlessness of the sea-meets-sky horizon). Notably, the curve shows <strong>no fear spike</strong> — even when confronted with the unknown and the cold water, your emotional response is observation, not retreat.</p>
+  </div>
+
+  <!-- 4. Tarot Guidance (independent) -->
+  <div class="tarot-box">
+    <div class="img-wrap">
+      <img src="https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/09-hermit.png" alt="The Hermit">
+    </div>
+    <div class="info">
+      <div class="tag-row">
+        <span class="label">🃏 Tarot Guidance</span>
+        <span class="badge">premium</span>
+      </div>
+      <h5>The Hermit (IX)</h5>
+      <p>The solitary, watchful quality of your gray beach dream resonates deeply with the energy of The Hermit. This Major Arcana card represents introspection, the wisdom of solitude, and the journey inward in search of inner truth — that horizonless sea is precisely the uncharted inner territory you are currently exploring. The Hermit reminds you that the answer is not outside of you, but in the still, small voice that only emerges when you sit alone with silence.</p>
+      <div style="margin-top:12px;display:flex;gap:8px;">
+        <span class="btn" style="font-size:8px;padding:6px 14px;">📱 Save as Wallpaper</span>
+        <span class="btn" style="font-size:8px;padding:6px 14px;">🖼️ Download Card</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Real-Life Mirror -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#81C784;">🪞 Real-Life Mirror</div>
+    <p>This dream maps directly onto your current waking-life core conflict. Based on your submitted data — high work stress coupled with an unresolved major decision — the dream is offering you a <strong>safe rehearsal space</strong>. No one else is on the gray beach. There is no time pressure, no external judgment. Your unconscious is telling you that you need a period of undistracted solitude to find clarity.</p>
+  </div>
+
+  <!-- 6. Actionable Wisdom -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#4DD0E1;">⭐ Actionable Wisdom</div>
+    <p>1. <strong>The Reverse Decision Exercise:</strong> This week, pick one small decision you've been analyzing without resolving. Instead of listing pros and cons, ask yourself: "If I could only follow my gut, which would I choose?" Write it down and revisit it in a week.</p>
+    <p>2. <strong>Threshold Journaling:</strong> Each night before sleep, write one sentence describing a moment during the day when you stood "between two phases" — even if it was just the hesitation before a subway door closed. This trains your intuition to recognize transitional signals.</p>
+    <p>3. <strong>Name Your Gray Beach:</strong> Give your current life stage a name — no more than three words. "The Waiting Room," "The Shedding," "The Cocoon." Naming transforms vague anxiety into something observable, giving you a handle on it.</p>
+  </div>
+
+  <!-- 7. Prophecy -->
+  <div class="pcard">
+    <div class="sub-h" style="color:#BA68C8;">🔮 Prophecy</div>
+    <p class="prophecy" style="color:#BA68C8;">"The sea will not tell you where the shore is —<br>it will only teach you how to swim when you cannot see it."</p>
+  </div>
+
+  <div class="actions">
+    <span class="btn">📧 Email Report</span>
+    <span class="btn">📄 Save as PDF</span>
+    <span class="btn">✕ Begin New Journey</span>
+  </div>
+
+</div>
+<div class="footer-note"><span>Subconscious Mirror</span> · AI-Powered Dream Oracle · premium sample report · All content is AI-generated based on real dream narrative input</div>
+</div>
+</body>
+</html>

@@ -166,7 +166,7 @@
                 <div id="ai-quote-card" class="glass-card px-6 py-6 md:py-8 rounded-2xl w-full relative flex flex-col items-stretch justify-start" style="border:1px solid rgba(255,255,255,0.08);height:400px;">
                     <div class="absolute -top-10 -left-10 w-40 h-40 bg-accent/5 blur-[50px] rounded-full pointer-events-none"></div>
                     <div class="relative z-10 flex flex-col overflow-y-auto flex-1 scrollbar-lucent pr-3" id="chat-welcome">
-                        <p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">I am listening. Share your dream with me...</p>
+                        <p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">I am listening. Share your dream with me...<br><span class="text-[10px] text-gray-500 mt-2 block" id="t-chat-welcome-hint">💡 Tip: Adjust the settings below (Lucidity, Symbols, etc.) to get a more personalized reading.</span></p>
                     </div>
                 </div>
 
@@ -198,6 +198,10 @@
                         <button onclick="resetOracle()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-oracle-reset">Reset</button>
                         <button onclick="sendMessage()" class="px-6 py-2 bg-accent text-bg rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 hover:scale-105 transition-all active:scale-95" id="t-chat-send">Transmit</button>
                     </div>
+                </div>
+                <!-- 环境设置提示 -->
+                <div class="text-center mt-3 mb-1" id="env-hint-bar">
+                    <span class="text-[9px] text-gray-500 uppercase tracking-widest" id="t-env-hint"></span>
                 </div>
             </div>
 
@@ -1173,7 +1177,7 @@
             // Reset quote card to welcome state
             const welcomeContainer = document.getElementById('chat-welcome');
             welcomeContainer.innerHTML = '<p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">' +
-                (currentLang === 'zh' ? '我在聆听。分享你的梦境...' : 'I am listening. Share your dream with me...') +
+                (currentLang === 'zh' ? '我在聆听。分享你的梦境...<br><span class="text-[10px] text-gray-500 mt-2 block" id="t-chat-welcome-hint">💡 提示：调整下方的设置（清醒度、关键词等）可获得更个性化的解读。</span>' : 'I am listening. Share your dream with me...<br><span class="text-[10px] text-gray-500 mt-2 block" id="t-chat-welcome-hint">💡 Tip: Adjust the settings below (Lucidity, Symbols, etc.) to get a more personalized reading.</span>') +
                 '</p>';
             document.getElementById('final-report').classList.add('hidden');
             document.getElementById('chat-input-area').classList.remove('hidden');
