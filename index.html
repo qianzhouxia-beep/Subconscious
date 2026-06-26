@@ -1277,7 +1277,7 @@
                             if (paidText) paidText = paidText.replace(/\[TAROT:\s*\d+\]/, '').trim();
                         }
                         if (paidText) {
-                            document.getElementById('res-paid').innerHTML = formatReportText(paidText);
+                            document.getElementById('res-paid').innerHTML = formatReportText(paidText, true);
                         }
 
                         // Pre-load tarot card data (section is inside paid wrapper, shown on unlock)
@@ -1325,8 +1325,9 @@
 
         }
 
-        function formatReportText(raw) {
+        function formatReportText(raw, isPaid) {
             // Convert AI markdown-style text into structured HTML with paragraphs and headers
+            // isPaid=true wraps each section in a premium card container
             if (!raw) return '';
             // 1. Handle standalone **Header** lines → styled section headers
             // 2. Handle inline **bold** → <strong>
@@ -1335,6 +1336,7 @@
             let html = '';
             const lines = raw.split('\n');
             let paraLines = [];
+            let inCard = false;
 
             function flushParagraph() {
                 let text = paraLines.join(' ').trim();
@@ -1343,6 +1345,19 @@
                 text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90">$1</strong>');
                 html += '<p class="mb-5 last:mb-0 text-[15px] leading-[1.8]">' + text + '</p>';
                 paraLines = [];
+            }
+
+            function closeCard() {
+                if (inCard) {
+                    html += '</div>';
+                    inCard = false;
+                }
+            }
+
+            function openCard(color) {
+                closeCard();
+                html += '<div style="background:linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01));border:1px solid rgba(255,213,79,0.12);border-radius:16px;padding:24px;margin-bottom:16px;">';
+                inCard = true;
             }
 
             const SECTION_KEYS = {
@@ -1387,7 +1402,9 @@
                             break;
                         }
                     }
-                    html += '<h4 class="text-[13px] font-medium tracking-wide mt-8 mb-3 pb-2" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.04);">' + icon + headerText + '</h4>';
+                    // Open card container for paid sections
+                    if (isPaid) openCard(color);
+                    html += '<h4 class="text-[13px] font-medium tracking-wide mt-0 mb-3 pb-2" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.06);">' + icon + headerText + '</h4>';
                     continue;
                 }
                 // Check for emoji-only lines that precede section titles
@@ -1410,6 +1427,7 @@
                 paraLines.push(trimmed);
             }
             flushParagraph(); // flush remaining
+            if (isPaid) closeCard(); // close last card if paid
 
             return html;
         }
