@@ -1144,6 +1144,7 @@
             checkReferralStatus();
             console.log('[Report] Unlocked successfully');
         }
+        window.unlockReport = unlockReport;  // expose to SMAuth.js
 
         async function verifyLicense() {
             const key = document.getElementById('t-key-placeholder').value.trim();
