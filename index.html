@@ -1019,7 +1019,7 @@
                 pollCount++;
                 // Try to detect premium status via session cookie
                 try {
-                    var res = await fetch('/api/session', { method: 'GET', headers: { 'Accept': 'application/json' } });
+                    var res = await fetch('/api/session/init', { method: 'GET', headers: { 'Accept': 'application/json' } });
                     var data = await res.json();
                     if (data.premium) {
                         clearInterval(_paymentPollTimer);
