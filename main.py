@@ -1392,19 +1392,21 @@ def report_download():
         return _cors(jsonify({"error": "No report content"}), 400)
     
     # Wrap the HTML in a full document with styles
+    # Use inline styles + web-safe CJK fonts for reliable rendering
     full_html = f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>
 <meta charset="UTF-8">
 <style>
   @page {{ margin: 1.5cm; size: A4; }}
-  body {{ font-family: 'Helvetica', 'Arial', sans-serif; color: #1a1a1a; line-height: 1.7; padding: 20px; }}
-  h2 {{ color: #4E85BF; font-size: 18px; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }}
-  h4 {{ color: #4E85BF; font-size: 14px; margin-top: 20px; margin-bottom: 6px; }}
-  p {{ font-size: 12px; margin-bottom: 12px; color: #333; line-height: 1.6; }}
+  body {{ font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif; color: #1a1a1a; line-height: 1.7; padding: 20px; background: #fff; }}
+  h2 {{ color: #7c5cff; font-size: 18px; margin-top: 24px; margin-bottom: 8px; border-bottom: 2px solid rgba(124,92,255,0.3); padding-bottom: 4px; }}
+  h4 {{ font-size: 14px; margin-top: 20px; margin-bottom: 6px; }}
+  p {{ font-size: 12px; margin-bottom: 12px; color: #333; line-height: 1.8; text-align: justify; }}
   strong {{ color: #111; }}
+  .pcard {{ background: linear-gradient(135deg, rgba(255,213,79,0.06), rgba(255,213,79,0.02)); border: 1px solid rgba(255,213,79,0.15); border-radius: 12px; padding: 18px; margin-bottom: 14px; }}
   .header {{ text-align: center; margin-bottom: 30px; }}
-  .header h1 {{ color: #4E85BF; font-size: 22px; margin-bottom: 4px; }}
+  .header h1 {{ color: #7c5cff; font-size: 24px; margin-bottom: 4px; }}
   .header p {{ color: #888; font-size: 11px; }}
   .footer {{ text-align: center; margin-top: 40px; color: #aaa; font-size: 10px; border-top: 1px solid #eee; padding-top: 15px; }}
 </style>
@@ -1412,7 +1414,7 @@ def report_download():
 <body>
   <div class="header">
     <h1>Subconscious Mirror</h1>
-    <p>Dream Analysis Report</p>
+    <p>{'AI 解梦报告' if lang == 'zh' else 'Dream Analysis Report'}</p>
   </div>
   {html_content}
   <div class="footer">
@@ -1436,27 +1438,49 @@ def report_download():
         try:
             from fpdf import FPDF
             import re as _pr
+            import os as _os
+
             pdf = FPDF()
             pdf.add_page()
             pdf.set_auto_page_break(auto=True, margin=15)
-            pdf.add_font("NotoSans", "", "/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf", uni=True) if __import__('os').path.exists("/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf") else None
-            
+
+            # Try to add CJK font from common system paths
+            cjk_font_paths = [
+                "/usr/share/fonts/truetype/noto/NotoSansSC-Regular.ttf",
+                "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+                "/usr/share/fonts/truetype/dejavu/DejavuSans.ttf",
+            ]
+            font_added = False
+            for fp in cjk_font_paths:
+                if _os.path.exists(fp):
+                    try:
+                        pdf.add_font("CJK", "", fp, uni=True)
+                        font_added = True
+                        break
+                    except:
+                        continue
+
             # Strip HTML tags for plain text fallback
             text = _pr.sub(r'<[^>]+>', '', full_html)
             text = _pr.sub(r'&[a-z]+;', '', text)
-            # Use built-in font (ASCII only)
-            pdf.set_font("Helvetica", size=9)
+            text = _pr.sub(r'\s+', ' ', text).strip()
+
+            if font_added:
+                pdf.set_font("CJK", size=10)
+            else:
+                pdf.set_font("Helvetica", size=9)
+
             for line in text.split('\n'):
                 line = line.strip()
                 if not line: continue
-                # Try to write text
                 try:
-                    pdf.cell(0, 5, line, new_x="LMARGIN", new_y="NEXT")
-                except:
-                    # If Unicode fails, encode as ASCII
-                    safe = line.encode('ascii', 'replace').decode('ascii')
-                    pdf.cell(0, 5, safe, new_x="LMARGIN", new_y="NEXT")
-            
+                    pdf.multi_cell(0, 6, line)
+                except Exception:
+                    # Last resort: encode non-ASCII as replacement chars
+                    safe = line.encode('latin-1', 'replace').decode('latin-1')
+                    pdf.multi_cell(0, 5, safe)
+
             pdf_bytes = pdf.output()
         except Exception as e2:
             logger.error(f"fpdf2 fallback also failed: {e2}")
