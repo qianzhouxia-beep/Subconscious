@@ -371,7 +371,7 @@
                                 </div>
                                 <div class="flex flex-col md:flex-row items-center gap-6">
                                     <div class="w-32 h-48 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
-                                        <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-full text-5xl opacity-30\'>🃏</div>'">
+                                        <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card">
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5>
@@ -1267,7 +1267,9 @@
                         // Pre-load tarot card data (section is inside paid wrapper, shown on unlock)
                         if (tarotIndex >= 0 && tarotIndex <= 21) {
                             const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
-                            document.getElementById('tarot-card-img').src = '/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                            var tarotImg = document.getElementById('tarot-card-img');
+                            tarotImg.src = '/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                            tarotImg.onerror = function() { this.onerror = null; this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>'; };
                             document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
                             // Extract full tarot meaning from the paid/free text
                             const meaningEl = document.getElementById('tarot-card-meaning');
