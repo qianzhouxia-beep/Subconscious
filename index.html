@@ -1295,11 +1295,17 @@
                             const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
                             var tarotImg = document.getElementById('tarot-card-img');
                             var tarotFilename = String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
-                            // Primary: GitHub CDN (fast, global cache); Fallback: local server; Final: emoji
-                            tarotImg.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotFilename;
+                            // Primary: local server (same-origin, required for Canvas wallpaper generation)
+                            // Fallback: GitHub CDN (if local file missing on server)
+                            tarotImg.src = '/static/tarot/' + tarotFilename;
                             tarotImg.onerror = function() {
-                                this.onerror = function() { this.onerror = null; this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>'; };
-                                this.src = '/static/tarot/' + tarotFilename;
+                                // Try GitHub raw URL as fallback
+                                this.onerror = function() {
+                                    // Final fallback: show emoji placeholder
+                                    this.onerror = null;
+                                    this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>';
+                                };
+                                this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotFilename;
                             };
                             document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
                             // Extract full tarot meaning from the paid/free text
@@ -1524,160 +1530,32 @@
         async function downloadTarotWallpaper() {
             var img = document.getElementById('tarot-card-img');
             var nameEl = document.getElementById('tarot-card-name');
-            var meaningEl = document.getElementById('tarot-card-meaning');
-            var dreamText = document.getElementById('t-chat-placeholder')?.value?.trim() || '';
             if (!img || !nameEl || !img.src) { alert(currentLang === 'zh' ? '没有可下载的塔罗牌' : 'No tarot card to download.'); return; }
-
+            // Extract card index from image filename (e.g. 00-fool.png from /static/tarot/00-fool.png)
+            var fnMatch = (img.src || '').match(/(\d{2})-/);
+            var cardIndex = fnMatch ? parseInt(fnMatch[1]) : 0;
             var cardName = nameEl.innerText || 'The Fool';
-            var W = 1080, H = 1920;
-
-            // Create offscreen canvas
-            var c = document.createElement('canvas');
-            c.width = W; c.height = H;
-            var ctx = c.getContext('2d');
-
-            // Dark purple gradient background
-            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-            bgGrad.addColorStop(0, '#1a0f2e');
-            bgGrad.addColorStop(0.5, '#0f0a1a');
-            bgGrad.addColorStop(1, '#050508');
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, W, H);
-
-            // Subtle top glow
-            var glowGrad = ctx.createRadialGradient(W/2, 200, 0, W/2, 200, 600);
-            glowGrad.addColorStop(0, 'rgba(124,92,255,0.08)');
-            glowGrad.addColorStop(1, 'rgba(124,92,255,0)');
-            ctx.fillStyle = glowGrad;
-            ctx.fillRect(0, 0, W, H);
-
-            // Load and draw the tarot card image (already loaded in browser)
+            var dreamText = document.getElementById('t-chat-placeholder')?.value?.trim() || '';
             try {
-                var cardImg = new Image();
-                cardImg.crossOrigin = 'anonymous';
-                await new Promise(function(resolve, reject) {
-                    cardImg.onload = resolve;
-                    cardImg.onerror = reject;
-                    cardImg.src = img.src;
+                var r = await fetch('/api/tarot/wallpaper', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ card_index: cardIndex, card_name: cardName, dream_text: dreamText })
                 });
-                var cardH = 520;
-                var cardW = cardImg.width * cardH / cardImg.height;
-                var xOff = (W - cardW) / 2;
-                var yOff = 150;
-                ctx.drawImage(cardImg, xOff, yOff, cardW, cardH);
-
-                // Card shadow/glow
-                ctx.shadowColor = 'rgba(124,92,255,0.4)';
-                ctx.shadowBlur = 40;
-                ctx.shadowOffsetY = 10;
-                ctx.fillStyle = 'rgba(0,0,0,0)';
-                ctx.fillRect(xOff, yOff, cardW, cardH);
-                ctx.shadowColor = 'transparent';
-            } catch(e) {
-                console.warn('[Wallpaper] Card image load failed:', e.message);
-                // Draw placeholder text if image fails
-                ctx.fillStyle = '#7c5cff';
-                ctx.font = 'bold 32px Inter, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('🃏', W/2, 420);
-            }
-
-            // Text Y position below card
-            var ty = 700;
-
-            // Card name — gold/purple
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffd54f';
-            ctx.font = 'bold 44px "Instrument Serif", Georgia, serif';
-            ctx.fillText(cardName, W/2, ty);
-
-            // Subtitle
-            ty += 60;
-            ctx.fillStyle = '#888888';
-            ctx.font = '24px Inter, system-ui, sans-serif';
-            ctx.fillText(currentLang === 'zh' ? '你的梦境塔罗' : 'Your Dream Tarot', W/2, ty);
-
-            // Divider line
-            ty += 40;
-            ctx.strokeStyle = 'rgba(124,92,255,0.25)';
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(W/2 - 120, ty); ctx.lineTo(W/2 + 120, ty); ctx.stroke();
-
-            // Dream text (if any)
-            if (dreamText) {
-                ty += 50;
-                ctx.fillStyle = '#aaaaaa';
-                ctx.font = '22px Inter, system-ui, sans-serif';
-                var maxW = W * 0.75;
-                var words = dreamText.substring(0, 150).split('');
-                var line = '';
-                for (var i = 0; i < words.length; i++) {
-                    var testLine = line + words[i];
-                    var metrics = ctx.measureText(testLine);
-                    if (metrics.width > maxW && line.length > 0) {
-                        ctx.fillText(line, W/2, ty);
-                        line = words[i];
-                        ty += 36;
-                    } else {
-                        line = testLine;
-                    }
-                }
-                if (line) { ctx.fillText(line, W/2, ty); ty += 36; }
-            }
-
-            // Card meaning (if available)
-            if (meaningEl && meaningEl.innerText && meaningEl.innerText.length > 20) {
-                ty += 30;
-                ctx.fillStyle = 'rgba(255,213,79,0.15)';
-                ctx.font = 'italic 20px "Source Serif 4", Georgia, serif';
-                var mt = meaningEl.innerText.substring(0, 120);
-                var mWords = mt.split('');
-                var mLine = '';
-                for (var j = 0; j < mWords.length; j++) {
-                    var mTest = mLine + mWords[j];
-                    if (ctx.measureText(mTest).width > maxW && mLine.length > 0) {
-                        ctx.fillText(mLine, W/2, ty);
-                        mLine = mWords[j]; ty += 34;
-                    } else { mLine = mTest; }
-                }
-                if (mLine) ctx.fillText(mLine, W/2, ty);
-            }
-
-            // Branding at bottom
-            ctx.fillStyle = '#7c5cff';
-            ctx.font = '600 26px Inter, sans-serif';
-            ctx.fillText('Subconscious Mirror', W/2, H - 100);
-
-            ctx.fillStyle = '#555555';
-            ctx.font = '18px Inter, sans-serif';
-            ctx.fillText('AI-Powered Dream Oracle', W/2, H - 65);
-
-            ctx.fillStyle = '#333333';
-            ctx.font = '14px Inter, sans-serif';
-            ctx.fillText('mirror.api-tokenmaster.com', W/2, H - 35);
-
-            // Export as PNG
-            try {
-                var blob = await new Promise(function(resolve, reject) {
-                    c.toBlob(function(b) { if (b) resolve(b); else reject(new Error('toBlob failed')); }, 'image/png');
-                });
+                if (!r.ok) { var d; try { d = await r.json(); } catch(_) {}; throw new Error(d?.error || 'Server error ' + r.status); }
+                var blob = await r.blob();
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
                 a.href = url;
                 var safeName = cardName.replace(/\s+/g, '-').toLowerCase();
                 a.download = 'tarot-' + safeName + '-wallpaper.png';
+                document.body.appendChild(a);
                 a.click();
-                URL.revokeObjectURL(url);
-            } catch(err) {
-                // Fallback: open image in new tab
-                var dataUrl = c.toDataURL('image/png');
-                var win = window.open();
-                win.document.write('<img src="' + dataUrl + '" style="max-width:100%">');
-                win.document.title = 'Tarot Wallpaper';
+                setTimeout(function() { a.remove(); URL.revokeObjectURL(url); }, 100);
+            } catch (e) {
+                alert(currentLang === 'zh' ? '壁纸下载失败：' + e.message : 'Wallpaper download failed: ' + e.message);
             }
-        }
-
-        function addBubble(text, side) {
+        }     function addBubble(text, side) {
             const container = document.getElementById('chat-welcome');
             const welcomeText = document.getElementById('t-chat-welcome-text');
             // Remove default welcome text on first message
