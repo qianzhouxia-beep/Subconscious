@@ -618,8 +618,17 @@ def chat():
             "in this exact format: [TAROT: N] where N is the number of the Major Arcana card "
             "(00-21) you selected for the user. For example: [TAROT: 12] for The Hanged Man. "
             "This is used to display the correct tarot card image, so it must be accurate.\n\n"
-            "Format: Each section should have a bold header (e.g. '**Psychological Analysis**'). "
-            "Write in the same language the user has been using. "
+            "CRITICAL LANGUAGE RULE: You MUST write the ENTIRE report in the SAME language as the user's input. "
+            "If the user writes in Chinese, ALL section headers and content MUST be in Chinese — "
+            "e.g. '**心理学分析**' NOT '**Psychological Analysis**', "
+            "'**符号解码**' NOT '**Symbol Decoding**', "
+            "'**情感地图**' NOT '**Emotional Landscape**', "
+            "'**塔罗指引**' NOT '**Tarot Guidance**', "
+            "'**现实映照**' NOT '**Real-Life Mirror**', "
+            "'**行动智慧**' NOT '**Actionable Wisdom**', "
+            "'**预言**' NOT '**Prophecy**'. "
+            "Do NOT mix languages. The report must feel native to the user. "
+            "Format: Each section should have a bold header in the user's language. "
             "PART 1 should feel like a tempting preview — just enough to intrigue. "
             "PART 2 should feel like the full feast — deep, detailed, and clearly worth paying for."
         )
@@ -1514,93 +1523,126 @@ def tarot_wallpaper():
     try:
         from PIL import Image, ImageDraw, ImageFont
         import io, textwrap
-        
+
         # 9:16 wallpaper dimensions
         W, H = 1080, 1920
-        
-        # Create dark background with gradient
-        img = Image.new('RGB', (W, H), '#0a0a0a')
+
+        # Create dark background — use RGB (not RGBA) to avoid black-screen issues
+        # The original bug: 'alpha' variable (0-30) was used as R/G/B component,
+        # making the entire background nearly black (rgb=15-45).
+        img = Image.new('RGB', (W, H), (10, 10, 20))
         draw = ImageDraw.Draw(img)
-        
-        # Subtle gradient overlay (lighter at top)
+
+        # Subtle vertical gradient: dark purple at bottom → slightly lighter at top
         for y in range(H):
-            alpha = int(30 * (1 - y/H))
-            c = (15 + alpha, 15 + alpha, 30 + alpha)
-            draw.line([(0, y), (W, y)], fill=c)
-        
-        # Try to load fonts
-        try:
-            font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
-            font_med = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
-            font_small = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
-        except:
-            font_large = ImageFont.load_default()
-            font_med = font_large
-            font_small = font_large
-        
-        # Draw the tarot card image (centered, upper area)
+            ratio = 1 - y / H          # 1.0 at top, 0.0 at bottom
+            r = int(10 + 20 * ratio)   # 30 at top, 10 at bottom
+            g = int(10 + 15 * ratio)   # 25 at top, 10 at bottom
+            b = int(20 + 35 * ratio)   # 55 at top, 20 at bottom (purple tint)
+            draw.line([(0, y), (W, y)], fill=(r, g, b))
+
+        # Try to load fonts — safe fallback chain
+        font_large = font_med = font_small = None
+        font_paths = [
+            ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52),
+            ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 52),
+        ]
+        for fp, sz in font_paths:
+            try:
+                font_large = ImageFont.truetype(fp, sz)
+                font_med   = ImageFont.truetype(fp.replace('Bold', ''), 28) if 'Bold' in fp else ImageFont.truetype(fp, 28)
+                font_small  = ImageFont.truetype(fp.replace('Bold', ''), 22) if 'Bold' in fp else ImageFont.truetype(fp, 22)
+                break
+            except Exception:
+                continue
+        if font_large is None:
+            # Fallback: use default (bitmap) font — never crashes
+            font_def = ImageFont.load_default()
+            font_large = font_def
+            font_med   = font_def
+            font_small  = font_def
+
+        # Load tarot card image
         slug = card_name.lower().replace('the ', '').replace(' ', '-')
         local_path = f"static/tarot/{str(card_index).zfill(2)}-{slug}.png"
         card_asset = None
-        try:
-            if os.path.exists(local_path):
-                card_asset = Image.open(local_path)
-        except:
-            pass
-        if card_asset is None:
-            card_img_url = f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/{str(card_index).zfill(2)}-{slug}.png"
-            import requests as img_req
+        for attempt_path in [local_path]:
             try:
-                resp = img_req.get(card_img_url, timeout=10)
-                if resp.status_code == 200:
-                    card_asset = Image.open(io.BytesIO(resp.content))
-            except:
+                if os.path.exists(attempt_path):
+                    card_asset = Image.open(attempt_path).convert('RGBA')
+                    break
+            except Exception:
                 pass
+        if card_asset is None:
+            card_img_url = (
+                f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/"
+                f"main/static/tarot/{str(card_index).zfill(2)}-{slug}.png"
+            )
+            try:
+                import requests as _img_req
+                resp = _img_req.get(card_img_url, timeout=10)
+                if resp.status_code == 200:
+                    card_asset = Image.open(io.BytesIO(resp.content)).convert('RGBA')
+            except Exception:
+                pass
+
+        y_text = 180
         if card_asset:
+            # Resize card image to fixed height, keep aspect ratio
             card_h = 500
             card_w = int(card_asset.width * card_h / card_asset.height)
             card_asset = card_asset.resize((card_w, card_h), Image.LANCZOS)
-            x_off = (W - card_w) // 2; y_off = 160
-            if card_asset.mode == 'RGBA': img.paste(card_asset, (x_off, y_off), card_asset)
-            else: img.paste(card_asset, (x_off, y_off))
+            x_off = (W - card_w) // 2
+            y_off = 160
+            # Paste with alpha mask (correct way)
+            alpha_mask = card_asset.split()[-1]   # alpha channel
+            img.paste(card_asset, (x_off, y_off), mask=alpha_mask)
             y_text = y_off + card_h + 30
-        else:
-            y_text = 180
-        
+
+        # Draw text — use purple accent color
+        # PIL ImageDraw.fill accepts RGB tuple or color name string
+        PURPLE = (124, 92, 255)    # #7c5cff
+        GRAY_MID = (136, 136, 136)  # #888
+        GRAY_DIM = (102, 102, 102)  # #666
+        GRAY_LT  = (170, 170, 170)  # #aaa
+
         # Card name
-        draw.text((W//2, y_text), card_name, fill='#89AACC', font=font_large, anchor='mt')
+        draw.text((W // 2, y_text), card_name, fill=PURPLE, font=font_large, anchor='mt')
         y_text += 60
-        
+
         # Subtitle
-        draw.text((W//2, y_text), "Your Dream Tarot", fill='#666', font=font_med, anchor='mt')
+        draw.text((W // 2, y_text), "Your Dream Tarot", fill=GRAY_MID, font=font_med, anchor='mt')
         y_text += 80
-        
-        # Dream text
+
+        # Dream text (wrapped)
         if dream_text:
-            wrapper = textwrap.TextWrapper(width=30)
-            lines = wrapper.wrap(dream_text[:200])
+            wrapper = textwrap.TextWrapper(width=28)
+            lines = wrapper.wrap(dream_text[:180])
             for line in lines:
-                draw.text((W//2, y_text), line, fill='#aaa', font=font_small, anchor='mt')
-                y_text += 36
-        
+                draw.text((W // 2, y_text), line, fill=GRAY_LT, font=font_small, anchor='mt')
+                y_text += 34
+
         # Branding
-        draw.text((W//2, H-80), "Subconscious Mirror", fill='#4E85BF', font=font_med, anchor='mt')
-        draw.text((W//2, H-45), "AI-Powered Dream Oracle", fill='#555', font=font_small, anchor='mt')
-        
-        # Save to bytes
+        draw.text((W // 2, H - 80), "Subconscious Mirror", fill=PURPLE, font=font_med, anchor='mt')
+        draw.text((W // 2, H - 45), "AI-Powered Dream Oracle", fill=GRAY_DIM, font=font_small, anchor='mt')
+
+        # Save to bytes — RGB mode, no alpha issues
         buf = io.BytesIO()
         img.save(buf, format='PNG')
         buf.seek(0)
-        
+
         from flask import send_file
+        safe_name = card_name.lower().replace(' ', '-').replace('/', '-')
         return send_file(
             buf,
             mimetype='image/png',
             as_attachment=True,
-            download_name=f'tarot-{card_name.lower().replace(" ", "-")}-wallpaper.png'
+            download_name=f'tarot-{safe_name}-wallpaper.png'
         )
     except Exception as e:
         logger.error(f"Wallpaper generation error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return _cors(jsonify({"error": "Failed to generate wallpaper"}), 500)
 
 
