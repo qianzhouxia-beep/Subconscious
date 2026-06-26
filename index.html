@@ -861,8 +861,24 @@
                         });
                         const result = await res.json();
                         if (result.status === 'captured' && result.email) {
+                            // Set auth cookie so future visits know user is premium
                             document.cookie = `sm_auth_token=${encodeURIComponent(result.email)};path=/;max-age=31536000;SameSite=Lax`;
-                            window.location.reload();
+                            // ⚠️ DO NOT reload — that loses the report!
+                            // Instead: update premium state and show unlocked content
+                            if (typeof unlockReport === 'function') {
+                                try { unlockReport(); } catch(e) { console.warn(e); }
+                            }
+                            // Show brief success toast
+                            var okMsg = currentLang === 'zh' ? '✅ 支付成功！报告已解锁' : '✅ Payment successful! Report unlocked';
+                            var toast = document.createElement('div');
+                            toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:99999;background:rgba(30,24,55,0.95);border:1px solid rgba(124,92,255,0.3);border-radius:12px;padding:12px 24px;color:#fff;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.5);backdrop-filter:blur(12px);';
+                            toast.textContent = okMsg;
+                            document.body.appendChild(toast);
+                            setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s'; setTimeout(function() { toast.remove(); }, 500); }, 3000);
+                            // Also try to update premium status via SMAuth if available
+                            if (window.SMAuth && typeof SMAuth.fetchPremiumStatus === 'function') {
+                                try { await SMAuth.fetchPremiumStatus(); } catch(e) {}
+                            }
                         } else {
                             throw new Error('Capture returned unexpected result');
                         }
@@ -913,7 +929,16 @@
                     if (!res.ok || data.error) throw new Error(data.error || 'Server error');
                     const approveLink = (data.links || []).find(l => l.rel === 'approve');
                     if (approveLink && approveLink.href) {
-                        window.location.href = approveLink.href;
+                        // Open in new tab instead of redirecting current page — keeps the report!
+                        window.open(approveLink.href, '_blank');
+                        btn.disabled = false;
+                        btn.innerHTML = originalHTML;
+                        btn.style.opacity = '1';
+                        // Start polling for payment completion
+                        if (typeof startPaymentPolling === 'function') {
+                            startPaymentPolling();
+                        }
+                        alert(currentLang === 'zh' ? 'PayPal 已在新标签页打开，请完成支付后返回此页面' : 'PayPal opened in a new tab. Complete payment and return here.');
                     } else throw new Error('No approval URL');
                 } catch (err) {
                     btn.disabled = false;
@@ -982,6 +1007,35 @@
             } catch (e) {
                 console.error('Check premium error:', e);
             }
+        }
+
+        // Payment polling: when user opens PayPal in a new tab, poll server for completion
+        var _paymentPollTimer = null;
+        function startPaymentPolling() {
+            if (_paymentPollTimer) return; // already polling
+            console.log('[Payment] Started polling for payment completion...');
+            var pollCount = 0;
+            _paymentPollTimer = setInterval(async function() {
+                pollCount++;
+                // Try to detect premium status via session cookie
+                try {
+                    var res = await fetch('/api/session', { method: 'GET', headers: { 'Accept': 'application/json' } });
+                    var data = await res.json();
+                    if (data.premium) {
+                        clearInterval(_paymentPollTimer);
+                        _paymentPollTimer = null;
+                        console.log('[Payment] Premium detected via polling!');
+                        if (typeof unlockReport === 'function') unlockReport();
+                        return;
+                    }
+                } catch(e) {}
+                // Stop after 5 minutes to avoid infinite polling
+                if (pollCount > 100) {
+                    clearInterval(_paymentPollTimer);
+                    _paymentPollTimer = null;
+                    console.log('[Payment] Polling stopped after timeout');
+                }
+            }, 3000);
         }
 
         function openReferralModal() {
