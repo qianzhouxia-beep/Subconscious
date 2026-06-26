@@ -1136,10 +1136,25 @@
             isPremiumUser = true;
             document.getElementById('locked-preview').classList.add('hidden');
             document.getElementById('res-paid-wrapper').classList.remove('hidden');
-            // Show tarot section if card data was pre-loaded
+            // Show tarot section — check if image actually loaded successfully
             const tarotImg = document.getElementById('tarot-card-img');
+            const tarotSection = document.getElementById('tarot-section');
             if (tarotImg && tarotImg.src) {
-                document.getElementById('tarot-section').classList.remove('hidden');
+                // Check if image already loaded successfully
+                if (tarotImg.complete && tarotImg.naturalWidth > 0) {
+                    tarotSection.classList.remove('hidden');
+                } else if (!tarotImg.complete) {
+                    // Image still loading — wait for it
+                    tarotImg.onload = function() {
+                        if (tarotImg.naturalWidth > 0) {
+                            tarotSection.classList.remove('hidden');
+                        }
+                    };
+                    tarotImg.onerror = function() {
+                        console.warn('[Report] Tarot card image failed to load, hiding tarot section');
+                    };
+                }
+                // If image loaded but has 0 naturalWidth, it means error fallback was triggered — don't show
             }
             checkReferralStatus();
             console.log('[Report] Unlocked successfully');
@@ -1323,9 +1338,16 @@
                             isPremiumUser = true;
                             document.getElementById('locked-preview').classList.add('hidden');
                             document.getElementById('res-paid-wrapper').classList.remove('hidden');
-                            // Show tarot section inside paid wrapper (if card data was loaded)
+                            // Show tarot section only after image loads successfully
                             if (tarotIndex >= 0 && tarotIndex <= 21) {
-                                document.getElementById('tarot-section').classList.remove('hidden');
+                                var _tarotImgEl = document.getElementById('tarot-card-img');
+                                var _tsEl = document.getElementById('tarot-section');
+                                if (_tarotImgEl && _tarotImgEl.complete && _tarotImgEl.naturalWidth > 0) {
+                                    _tsEl.classList.remove('hidden');
+                                } else if (_tarotImgEl && !_tarotImgEl.complete) {
+                                    _tarotImgEl.onload = function() { _tsEl.classList.remove('hidden'); };
+                                    _tarotImgEl.onerror = function() { console.warn('[Report] Tarot image failed in full-status path'); };
+                                }
                             }
                         }
 
