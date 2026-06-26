@@ -238,7 +238,11 @@ const SMAuth = (function () {
       if (!r.ok) throw new Error(d.error);
       try { await api("/api/entitlements/activate", "POST", { plan_type: pt, order_id: orderId }); } catch (e) { }
       await fetchPremiumStatus(); closeModal();
-      showModal('<div style="text-align:center;"><div style="font-size:48px;margin-bottom:12px;">\u2728</div><h2 style="margin:0 0 6px;color:#4ade80;">Payment Successful!</h2><p style="margin:0 0 20px;color:#ccc;font-size:14px;"><strong style="color:' + BLUE_TEXT + ';">' + pl + '</strong> activated</p><div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:14px;margin-bottom:20px;font-size:13px;"><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#666;">Plan</span><span style="color:#ccc;">' + pl + '</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#666;">Amount</span><span style="color:#ccc;">$' + pr.toFixed(2) + '</span></div></div><button onclick="SMAuth._goStart()" style="' + btnP() + 'margin-bottom:8px;">Start Interpretation</button></div>');
+      // Auto-unlock report if user is currently on report page with locked content
+      if (typeof unlockReport === 'function') {
+        try { unlockReport(); } catch(e) { console.log('[SMAuth] unlockReport not applicable:', e.message); }
+      }
+      showModal('<div style="text-align:center;"><div style="font-size:48px;margin-bottom:12px;">\u2728</div><h2 style="margin:0 0 6px;color:#4ade80;">Payment Successful!</h2><p style="margin:0 0 20px;color:#ccc;font-size:14px;"><strong style="color:' + BLUE_TEXT + ';">' + pl + '</strong> activated</p><p style="margin:0 0 16px;color:#aaa;font-size:12px;">Your full destiny report has been unlocked.</p><button onclick="SMAuth.closeModal()" style="' + btnP() + 'margin-bottom:8px;">Continue Reading</button></div>');
       updateNavbar();
     } catch (e) { showModal('<p style="color:#ff6b6b;">Error: ' + e.message + '</p><button onclick="SMAuth.closeModal()" style="' + btnP() + '">Close</button>'); }
   }

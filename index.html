@@ -977,9 +977,7 @@
                 const res = await apiFetch(`/check-premium?email=${encodeURIComponent(email)}`);
                 const data = await res.json();
                 if (data.status === 'unlocked') {
-                    isPremiumUser = true;
-                    document.getElementById('locked-preview').classList.add('hidden');
-                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                    unlockReport();
                 }
             } catch (e) {
                 console.error('Check premium error:', e);
@@ -1035,8 +1033,7 @@
         async function checkReferralStatus() {
             // Server-side premium check
             if (isPremiumUser) {
-                document.getElementById('locked-preview').classList.add('hidden');
-                document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                unlockReport();
                 return;
             }
             if (!refId) return;
@@ -1049,9 +1046,7 @@
                 document.getElementById('ref-progress').style.width = `${(count / 2) * 100}%`;
                 if (count >= 2) {
                     if (data.unlocked === 1) {
-                        isPremiumUser = true;
-                        document.getElementById('locked-preview').classList.add('hidden');
-                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                        unlockReport();
                     }
                     closeReferralModal();
                 }
@@ -1136,6 +1131,20 @@
             document.getElementById('t-have-key').classList.add('hidden');
         }
 
+        // ═══ Unified Report Unlock (called from verifyLicense + payment callback) ═══
+        function unlockReport() {
+            isPremiumUser = true;
+            document.getElementById('locked-preview').classList.add('hidden');
+            document.getElementById('res-paid-wrapper').classList.remove('hidden');
+            // Show tarot section if card data was pre-loaded
+            const tarotImg = document.getElementById('tarot-card-img');
+            if (tarotImg && tarotImg.src) {
+                document.getElementById('tarot-section').classList.remove('hidden');
+            }
+            checkReferralStatus();
+            console.log('[Report] Unlocked successfully');
+        }
+
         async function verifyLicense() {
             const key = document.getElementById('t-key-placeholder').value.trim();
             const btn = document.getElementById('t-verify-btn');
@@ -1153,10 +1162,7 @@
                 const data = await res.json();
 
                 if (res.ok && data.status === 'unlocked') {
-                    isPremiumUser = true;
-                    document.getElementById('locked-preview').classList.add('hidden');
-                        document.getElementById('res-paid-wrapper').classList.remove('hidden');
-                    checkReferralStatus();
+                    unlockReport();
                 } else {
                     alert(data.message || data.error || "Verification failed");
                 }
@@ -1680,11 +1686,14 @@
                     wsHadResult = true;
                     var isZh = currentLang === 'zh';
                     let full = '';
-                    for (let i = 0; i < event.results.length; i++) {
+                    const resultsLen = event.results.length;
+                    for (let i = 0; i < resultsLen; i++) {
                         if (event.results[i].isFinal) {
                             var fragment = event.results[i][0].transcript;
-                            // 每个 isFinal 片段末尾自动加合适的标点
-                            if (!/[\u3002\uff01\uff1f\uff0c\\.!?,;:]$/.test(fragment)) {
+                            // Only add comma for INTERMEDIATE isFinal fragments (not the last one)
+                            // The final fragment's punctuation will be handled by _addPunctuation()
+                            const isLastFragment = (i === resultsLen - 1) || (i === resultsLen - 2 && !event.results[resultsLen - 1].isFinal);
+                            if (!isLastFragment && !/[\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:]$/.test(fragment)) {
                                 fragment += isZh ? '，' : ',';
                             }
                             full += fragment;
