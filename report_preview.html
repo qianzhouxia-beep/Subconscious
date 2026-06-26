@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subconscious Mirror — 报告效果预览</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 20px; }
+  
+  .report-container { max-width: 800px; width: 100%; margin: 0 auto; }
+  
+  .glass-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 50px 56px; backdrop-filter: blur(12px); }
+  
+  /* 免费区（精炼预览） */
+  .free-section { margin-bottom: 32px; }
+  .free-section .section-title { display: flex; align-items: center; gap: 12px; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 20px; }
+  .free-section .section-title .icon-wrap { display: flex; align-items: center; }
+  .free-section .section-title .icon-wrap svg { width: 20px; height: 20px; stroke: #89AACC; }
+  .free-preview { position: relative; }
+  .free-preview p { font-size: 14px; line-height: 1.9; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
+  .free-preview .teaser { font-size: 12px; font-style: italic; color: rgba(255,255,255,0.3); text-align: center; padding: 16px 0 8px; border-top: 1px solid rgba(255,255,255,0.04); margin-top: 12px; }
+  .free-preview .teaser span { color: #4FC3F7; }
+
+  /* 分隔 */
+  .premium-divider { display: flex; align-items: center; gap: 16px; margin: 36px 0; color: rgba(255,255,255,0.15); font-size: 10px; text-transform: uppercase; letter-spacing: 4px; }
+  .premium-divider::before, .premium-divider::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,213,79,0.15), transparent); }
+
+  /* 付费区 */
+  .paid-section-header { display: flex; align-items: center; gap: 12px; font-size: 16px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 8px; }
+  .paid-section-header .icon-wrap svg { width: 20px; height: 20px; stroke: #89AACC; }
+
+  .paid-card { background: linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border: 1px solid rgba(255,213,79,0.12); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .paid-card:last-child { margin-bottom: 0; }
+  .paid-card .sub-title { font-size: 13px; font-weight: 500; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 8px; }
+  .paid-card p { font-size: 13.5px; line-height: 1.85; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+  .paid-card p:last-child { margin-bottom: 0; }
+  .paid-card p strong { color: rgba(255,255,255,0.85); }
+
+  /* 塔罗卡 */
+  .tarot-card-wrap { background: linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border: 1px solid rgba(255,213,79,0.12); border-radius: 16px; padding: 20px; margin-bottom: 16px; display: flex; gap: 20px; align-items: center; }
+  .tarot-card-wrap .card-img { width: 128px; height: 192px; border-radius: 10px; overflow: hidden; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; }
+  .tarot-card-wrap .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .tarot-card-wrap .card-info { flex: 1; }
+  .tarot-card-wrap .card-info .badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tarot-card-wrap .card-info .badge-row .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: #FFD54F; }
+  .tarot-card-wrap .card-info .badge-row .tag { font-size: 8px; padding: 2px 8px; border-radius: 20px; background: rgba(255,213,79,0.15); color: #FFD54F; border: 1px solid rgba(255,213,79,0.2); text-transform: uppercase; letter-spacing: 1px; }
+  .tarot-card-wrap .card-info h5 { font-size: 15px; font-style: italic; color: rgba(255,255,255,0.9); margin-bottom: 6px; }
+  .tarot-card-wrap .card-info p { font-size: 13px; line-height: 1.8; color: rgba(255,255,255,0.65); }
+
+  /* 底部按钮 */
+  .bottom-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 24px; }
+  .bottom-actions button { padding: 10px 24px; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.5); background: transparent; border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; cursor: default; transition: none; }
+  .bottom-actions button:hover { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.2); }
+
+  /* 标注 */
+  .annotation { text-align: center; margin-top: 32px; font-size: 11px; color: rgba(255,255,255,0.2); letter-spacing: 1px; }
+  .annotation strong { color: rgba(255,255,255,0.4); }
+</style>
+</head>
+<body>
+<div class="report-container">
+  <div class="glass-card">
+
+    <!-- ═══ 板块一：心理学分析（免费预览） ═══ -->
+    <div class="free-section">
+      <div class="section-title">
+        <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span>
+        心理学分析
+      </div>
+      <div class="free-preview">
+        <h4 style="font-size:13px;font-weight:500;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04);color:#4FC3F7;">🌊 梦境叙事</h4>
+        <p>你站在一片无边无际的灰色海滩上，海浪像呼吸一样缓缓起伏，没有地平线——天与海在远处融为一体。你脚边的沙子是干燥的，但你每走一步，脚印里都会渗出冰冷的水。整个梦境弥漫着一种安静而深沉的未知感，不是恐惧，更像是一种等待。</p>
+        <p>你的清醒度评分为中等（3/5），这意味着你在梦中既没有完全迷失，也没有完全掌控——你处于一种被动的观察者状态，这本身就映射了你当前在某个重要人生议题上的位置。</p>
+        <div class="teaser">—— <span>解锁完整报告</span> 以查看深度心理学分析、符号解码与情感地图 ——</div>
+      </div>
+    </div>
+
+    <!-- ═══ 分隔线 ═══ -->
+    <div class="premium-divider">⬡ 以下内容付费解锁 ⬡</div>
+
+    <!-- ═══ 板块二：东方命理路径（付费内容） ═══ -->
+    <div class="paid-section-header" style="margin-bottom:16px;">
+      <span class="icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="10" r="6"/><path d="M12 16v4"/><path d="M9 20h6"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/></svg></span>
+      东方命理路径
+    </div>
+
+    <!-- 塔罗牌 -->
+    <div class="tarot-card-wrap">
+      <div class="card-img">
+        <img src="/static/tarot/09-hermit.png" alt="隐者牌">
+      </div>
+      <div class="card-info">
+        <div class="badge-row">
+          <span class="label">🃏 塔罗指引</span>
+          <span class="tag">premium</span>
+        </div>
+        <h5>隐者牌（IX）— The Hermit</h5>
+        <p>你梦境中那片灰色海滩上的孤独观望感，与隐者牌的能量高度共振。隐者牌代表着内省、独处的智慧和寻找内心真理的旅程——那片没有地平线的海，正是你正在探索的内在未知领域。这张牌提示你：答案不在外面，而在你独自面对寂静时的那个内在声音里。</p>
+      </div>
+    </div>
+
+    <!-- 付费内容卡片 -->
+    <div class="paid-card">
+      <div class="sub-title" style="color:#F06292;">🧠 心理学分析</div>
+      <p>从荣格分析心理学视角看，灰色海滩的意象指向了你近期正在经历的一种"阈限空间"体验——你站在两个生命阶段之间的过渡地带，旧的自我已经褪去，新的自我尚未成形。海滩作为意识与无意识的交界地带，其灰色的调性消解了任何单一的情绪标签——这不是一个让你感到安全或危险的地方，而是一个让你<strong>面对未知本身</strong>的地方。</p>
+      <p>你注意到自己的中等清醒度（3/5）——这在生理上对应着REM睡眠的中间阶段，但从荣格心理学的角度看，这种"半醒半梦"的状态恰好是最有利于潜意识内容浮现的窗口。你<strong>选择了</strong>站在灰色海滩上观望而不是逃离，这个选择本身就是有意义的：它在告诉你，你潜意识层面已经准备好面对不确定性，即便你的意识仍在犹豫。</p>
+    </div>
+
+    <div class="paid-card">
+      <div class="sub-title" style="color:#FFB74D;">🔍 符号解码</div>
+      <p><strong>灰色海滩：</strong>海滩在梦象征学中代表意识阈限——水与陆地的交界即是已知与未知的边界。灰色作为去饱和的中性色，消解了时间的维度：你不知道这是清晨还是黄昏。这种时间感的丧失，在梦的工作中通常指向一个更根本的问题——你不是在"等待某个具体事情发生"，而是处于一种存在性的过渡中，这个过程本身就是目的地。</p>
+      <p><strong>渗水的脚印：</strong>这是整场梦境中最富诗意的细节。你的脚印里渗出冷水——这意味着你每一次在人生中"留下印记"的行为，都会触碰到无意识深处的情感。水是冰凉的，这意味着这些情感不是温暖的记忆，而是某种你尚未处理或整合的认知。结合你标记的高压（Stress: 高）状态，这个意象可能指向你近期在职业或关系中做出的几个关键决定——每一个都在水面之下激起了比你预期更大的涟漪。</p>
+    </div>
+
+    <div class="paid-card">
+      <div class="sub-title" style="color:#CE93D8;">💜 情感地图</div>
+      <p>你的梦境情绪轨迹呈现出一个U型曲线：起始于一种平静的好奇（踏上海滩时的探索感），在经过一段不确定性的低谷后（发现海水渗入脚印时的轻微警觉），最终落入一种近乎冥想的平静荒凉感（接受天海一色的无尽）。值得注意的是，情绪曲线中<strong>没有出现恐惧的峰值</strong>——即便面对未知和寒冷的水，你的情绪反应不是退缩而是观察。这与你在现实中处理压力的方式一致：你倾向于用理性审视来包裹情感反应，而不是让情绪直接驱动行为。</p>
+    </div>
+
+    <div class="paid-card">
+      <div class="sub-title" style="color:#81C784;">🪞 现实映照</div>
+      <p>这个梦境与你现实中的核心矛盾高度对应。从你提交的压力数据来看——高强度工作负荷叠加一个未解决的重大决策——这个梦境正在为你提供一个"安全的排练空间"。灰色海滩上没有其他人在场，没有时间压力，没有任何外部评判——这正是你潜意识在告诉你：<strong>你需要一段不被外界打扰的独处时间</strong>来理清自己的方向。</p>
+    </div>
+
+    <div class="paid-card">
+      <div class="sub-title" style="color:#4DD0E1;">⭐ 可落地的智慧</div>
+      <p>1. <strong>"逆向决策"练习：</strong>在下周内选择一个你一直在理性分析但迟迟不做的小决定，反过来——不分析利弊，只问你"如果只能凭感觉选，我会选哪一个？"把答案写下来，一周后再回头看。</p>
+      <p>2. <strong>阈限日记：</strong>每天睡前写一句话描述你当天站在"两个阶段之间"的时刻——哪怕只是地铁门关闭前的一瞬间犹豫。这个练习会训练你识别过渡时刻的直觉信号。</p>
+      <p>3. <strong>命名你的"灰色海滩"：</strong>把你当前的生命阶段用不超过三个词命名——比如"候诊室"或"蜕皮期"。命名是对未知的降维打击，它把模糊的焦虑转化为可观察的对象，让你获得对它的掌控感。</p>
+    </div>
+
+    <div class="paid-card">
+      <div class="sub-title" style="color:#BA68C8;">🔮 预言</div>
+      <p style="font-style:italic; font-size:15px; color:#BA68C8; text-align:center; padding:8px 0;">"海水不会告诉你岸边在哪里——<br>它只会教会你如何在看不见岸的时候游动。"</p>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="bottom-actions">
+      <button>📧 Email Report</button>
+      <button>📄 Save as PDF</button>
+      <button>✕ Begin New Journey</button>
+    </div>
+
+  </div>
+  
+  <div class="annotation"><strong>预览说明：</strong>此报告为付费用户视角的效果展示 · 塔罗牌为隐者（IX） · AI内容基于真实梦境数据模拟</div>
+</div>
+</body>
+</html>
