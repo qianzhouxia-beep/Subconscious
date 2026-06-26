@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/static/css/aetheris.css">
     <link rel="stylesheet" href="/static/css/sm-icons.css">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=2"></script>
+    <script src="/static/js/i18n.js?v=3"></script>
     <script src="/static/js/tarot.js?v=2"></script>
     <script src="/static/js/optimizer.js?v=2"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
@@ -281,14 +281,14 @@
                         <!-- Report card -->
                         <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
                     <div class="space-y-4">
-                        <h4 class="text-sm text-gray-500 uppercase tracking-widest flex items-center gap-2" id="t-res-psych">
-                            <span class="sm-icon"><svg viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span> Psychology Analysis
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-psych">
+                            <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span> Psychology Analysis
                         </h4>
                         <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
                     </div>
                     <!-- Premium Content Section -->
-                    <div id="premium-section" class="relative pt-6 border-t border-white/10 mt-6">
-                        <h4 class="text-sm text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2" id="t-res-destiny">
+                    <div id="premium-section" class="relative pt-8 border-t border-white/10 mt-8">
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-destiny">
                             <span class="sm-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M12 16v4"/><path d="M9 20h6"/><path d="M8 14s1.5-2 4-2 4 2 4 2"/></svg></span> Eastern Destiny Path
                         </h4>
 
@@ -1364,7 +1364,7 @@
                             break;
                         }
                     }
-                    html += '<h4 class="text-base font-bold tracking-wide mt-10 mb-4 pb-3" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.06);">' + icon + headerText + '</h4>';
+                    html += '<h4 class="text-[13px] font-medium tracking-wide mt-8 mb-3 pb-2" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.04);">' + icon + headerText + '</h4>';
                     continue;
                 }
                 // Check for emoji-only lines that precede section titles
@@ -1378,7 +1378,7 @@
                         for (const [k, v] of Object.entries(SECTION_KEYS)) {
                             if (nkey.includes(k)) { color = v.color; break; }
                         }
-                        html += '<h4 class="text-base font-bold tracking-wide mt-10 mb-4 pb-3" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.06);">' + emojiMatch[1] + ' ' + nextLine + '</h4>';
+                        html += '<h4 class="text-[13px] font-medium tracking-wide mt-8 mb-3 pb-2" style="color:' + color + ';border-bottom:1px solid rgba(255,255,255,0.04);">' + emojiMatch[1] + ' ' + nextLine + '</h4>';
                         i++; // skip next line
                         continue;
                     }
