@@ -141,7 +141,6 @@ SANDBOX_PAYPAL_SECRET = os.environ.get("SANDBOX_PAYPAL_SECRET", PAYPAL_SECRET)
 WHISPER_API_BASE = os.environ.get("WHISPER_API_BASE", "https://api-tokenmaster.com/v1/audio/transcriptions")
 WHISPER_API_KEY = os.environ.get("WHISPER_API_KEY", os.environ.get("DEEPSEEK_API_KEY", ""))
 HTML_FILE = "index.html"
-DB_FILE = "mirror_data.db"
 BRAND_URL = os.environ.get("BASE_URL", "https://mirror.api-tokenmaster.com")
 GUMROAD_PERMALINK = os.environ.get("GUMROAD_PERMALINK", "subconscious-mirror")
 ENABLE_TEST_MODE = os.environ.get("ENABLE_TEST_MODE", "0") == "1"
@@ -280,6 +279,13 @@ def _call_llm_with_fallback(payload_builder, timeout=120, mode='chat', report_mo
 from contextlib import contextmanager
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+# Persistent volume path (Zeabur mounts /data as persistent disk)
+# This MUST point to the volume, otherwise data is lost on container restart
+_DATA_DIR = os.environ.get("DATA_DIR", "/data")
+DB_FILE = os.environ.get("DB_FILE", os.path.join(_DATA_DIR, "mirror_data.db"))
+# Ensure data directory exists
+os.makedirs(os.path.dirname(DB_FILE) if os.path.dirname(DB_FILE) else ".", exist_ok=True)
+
 if DATABASE_URL:
     from backend.db import get_db as _pg_get_db, get_db_conn as _pg_get_conn
     from backend.db import init_tables as _pg_init_tables
@@ -287,8 +293,8 @@ if DATABASE_URL:
     def get_db_connection(): return _pg_get_conn()
     def init_db(): _pg_init_tables()
 else:
-    DB_FILE = os.environ.get("DB_FILE", "mirror_data.db")
-
+    # DB_FILE already set above to /data/mirror_data.db (persistent volume)
+    # Do NOT override with local path here!
     @contextmanager
     def get_db():
         conn = sqlite3.connect(DB_FILE, timeout=10)
