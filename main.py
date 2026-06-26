@@ -37,6 +37,34 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 CORS(app, supports_credentials=True)
 
+# ── Persistent Storage: Sync tarot images to /data/tarot/ on startup ──
+# Zeabur Volume is mounted at /data — this survives container restarts.
+# On first deploy (or after image changes), copy static/tarot/ → /data/tarot/
+import shutil as _shutil
+_TAROT_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'tarot')
+_TAROT_DST = '/data/tarot'
+try:
+    if os.path.isdir(_TAROT_SRC):
+        os.makedirs(_TAROT_DST, exist_ok=True)
+        _synced = 0
+        for _f in os.listdir(_TAROT_SRC):
+            if _f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+                _src_f = os.path.join(_TAROT_SRC, _f)
+                _dst_f = os.path.join(_TAROT_DST, _f)
+                # Only copy if destination missing or source is newer
+                if (not os.path.exists(_dst_f) or
+                    os.path.getmtime(_src_f) > os.path.getmtime(_dst_f)):
+                    _shutil.copy2(_src_f, _dst_f)
+                    _synced += 1
+        if _synced:
+            print(f"[Storage] Synced {_synced} tarot images → {_TAROT_DST} (persistent volume)")
+        else:
+            print(f"[Storage] Tarot images already up-to-date in {_TAROT_DST}")
+    else:
+        print(f"[Warning] Source tarot dir not found: {_TAROT_SRC}")
+except Exception as _e:
+    print(f"[Warning] Failed to sync tarot images: {_e}")
+
 # --- RATE LIMITER ---
 limiter = Limiter(
     get_remote_address,
@@ -1562,21 +1590,27 @@ def tarot_wallpaper():
             font_med   = font_def
             font_small  = font_def
 
-        # Load tarot card image
+        # Load tarot card image — search in order: persistent volume → static dir → GitHub
         slug = card_name.lower().replace('the ', '').replace(' ', '-')
-        local_path = f"static/tarot/{str(card_index).zfill(2)}-{slug}.png"
+        fn = f"{str(card_index).zfill(2)}-{slug}.png"
         card_asset = None
-        for attempt_path in [local_path]:
+        # 1. Persistent volume (/data/tarot/) — survives container restarts
+        _search_paths = [
+            os.path.join(_TAROT_DST, fn),          # /data/tarot/ (Zeabur Volume)
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'tarot', fn),  # static/tarot/
+        ]
+        for attempt_path in _search_paths:
             try:
                 if os.path.exists(attempt_path):
                     card_asset = Image.open(attempt_path).convert('RGBA')
                     break
             except Exception:
-                pass
+                continue
+        # 2. Fallback: download from GitHub raw
         if card_asset is None:
             card_img_url = (
                 f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/"
-                f"main/static/tarot/{str(card_index).zfill(2)}-{slug}.png"
+                f"main/static/tarot/{fn}"
             )
             try:
                 import requests as _img_req
