@@ -278,12 +278,6 @@
             <div id="final-report" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background:rgba(5,5,5,0.85);backdrop-filter:blur(12px);">
                 <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
                     <div class="w-full max-w-3xl mx-auto">
-                        <!-- Close + Download buttons -->
-                        <div class="flex justify-end mb-4 gap-2">
-                            <button onclick="SMAuth.sendReportEmail()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-email">📧 Email</button>
-                            <button onclick="downloadReport()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-pdf">📄 PDF</button>
-                            <button onclick="resetOracle()" class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-report-close">Close</button>
-                        </div>
                         <!-- Report card -->
                         <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
                     <div class="space-y-4">
@@ -377,7 +371,7 @@
                                 </div>
                                 <div class="flex flex-col md:flex-row items-center gap-6">
                                     <div class="w-32 h-48 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5" id="tarot-card-container">
-                                        <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card">
+                                        <img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'flex items-center justify-center h-full text-5xl opacity-30\'>🃏</div>'">
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5>
@@ -389,6 +383,13 @@
                             <!-- Paid report content -->
                             <div id="res-paid" class="space-y-4"></div>
                         </div>
+                    </div>
+
+                    <!-- 底部操作按钮 -->
+                    <div class="flex flex-wrap justify-center gap-3 pt-6 border-t border-white/10 mt-6">
+                        <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">📧 Email Report</button>
+                        <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">📄 Save as PDF</button>
+                        <button onclick="resetOracle()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-close">✕ Begin New Journey</button>
                     </div>
 
                     <div class="text-center pt-8">
@@ -1723,9 +1724,45 @@
             }
         }
 
+        function _quickPunctuate(text) {
+            // 前端快速加标点，毫秒级执行，不用等 AI
+            if (!text) return text;
+            var t = text.trim();
+            // 中文：在句尾加句号，检测疑问词加问号
+            if (/[\u4e00-\u9fff]/.test(t)) {
+                // 句尾已有标点 → 不动
+                if (/[\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:]$/.test(t)) return t;
+                // 含疑问词 → 加问号
+                if (/(吗|呢|吧|什么|怎么|哪|谁|啥|why|how|what|where|who|when|是.*还是|有没有|会不会|要不要|能不能)$/i.test(t)) {
+                    t += '？';
+                }
+                // 含感叹词 → 加感叹号
+                else if (/(啊|呀|啦|哦|哇|靠|天哪|我的天|天啊|oh|wow|ah)$/i.test(t)) {
+                    t += '！';
+                }
+                // 默认加句号
+                else {
+                    t += '。';
+                }
+            } else {
+                // 英文
+                if (/[.!?,;:]$/.test(t)) return t;
+                if (/(why|how|what|where|who|when|is|are|do|does|did|can|could|will|would|shall|should|may|might|am|were|was|has|have|had)\s+\w+\?*$/i.test(t)) {
+                    if (!t.endsWith('?')) t += '?';
+                }
+                else if (/(oh|wow|ah|hey|no|yes|great|awesome|amazing|crazy|unbelievable)$/i.test(t)) {
+                    if (!t.endsWith('!')) t += '!';
+                }
+                else {
+                    if (!/[.!?]$/.test(t)) t += '.';
+                }
+            }
+            return t;
+        }
+
         async function polishAndFill(rawText) {
-            // 立即填入原始文本，用户不用等待
-            _fillVoiceText(rawText);
+            // 立即填入原始文本（先快速加标点），用户不用等 AI
+            _fillVoiceText(_quickPunctuate(rawText));
             
             // 异步优化：后台整理文字，5秒超时
             const controller = new AbortController();
