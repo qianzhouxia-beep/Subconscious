@@ -1628,9 +1628,17 @@
                 wsRecognition.lang = currentLang === 'zh' ? 'zh-CN' : 'en-US';
                 wsRecognition.onresult = (event) => {
                     wsHadResult = true;
+                    var isZh = currentLang === 'zh';
                     let full = '';
                     for (let i = 0; i < event.results.length; i++) {
-                        if (event.results[i].isFinal) full += event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            var fragment = event.results[i][0].transcript;
+                            // 每个 isFinal 片段末尾自动加合适的标点
+                            if (!/[\u3002\uff01\uff1f\uff0c\\.!?,;:]$/.test(fragment)) {
+                                fragment += isZh ? '，' : ',';
+                            }
+                            full += fragment;
+                        }
                     }
                     wsFinalText = full;
                     const last = event.results[event.results.length - 1];
@@ -1729,49 +1737,90 @@
             }
         }
 
-        function _quickPunctuate(text) {
-            // 前端快速加标点，毫秒级执行，不用等 AI
+        function _addPunctuation(text) {
+            // 智能标点引擎：在整个文本中分配标点，而非只在句尾加一个
             if (!text) return text;
             var t = text.trim();
-            // 中文：在句尾加句号，检测疑问词加问号
-            if (/[\u4e00-\u9fff]/.test(t)) {
-                // 句尾已有标点 → 不动
-                if (/[\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:]$/.test(t)) return t;
-                // 含疑问词 → 加问号
-                if (/(吗|呢|吧|什么|怎么|哪|谁|啥|why|how|what|where|who|when|是.*还是|有没有|会不会|要不要|能不能)$/i.test(t)) {
-                    t += '？';
-                }
-                // 含感叹词 → 加感叹号
-                else if (/(啊|呀|啦|哦|哇|靠|天哪|我的天|天啊|oh|wow|ah)$/i.test(t)) {
-                    t += '！';
-                }
-                // 默认加句号
-                else {
-                    t += '。';
+            if (!t) return t;
+            
+            // 判断语言
+            var isZh = /[\u4e00-\u9fff]/.test(t);
+            
+            if (isZh) {
+                // === 中文标点 ===
+                // 1. 句号结尾保护
+                var hasEnding = /[\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:]$/.test(t);
+                
+                // 2. 在连词后加逗号（如果后面有内容）
+                t = t.replace(/(然后|接着|后来|之后|随即|紧接着|突然|忽然|结果)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(但是|可是|然而|不过|却|而)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(因为|由于|既然)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(所以|因此|于是)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(而且|并且|还|也|除了|此外|另外)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(虽然|尽管|无论|不管)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(如果|假如|要是|假设)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1，');
+                t = t.replace(/(当|在|从|通过|经过)(\S{2,})(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])/g, '$1$2，');
+                
+                // 3. 检测"的""了""吧"等语气助词在句中是否适合加逗号（后面跟主语或长停顿）
+                t = t.replace(/(了|的)(?![\u3002\uff01\uff1f\uff0c\u3001\uff1b\uff1a\\.!?,;:])(\s{0,1}([我你他她它]|然后|但是|所以|因为|而且|突然|最后|终于|后来))/g, '$1，$2');
+                
+                // 4. 枚举项之间加分号或逗号（数字序号如 一、二、三 或 1. 2. 3.）
+                t = t.replace(/(\d)[.、](\s*)/g, '$1.$2');
+                
+                // 5. 句尾加标点（原逻辑改进版）
+                if (!hasEnding) {
+                    if (/(吗|呢|吧|什么|怎么|哪|谁|啥|是.*还是|有没有|会不会|要不要|能不能)$/i.test(t)) {
+                        if (!t.endsWith('？')) t += '？';
+                    } else if (/(啊|呀|啦|哦|哇|靠|天哪|天啊)$/i.test(t)) {
+                        if (!t.endsWith('！')) t += '！';
+                    } else {
+                        if (!t.endsWith('。')) t += '。';
+                    }
                 }
             } else {
-                // 英文
-                if (/[.!?,;:]$/.test(t)) return t;
-                if (/(why|how|what|where|who|when|is|are|do|does|did|can|could|will|would|shall|should|may|might|am|were|was|has|have|had)\s+\w+\?*$/i.test(t)) {
-                    if (!t.endsWith('?')) t += '?';
-                }
-                else if (/(oh|wow|ah|hey|no|yes|great|awesome|amazing|crazy|unbelievable)$/i.test(t)) {
-                    if (!t.endsWith('!')) t += '!';
-                }
-                else {
-                    if (!/[.!?]$/.test(t)) t += '.';
+                // === 英文标点 ===
+                var hasEnding = /[.!?,;:]$/.test(t);
+                
+                // Commas after transition words
+                t = t.replace(/\b(then|next|afterwards|suddenly|sudden|immediately)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(however|but|yet|though|nevertheless)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(because|since|as)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(so|therefore|thus|hence)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(and|also|besides|furthermore|moreover|in addition)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(although|though|even though|while|whereas)\b(?!\s*[,;:])/gi, '$1,');
+                t = t.replace(/\b(if|when|whenever|while|as|once)\b(?!\s*[,;:])/gi, '$1,');
+                
+                // End punctuation
+                if (!hasEnding) {
+                    if (/\b(why|how|what|where|who|when|is|are|do|does|did|can|could|will|would|shall|should|may|might|am|were|was|has|have|had)\s+\w+\s*$/i.test(t)) {
+                        if (!t.endsWith('?')) t += '?';
+                    } else if (/\b(oh|wow|ah|hey|no|yes|great|awesome|amazing|crazy|unbelievable|incredible)$/i.test(t)) {
+                        if (!t.endsWith('!')) t += '!';
+                    } else {
+                        t += '.';
+                    }
                 }
             }
+            
+            // 修复连续标点（如 "，，" "。。"）
+            t = t.replace(/([\u3002\uff01\uff1f\uff0c])\1+/g, '$1');
+            t = t.replace(/([.!?,])\1+/g, '$1');
+            // 标点后统一加空格（英文）
+            if (!isZh) {
+                t = t.replace(/[,;:.!?](\w)/g, '$1 $2');
+            }
+            
             return t;
         }
 
         async function polishAndFill(rawText) {
-            // 立即填入原始文本（先快速加标点），用户不用等 AI
-            _fillVoiceText(_quickPunctuate(rawText));
+            // 立即用智能标点引擎处理并填入，用户不用等 AI
+            var punctuated = _addPunctuation(rawText);
+            _fillVoiceText(punctuated);
             
-            // 异步优化：后台整理文字，5秒超时
+            // 异步优化：后台 AI 精修，延长时间到 8 秒
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
             
             try {
                 const resp = await fetch(API_BASE + API_PREFIX + '/clean-text', {
@@ -1784,21 +1833,19 @@
                 if (resp.ok) {
                     const data = await resp.json();
                     const cleaned = (data.cleaned || '').trim();
-                    if (cleaned && cleaned.length >= rawText.length * 0.3 && cleaned !== rawText) {
-                        console.log('[Voice] Polished:', JSON.stringify(cleaned));
-                        // 替换成优化后的文本（用户已看到原始输入，此处静默更新）
+                    // 放宽替换条件：只要 AI 返回了不同于原始文本的内容就替换
+                    if (cleaned && cleaned !== rawText) {
+                        console.log('[Voice] AI polished:', JSON.stringify(cleaned));
                         const ta = document.getElementById('t-chat-placeholder');
-                        const currentVal = ta.value;
-                        // 只替换末尾的原始文本部分
-                        if (currentVal.endsWith(rawText)) {
-                            ta.value = currentVal.slice(0, -rawText.length) + cleaned;
+                        if (ta) {
+                            ta.value = cleaned;
                             ta.dispatchEvent(new Event('input'));
                         }
                     }
                 }
             } catch (err) {
                 if (err.name === 'AbortError') {
-                    console.log('[Voice] Polish timed out (5s), keeping raw text');
+                    console.log('[Voice] AI polish timed out, keeping local punctuation');
                 } else {
                     console.warn('[Voice] Polish error:', err);
                 }
