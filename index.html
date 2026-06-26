@@ -1267,7 +1267,7 @@
                         // Pre-load tarot card data (section is inside paid wrapper, shown on unlock)
                         if (tarotIndex >= 0 && tarotIndex <= 21) {
                             const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
-                            document.getElementById('tarot-card-img').src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                            document.getElementById('tarot-card-img').src = '/static/tarot/' + String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
                             document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
                             // Extract full tarot meaning from the paid/free text
                             const meaningEl = document.getElementById('tarot-card-meaning');
