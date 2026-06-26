@@ -1597,8 +1597,20 @@ def tarot_wallpaper():
             font_small  = font_def
 
         # Load tarot card image — search in order: persistent volume → static dir → GitHub
-        slug = card_name.lower().replace('the ', '').replace(' ', '-')
-        fn = f"{str(card_index).zfill(2)}-{slug}.png"
+        # FIX: Use a fixed filename list indexed by card_index.
+        # The old code built `fn` from card_name (which may be Chinese),
+        # producing filenames like "00-愚者.png" that don't match the actual
+        # English-named files (00-fool.png, 01-magician.png, etc.).
+        _tarot_filenames = [
+            "00-fool.png", "01-magician.png", "02-high-priestess.png",
+            "03-empress.png", "04-emperor.png", "05-hierophant.png",
+            "06-lovers.png", "07-chariot.png", "08-strength.png",
+            "09-hermit.png", "10-wheel-of-fortune.png", "11-justice.png",
+            "12-hanged-man.png", "13-death.png", "14-temperance.png",
+            "15-devil.png", "16-tower.png", "17-star.png",
+            "18-moon.png", "19-sun.png", "20-judgement.png", "21-world.png",
+        ]
+        fn = _tarot_filenames[card_index] if 0 <= card_index < len(_tarot_filenames) else _tarot_filenames[0]
         card_asset = None
         # 1. Persistent volume (/data/tarot/) — survives container restarts
         _search_paths = [
@@ -1609,10 +1621,12 @@ def tarot_wallpaper():
             try:
                 if os.path.exists(attempt_path):
                     card_asset = Image.open(attempt_path).convert('RGBA')
+                    logger.info(f"[Wallpaper] Loaded tarot image from local file: {attempt_path}")
                     break
-            except Exception:
+            except Exception as _e:
+                logger.warning(f"[Wallpaper] Failed to load {attempt_path}: {_e}")
                 continue
-        # 2. Fallback: download from GitHub raw
+        # 2. Fallback: download from GitHub raw (no local file needed)
         if card_asset is None:
             card_img_url = (
                 f"https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/"
@@ -1620,11 +1634,49 @@ def tarot_wallpaper():
             )
             try:
                 import requests as _img_req
-                resp = _img_req.get(card_img_url, timeout=10)
+                logger.info(f"[Wallpaper] Downloading tarot image from GitHub: {card_img_url}")
+                resp = _img_req.get(card_img_url, timeout=15)
                 if resp.status_code == 200:
                     card_asset = Image.open(io.BytesIO(resp.content)).convert('RGBA')
+                    logger.info(f"[Wallpaper] Downloaded {fn} from GitHub ({len(resp.content)} bytes)")
+                    # Cache to persistent volume for next time
+                    try:
+                        os.makedirs(_TAROT_DST, exist_ok=True)
+                        with open(os.path.join(_TAROT_DST, fn), 'wb') as _f:
+                            _f.write(resp.content)
+                        logger.info(f"[Wallpaper] Cached {fn} → {_TAROT_DST}")
+                    except Exception as _save_e:
+                        logger.warning(f"[Wallpaper] Failed to cache image: {_save_e}")
+            except Exception as _e:
+                logger.warning(f"[Wallpaper] GitHub download failed: {_e}")
+
+        # 3. Final fallback: draw a placeholder card with Pillow so the wallpaper is never blank
+        if card_asset is None:
+            logger.warning(f"[Wallpaper] All sources failed for {fn}, drawing placeholder card")
+            ph_w, ph_h = 300, 500
+            card_asset = Image.new('RGBA', (ph_w, ph_h), (124, 92, 255, 80))  # purple translucent
+            ph_draw = ImageDraw.Draw(card_asset)
+            # Border
+            ph_draw.rectangle([4, 4, ph_w-4, ph_h-4], outline=(124, 92, 255, 200), width=3)
+            # Card index number (large)
+            try:
+                _font_ph = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 80)
             except Exception:
-                pass
+                _font_ph = ImageFont.load_default()
+            _label = f"[{card_index}]"
+            _bb = ph_draw.textbbox((0, 0), _label, font=_font_ph)
+            _tw = _bb[2] - _bb[0]; _th = _bb[3] - _bb[1]
+            ph_draw.text(((ph_w - _tw) // 2, (ph_h - _th) // 2 - 40), _label, fill=(255, 255, 255, 220), font=_font_ph)
+            # Card name below number
+            try:
+                _font_ph2 = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24)
+            except Exception:
+                _font_ph2 = ImageFont.load_default()
+            _name_text = card_name[:30]
+            _bb2 = ph_draw.textbbox((0, 0), _name_text, font=_font_ph2)
+            _tw2 = _bb2[2] - _bb2[0]
+            ph_draw.text(((ph_w - _tw2) // 2, (ph_h - _th) // 2 + 50), _name_text, fill=(200, 200, 255, 200), font=_font_ph2)
+            logger.info(f"[Wallpaper] Using drawn placeholder for card_index={card_index}")
 
         y_text = 180
         if card_asset:
