@@ -1398,6 +1398,10 @@
                     // Try to match known section and add icon + separator
                     let icon = '', color = '#F0B34B';
                     const hkey = headerText.toLowerCase().replace(/[:\d\s（）\(\)\[\]]+/g, '');
+                    // SKIP tarot guidance header — it renders in the independent #tarot-section block with real card image
+                    if (hkey.includes('tarot') || hkey.includes('塔罗')) {
+                        continue;
+                    }
                     for (const [k, v] of Object.entries(SECTION_KEYS)) {
                         if (hkey.includes(k) || k.includes(hkey)) {
                             icon = v.icon + ' ';
@@ -1416,8 +1420,10 @@
                     flushParagraph();
                     const nextLine = lines[i+1].trim();
                     if (!nextLine.startsWith('*')) {
-                        let color = '#F0B34B';
+                        // SKIP tarot section (emoji 🃏) — renders in independent #tarot-section
                         const nkey = nextLine.toLowerCase();
+                        if (emojiMatch[1] === '🃏' || nkey.includes('tarot') || nkey.includes('塔罗')) { i++; continue; }
+                        let color = '#F0B34B';
                         for (const [k, v] of Object.entries(SECTION_KEYS)) {
                             if (nkey.includes(k)) { color = v.color; break; }
                         }
