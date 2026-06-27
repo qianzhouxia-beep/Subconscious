@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=7">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=6">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=7"></script>
@@ -211,12 +211,12 @@
                     <span class="text-[9px] uppercase tracking-[0.3em] text-accent/50 font-semibold" id="t-orb-label">AI Oracle</span>
                 </div>
             </div>
-        </div>
 
-        <!-- Scroll Indicator (positioned relative to Hero section) -->
-        <div class="scroll-indicator reveal" style="animation-delay:1s">
-            <span class="text-[8px] uppercase tracking-[0.4em] text-gray-600">Scroll</span>
-            <div class="scroll-line"></div>
+            <!-- Scroll Indicator -->
+            <div class="scroll-indicator reveal" style="animation-delay:0.8s">
+                <span class="text-[8px] uppercase tracking-[0.4em] text-gray-600">Scroll</span>
+                <div class="scroll-line"></div>
+            </div>
         </div>
     </section>
 
@@ -257,123 +257,67 @@
         </div>
     </section>
 
-    <!-- Interpretation Section — Independent Chat Interface -->
-    <section id="interpret" class="min-h-screen bg-bg relative">
-        
-        <!-- Chat Top Bar (visible in app mode) -->
-        <div id="chat-topbar" class="hidden items-center justify-between px-6 py-3 border-b border-white/5" style="background:rgba(10,10,18,0.95);backdrop-filter:blur(20px);">
-            <button onclick="exitAppMode()" class="flex items-center gap-2 text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                <span id="t-app-back">Back</span>
-            </button>
-            <div class="flex items-center gap-3">
-                <span class="text-accent text-lg" style="font-family:'Playfair Display',serif;font-style:italic;">S</span>
-                <span class="text-[9px] uppercase tracking-[0.3em] text-gray-500 hidden sm:inline">Dream Oracle</span>
+    <!-- Interpretation Section -->
+    <section id="interpret" class="min-h-screen bg-bg py-32 px-6">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-6xl font-display italic text-white mb-6" id="t-interpret-whisper">Whisper your dream</h2>
+                <p class="text-gray-500 text-[9px] uppercase tracking-widest" id="t-interpret-akashic">Connect to the Akashic records below</p>
             </div>
-            <button onclick="newJourney()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-oracle-new">New</button>
-        </div>
 
-        <!-- Chat Messages Area -->
-        <div id="chat-messages" class="chat-messages-container">
-            <!-- Welcome message -->
-            <div id="chat-welcome" class="flex flex-col items-center justify-center px-6" style="min-height:60vh;">
-                <div class="pulsing-orb rounded-full relative flex items-center justify-center mb-6" style="width:56px;height:56px;">
-                    <div class="absolute inset-0 rounded-full blur-md opacity-50" style="background:#7c5cff"></div>
-                </div>
-                <span class="text-accent/70 text-[9px] uppercase tracking-[0.3em] font-bold mb-4" id="t-ai-label">Subconscious AI Oracle</span>
-                <p class="text-base text-gray-400 font-light text-center max-w-md" id="t-chat-welcome-text">I am listening. Share your dream with me...</p>
-                <p class="text-[10px] text-gray-600 text-center mt-3 max-w-sm" id="t-chat-welcome-hint"></p>
-            </div>
-            
-            <!-- Messages will be appended here -->
-            <div id="chat-thread" class="px-4 md:px-6 space-y-4"></div>
-            
-            <!-- Inline Report View -->
-            <div id="report-view-inline" class="hidden px-4 md:px-6 pb-8">
-                <div class="max-w-3xl mx-auto">
-                    <div class="glass-card px-6 py-8 md:px-10 md:py-12 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">
-                        <div class="space-y-4">
-                            <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-psych">
-                                <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z"/></svg></span> Dream Preview
-                            </h4>
-                            <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
-                        </div>
-                        <div id="premium-section" class="relative pt-8 border-t border-white/10 mt-8">
-                            <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-destiny">
-                                <span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span> Complete Destiny Report
-                            </h4>
-                            <!-- Locked preview -->
-                            <div id="locked-preview" class="relative">
-                                <div id="res-paid-preview" class="text-sm text-gray-500 leading-relaxed space-y-2 line-clamp-6 overflow-hidden"></div>
-                                <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-bg/90 to-transparent pointer-events-none"></div>
-                            </div>
-                            <!-- Full paid content -->
-                            <div id="res-paid-wrapper" class="hidden">
-                                <div id="res-paid" class="text-base text-gray-200 font-light leading-relaxed space-y-6"></div>
-                                <!-- Tarot section -->
-                                <div id="tarot-section" class="hidden mt-8 pt-6 border-t border-accent/10">
-                                    <h5 class="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold mb-4" id="t-tarot-guidance-label">Tarot Guidance</h5>
-                                    <div class="flex flex-col sm:flex-row items-center gap-5 bg-accent/5 rounded-2xl p-5">
-                                        <img id="tarot-card-img" src="" alt="Tarot Card" class="w-28 h-44 object-cover rounded-xl shadow-lg shadow-accent/10" style="border:1px solid rgba(255,255,255,0.1);">
-                                        <div class="flex-1 text-center sm:text-left">
-                                            <p id="tarot-card-name" class="text-white font-semibold text-base mb-1"></p>
-                                            <p id="tarot-card-meaning" class="text-sm text-gray-400 leading-relaxed"></p>
-                                            <button onclick="downloadTarotWallpaper()" class="mt-3 px-4 py-2 text-[9px] uppercase tracking-widest text-accent border border-accent/20 rounded-full hover:bg-accent/10 transition-all" id="t-tarot-wallpaper">Download Card</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Payment area -->
-                            <div id="pay-area" class="mt-8 flex flex-col items-center gap-4">
-                                <p class="text-xs text-gray-500 text-center" id="t-unlock-text">Unlock the complete report to reveal your destiny.</p>
-                                <div id="paypal-button-container" class="w-full max-w-sm"></div>
-                                <button onclick="SMAuth._startNP()" class="px-6 py-3 text-[10px] uppercase tracking-widest text-gray-300 border border-white/10 rounded-full hover:bg-white/5 transition-all flex items-center gap-2" id="t-pay-usdt">
-                                    <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M9.5 8.5v7M9.5 12H14a2 2 0 1 0 0-4H9.5z"/><path d="M9.5 12H15a2 2 0 1 1 0 4H9.5"/></svg></span> Pay with USDT
-                                </button>
-                                <div id="payment-status" class="text-[9px] text-gray-600 text-center mt-1"></div>
-                            </div>
-                        </div>
+            <!-- Aetheris AI Interaction -->
+            <div class="flex flex-col items-center gap-8">
+                <!-- Pulsing Orb -->
+                <div class="flex flex-col items-center gap-3">
+                    <div class="pulsing-orb rounded-full relative flex items-center justify-center cursor-pointer hover:shadow-[0_0_50px_rgba(124,92,255,0.8)] transition-shadow duration-500">
+                        <div class="absolute inset-0 rounded-full blur-md opacity-50" style="background:#7c5cff"></div>
                     </div>
-                    <!-- Report actions -->
-                    <div class="flex flex-wrap justify-center gap-3 mt-6">
-                        <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">📧 Email Report</button>
-                        <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">📄 Save Report</button>
-                        <button onclick="newJourney()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-white/60 hover:text-white bg-accent/20 border border-accent/30 rounded-full hover:bg-accent/30 transition-all" id="t-report-new">🔄 New Journey</button>
-                    </div>
-                    <div class="text-center pt-6"><button onclick="exitAppMode()" class="text-[9px] text-gray-500 hover:text-white underline underline-offset-2" id="t-app-back-link">← Back to Home</button></div>
+                    <span class="text-accent/70 text-[9px] uppercase tracking-[0.3em] font-bold" id="t-ai-label">Subconscious AI Oracle</span>
                 </div>
-            </div>
-        </div>
 
-        <!-- Fixed Bottom Input Bar -->
-        <div id="chat-input-area" class="chat-input-bar">
-            <div class="max-w-3xl mx-auto flex items-end gap-3">
-                <!-- Context toggle -->
-                <button onclick="toggleContextPanel()" class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all" title="Dream Context">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 6h9.75M10.5 12h9.75M10.5 18h9.75M4.5 6h.008v.008H4.5V6zM4.5 12h.008v.008H4.5V12zM4.5 18h.008v.008H4.5V18z"/></svg>
-                </button>
-                <!-- Input wrapper -->
-                <div class="flex-1 relative">
-                    <textarea id="t-chat-placeholder" rows="1" class="chat-textarea" placeholder="Describe your dream..." maxlength="5000" aria-label="Dream description"></textarea>
-                    <div class="flex items-center justify-between px-3 pb-2">
-                        <div class="flex items-center gap-2">
-                            <span id="turn-indicator" class="text-[9px] text-accent/60 uppercase tracking-widest">0 / 5</span>
+                <!-- AI Quote Card (always visible as header) -->
+                <div id="ai-quote-card" class="glass-card px-6 py-6 md:py-8 rounded-2xl w-full relative flex flex-col items-stretch justify-start" style="border:1px solid rgba(255,255,255,0.08);height:400px;">
+                    <div class="absolute -top-10 -left-10 w-40 h-40 bg-accent/5 blur-[50px] rounded-full pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col overflow-y-auto flex-1 scrollbar-lucent pr-3" id="chat-welcome">
+                        <p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">I am listening. Share your dream with me...</p>
+                        <p class="text-[10px] text-gray-500 text-center pb-4" id="t-chat-welcome-hint"></p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Redesigned Input Area -->
+            <div id="chat-input-area" class="w-full mt-6">
+                <div class="input-glow-card rounded-2xl p-1 relative">
+                    <textarea id="t-chat-placeholder" rows="3" class="w-full text-white p-6 text-base font-light placeholder-gray-500 resize-none" placeholder="Describe your vision here..." maxlength="5000" aria-label="Dream description" style="background:transparent!important;border:none!important;outline:none!important;box-shadow:none!important;"></textarea>
+                    <div class="absolute bottom-4 left-6 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" id="input-status-dot"></span>
+                        <span class="text-[9px] uppercase tracking-widest text-gray-500" id="t-input-status-text">Awaiting Transmission</span>
+                    </div>
+                    <div class="absolute bottom-4 right-4 flex items-center gap-3">
+                        <div id="turn-indicator" class="text-[9px] text-accent/60 uppercase tracking-widest hidden md:inline opacity-0">Connection 0 / 5</div>
+                        <!-- 分析深度指示器 P1 -->
+                        <div id="depth-indicator" class="hidden md:flex items-center gap-2 mr-1" title="分析深度">
+                            <span class="text-[8px] text-gray-500 uppercase tracking-widest" id="t-depth-label">基础</span>
+                            <div class="flex items-center gap-1">
+                                <span class="depth-dot" data-depth="atmo" style="width:6px;height:6px;border-radius:50%;background:rgba(124,92,255,0.3);transition:all 0.3s;"></span>
+                                <span class="depth-dot" data-depth="env" style="width:6px;height:6px;border-radius:50%;background:rgba(124,92,255,0.3);transition:all 0.3s;"></span>
+                                <span class="depth-dot" data-depth="sym" style="width:6px;height:6px;border-radius:50%;background:rgba(124,92,255,0.3);transition:all 0.3s;"></span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <button onclick="resetOracle()" class="px-3 py-1.5 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white transition-all" id="t-oracle-reset">Reset</button>
-                            <button id="t-voice-btn" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all" title="Voice">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
-                            </button>
-                            <button onclick="sendMessage()" class="w-9 h-9 rounded-full bg-accent flex items-center justify-center hover:bg-accent/80 transition-all active:scale-95" id="t-chat-send" title="Send">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
-                            </button>
-                        </div>
+                        <button class="px-3 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all flex items-center gap-1.5 select-none" id="t-voice-btn">
+                            <svg class="w-3.5 h-3.5" id="t-voice-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2"/></svg>
+                            <span id="t-voice-label">Voice</span>
+                        </button>
+                        <button onclick="resetOracle()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-oracle-reset">Reset</button>
+                        <button onclick="sendMessage()" class="px-6 py-2 bg-accent text-bg rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 hover:scale-105 transition-all active:scale-95" id="t-chat-send">Transmit</button>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Voice bar -->
-            <div id="voice-bar" class="hidden mt-2 rounded-lg px-4 py-2 flex items-center gap-3 max-w-3xl mx-auto" style="background:rgba(10,10,10,0.6);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(12px);min-height:40px;">
+            <div id="voice-bar" class="hidden mt-2 rounded-lg px-4 py-2 flex items-center gap-3" style="background:rgba(10,10,10,0.6);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(12px);min-height:48px;">
                 <div id="voice-bar-icon" class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
                 </div>
@@ -384,54 +328,86 @@
                 </div>
             </div>
 
-            <!-- Dream Context Panel (collapsible) -->
-            <div id="context-panel" class="hidden max-w-3xl mx-auto mt-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="glass-card px-4 py-4 rounded-xl space-y-3" style="border:1px solid rgba(255,255,255,0.06)">
+            <div class="text-center mt-6 md:hidden">
+                <div id="turn-indicator-mobile" class="text-[9px] text-accent/60 uppercase tracking-widest opacity-0">Connection 0 / 5</div>
+            </div>
+
+            <!-- 精简版：梦境上下文模块（v2） -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-8">
+                <!-- Left: 清醒程度 + 关键词 -->
+                <div class="glass-card px-5 py-5 rounded-xl space-y-5" style="border:1px solid rgba(255,255,255,0.06)">
+                    <div class="flex items-center gap-2 border-b border-accent/20 pb-2">
+                        <span class="sm-icon" id="t-context-icon-left"><svg viewBox="0 0 24 24"><path d="M3 12c0-3 1.5-6 4-7 2.5 1 4 4 4 7s-1.5 6-4 7c-2.5-1-4-4-4-7z"/><path d="M21 12c0-3-1.5-6-4-7-2.5 1-4 4-4 7s1.5 6 4 7c2.5-1 4-4 4-7z"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/></svg></span>
                         <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold" id="t-context-title-left">梦境感知</h3>
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-[10px] text-gray-400" id="t-atmo-lucidity">清醒程度</span>
-                                <span class="text-[10px] text-accent font-bold" id="atmo-lucidity-val">模糊</span>
-                            </div>
-                            <input type="range" min="1" max="10" value="3" class="w-full h-0.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(124,92,255,0.6)]" data-label="atmo-lucidity-val" data-labels='["深眠","混沌","模糊","半清醒","完全主宰"]'>
+                    </div>
+                    <!-- 清醒程度（唯一保留的滑块） -->
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[10px] text-gray-400 tracking-wide" id="t-atmo-lucidity">清醒程度</span>
+                            <span class="text-[10px] text-accent font-bold" id="atmo-lucidity-val">模糊</span>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <span class="text-[10px] text-gray-400" id="t-symbol-label">关键词</span>
-                                <span class="text-[8px] text-gray-600" id="t-symbol-hint2">回车添加 · 点击删除</span>
-                            </div>
-                            <div class="flex flex-wrap gap-1.5 mb-1.5 min-h-[22px]" id="symbol-tag-container">
-                                <span class="text-[8px] text-gray-500 italic" id="t-symbol-placeholder2">飞行 · 深海 · 坠落</span>
-                            </div>
-                            <input type="text" id="symbol-input" class="w-full bg-transparent border-b border-white/10 focus:border-accent focus:ring-0 text-xs py-1.5 placeholder:text-gray-600 transition-all outline-none text-white" placeholder="输入意象关键词..." maxlength="20">
+                        <input type="range" min="1" max="10" value="3" class="w-full h-0.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_8px_rgba(124,92,255,0.6)]" data-label="atmo-lucidity-val" data-labels='["深眠","混沌","模糊","半清醒","完全主宰"]'>
+                    </div>
+                    <!-- 关键词（紧凑） -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-[10px] text-gray-400 tracking-wide" id="t-symbol-label">关键词</span>
+                            <span class="text-[8px] text-gray-600" id="t-symbol-hint2">回车添加 · 点击删除</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mb-2 min-h-[22px]" id="symbol-tag-container">
+                            <span class="text-[8px] text-gray-500 italic" id="t-symbol-placeholder2">飞行 · 深海 · 坠落</span>
+                        </div>
+                        <input type="text" id="symbol-input" class="w-full bg-transparent border-b border-white/10 focus:border-accent focus:ring-0 text-xs py-1.5 placeholder:text-gray-600 transition-all outline-none text-white" placeholder="输入意象关键词..." maxlength="20">
+                    </div>
+                </div>
+
+                <!-- Right: 梦境类型 + 压力等级（平铺按钮，无弹窗） -->
+                <div class="glass-card px-5 py-5 rounded-xl space-y-4" style="border:1px solid rgba(255,255,255,0.06)">
+                    <div class="flex items-center gap-2 border-b border-accent/20 pb-2">
+                        <span class="sm-icon" id="t-context-icon-right"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg></span>
+                        <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold" id="t-context-title-right">环境与状态</h3>
+                    </div>
+                    <!-- 梦境类型 -->
+                    <div>
+                        <div class="text-[10px] text-gray-400 tracking-wide mb-2" id="t-env-dreamtype-label">梦境类型</div>
+                        <div class="flex flex-wrap gap-2" id="dreamtype-pills">
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="dreamtype" data-value="普通梦" style="border-color:rgba(124,92,255,0.4);color:#9b7fff;background:rgba(124,92,255,0.1);">普通梦</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="dreamtype" data-value="清醒梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">清醒梦</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="dreamtype" data-value="噩梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">噩梦</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="dreamtype" data-value="重复梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">重复梦</button>
                         </div>
                     </div>
-                    <div class="glass-card px-4 py-4 rounded-xl space-y-3" style="border:1px solid rgba(255,255,255,0.06)">
-                        <h3 class="text-[9px] uppercase tracking-widest text-accent font-bold" id="t-context-title-right">环境与状态</h3>
-                        <div>
-                            <div class="text-[10px] text-gray-400 mb-1.5" id="t-env-dreamtype-label">梦境类型</div>
-                            <div class="flex flex-wrap gap-1.5" id="dreamtype-pills">
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="dreamtype" data-value="普通梦" style="border-color:rgba(124,92,255,0.4);color:#9b7fff;background:rgba(124,92,255,0.1);">普通梦</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="dreamtype" data-value="清醒梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">清醒梦</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="dreamtype" data-value="噩梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">噩梦</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="dreamtype" data-value="重复梦" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">重复梦</button>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-gray-400 mb-1.5" id="t-env-stress-label">压力等级</div>
-                            <div class="flex flex-wrap gap-1.5" id="stress-pills">
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="stress" data-value="无" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">无</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="stress" data-value="轻度" style="border-color:rgba(124,92,255,0.4);color:#9b7fff;background:rgba(124,92,255,0.1);">轻度</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="stress" data-value="中等" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">中等</button>
-                                <button class="env-pill text-[10px] px-2.5 py-1 rounded-full border transition-all" data-env="stress" data-value="高压" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">高压</button>
-                            </div>
+                    <!-- 压力等级 -->
+                    <div>
+                        <div class="text-[10px] text-gray-400 tracking-wide mb-2" id="t-env-stress-label">压力等级</div>
+                        <div class="flex flex-wrap gap-2" id="stress-pills">
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="stress" data-value="无" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">无</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="stress" data-value="轻度" style="border-color:rgba(124,92,255,0.4);color:#9b7fff;background:rgba(124,92,255,0.1);">轻度</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="stress" data-value="中等" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">中等</button>
+                            <button class="env-pill text-[10px] px-3 py-1.5 rounded-full border transition-all" data-env="stress" data-value="高压" style="border-color:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);background:transparent;">高压</button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+
+
+            <!-- Final Report Overlay (全屏弹窗) -->
+            <div id="final-report" class="hidden fixed inset-0 z-50 overflow-y-auto" style="background:rgba(5,5,5,0.85);backdrop-filter:blur(12px);">
+                <div class="min-h-screen flex items-center justify-center p-4 md:p-8">
+                    <div class="w-full max-w-3xl mx-auto">
+                        <!-- Report card -->
+                        <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl" style="border:1px solid rgba(255,255,255,0.08)">
+                    <div class="space-y-4">
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-psych">
+                            <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z"/></svg></span> Dream Preview
+                        </h4>
+                        <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
+                    </div>
+                    <!-- Premium Content Section -->
+                    <div id="premium-section" class="relative pt-8 border-t border-white/10 mt-8">
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-destiny">
+                            <span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span> Complete Destiny Report
+                        </h4>
 
                         <!-- 锁定预览：展示隐藏内容清单（未付费时显示） -->
                         <div id="locked-preview">
@@ -532,6 +508,86 @@
                                         <h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5>
                                         <p class="text-sm text-gray-300 leading-relaxed" id="tarot-card-meaning"></p>
                                         <button onclick="downloadTarotWallpaper()" class="mt-3 px-3 py-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-tarot-wallpaper">🃏 下载塔罗牌</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Paid report content -->
+                            <div id="res-paid" class="space-y-4"></div>
+                        </div>
+                    </div>
+
+                    <!-- 底部操作按钮 -->
+                    <div class="flex flex-wrap justify-center gap-3 pt-6 border-t border-white/10 mt-6">
+                        <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">📧 Email Report</button>
+                        <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">📄 Save Web Report</button>
+                        <button onclick="resetOracle()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-500 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-close">✕ Begin New Journey</button>
+                    </div>
+
+                    <div class="text-center pt-8">
+                        <button onclick="resetOracle()" class="text-[9px] text-gray-500 uppercase tracking-[0.4em] hover:text-white transition-all" id="t-oracle-new">Begin New Journey</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+            <!-- ═══ Inline Report View (full-screen, replaces modal) ═══ -->
+            <div id="report-view-inline" class="hidden w-full max-w-4xl mx-auto px-4 pb-20" style="min-height: calc(100vh - 80px);">
+                <div class="flex items-center justify-between mb-6 pt-4">
+                    <h2 class="text-xl font-display italic text-white" id="t-report-title">Your Dream Report</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="saveToJournal()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-save">Save to Journal</button>
+                        <button onclick="newJourney()" class="px-4 py-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-new-journey">New Journey</button>
+                    </div>
+                </div>
+                <div class="glass-card px-8 py-10 md:px-12 md:py-14 rounded-3xl mb-8" style="border:1px solid rgba(255,255,255,0.08)">
+                    <div class="space-y-4">
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-psych"><span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z"/></svg></span> Dream Preview</h4>
+                        <div id="res-free" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
+                    </div>
+                    <div id="premium-section" class="relative pt-8 border-t border-white/10 mt-8">
+                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-destiny"><span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span> Complete Destiny Report</h4>
+                        <div id="locked-preview">
+                            <p class="text-xs text-gray-500 mb-5 leading-relaxed" id="t-locked-intro">Unlock the full report with 7 exclusive sections:</p>
+                            <div class="space-y-3 mb-6" id="locked-list">
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]"><span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4a4 4 0 0 0-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0 0 12 4z"/><path d="M7 9.5a3.5 3.5 0 1 0 1 6.8"/><path d="M17 9.5a3.5 3.5 0 1 1-1 6.8"/><path d="M10 17.5c-.5 1-1.3 1.5-2.2 1.5"/><path d="M14 17.5c.5 1 1.3 1.5 2.2 1.5"/><path d="M12 15v2"/></svg></span>
+                                    <div><div class="text-sm text-white/80 font-medium" id="t-locked-1-title">🧠 Psychology Analysis</div><div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-1-desc">Jungian archetypes, shadow elements, and unconscious patterns</div></div></div>
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]"><span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/><path d="M11 8a3 3 0 0 0-3 3"/></svg></span>
+                                    <div><div class="text-sm text-white/80 font-medium" id="t-locked-2-title">🔍 Symbol Decoding</div><div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-2-desc">Deep symbolic analysis of 2-3 key dream symbols</div></div></div>
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]"><span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z"/></svg></span>
+                                    <div><div class="text-sm text-white/80 font-medium" id="t-locked-3-title">💜 Emotional Landscape</div><div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-3-desc">Your dream's emotional journey mapped</div></div></div>
+                                <div class="flex items-start gap-3 px-4 py-3 rounded-xl border border-white/5 bg-white/[0.02]"><span class="sm-icon mt-0.5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#7c5cff" opacity="0.3"/></svg></span>
+                                    <div><div class="text-sm text-white/80 font-medium" id="t-locked-4-title">🃏 Tarot Guidance</div><div class="text-[11px] text-gray-500 mt-0.5" id="t-locked-4-desc">A Major Arcana card matched to your dream</div></div></div>
+                            </div>
+                            <div id="license-area" class="hidden mt-4"><input id="t-key-placeholder" type="text" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white focus:border-accent transition-all outline-none text-center" placeholder="Enter license key">
+                                <button onclick="verifyLicense()" id="t-verify-btn" class="w-full py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[9px] uppercase tracking-widest transition-all mt-2">Verify & Unlock</button></div>
+                            <button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="w-full py-3 bg-accent text-bg rounded-xl text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all">🔓 Unlock Full Report ($4.99)</button>
+                            <div class="mt-3 text-center"><button onclick="showLicenseInput()" class="text-[9px] text-gray-500 hover:text-white underline underline-offset-2" id="t-have-key">I have a redemption code</button></div>
+                        </div>
+                        <div id="res-paid-wrapper" class="hidden space-y-6">
+                            <div id="tarot-section" class="hidden" style="background:linear-gradient(135deg, rgba(255,213,79,0.04), rgba(255,213,79,0.01)); border:1px solid rgba(255,213,79,0.12); border-radius:16px; padding:20px;">
+                                <div class="flex items-center gap-2 mb-4"><span class="sm-icon"><svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="4" y="2" width="16" height="20" rx="1.5"/><path d="M8 8h8M8 12h6M8 16h7"/><circle cx="16" cy="18" r="2" fill="#FFD54F" opacity="0.3"/></svg></span>
+                                    <span class="text-[10px] uppercase tracking-widest font-bold" style="color:#FFD54F;" id="t-tarot-guidance-label">Tarot Guidance</span>
+                                    <span class="text-[8px] px-2 py-0.5 rounded-full" style="background:rgba(255,213,79,0.15);color:#FFD54F;border:1px solid rgba(255,213,79,0.2);">PREMIUM</span></div>
+                                <div class="flex flex-col md:flex-row items-center gap-6">
+                                    <div class="w-32 h-48 rounded-xl overflow-hidden border border-white/10 flex-shrink-0 bg-white/5"><img id="tarot-card-img" class="w-full h-full object-cover" src="" alt="Tarot Card"></div>
+                                    <div class="flex-1 min-w-0"><h5 class="text-base font-display italic text-white/90 mb-2" id="tarot-card-name"></h5><p class="text-sm text-gray-300 leading-relaxed" id="tarot-card-meaning"></p>
+                                        <button onclick="downloadTarotWallpaper()" class="mt-3 px-3 py-2 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-lg hover:bg-white/5 transition-all" id="t-tarot-wallpaper">🃏 下载塔罗牌</button></div>
+                                </div>
+                            </div>
+                            <div id="res-paid" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-3 pb-8">
+                    <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">📧 Email Report</button>
+                    <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">📄 Save Report</button>
+                    <button onclick="newJourney()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-white/60 hover:text-white bg-accent/20 border border-accent/30 rounded-full hover:bg-accent/30 transition-all" id="t-report-new">🔄 New Journey</button>
+                </div>
+                <div class="text-center pb-8"><button onclick="exitAppMode()" class="text-[9px] text-gray-500 hover:text-white underline underline-offset-2" id="t-app-back-link">← Back to Home</button></div>
+            </div>
     </section>
 
 
@@ -1466,13 +1522,9 @@
 
         function newJourney() {
             document.getElementById('report-view-inline').classList.add('hidden');
-            document.getElementById('chat-input-area').style.display = '';
+            document.getElementById('chat-input-area').classList.remove('hidden');
+            document.getElementById('ai-quote-card').classList.remove('hidden');
             resetOracle();
-        }
-
-        function toggleContextPanel() {
-            var panel = document.getElementById('context-panel');
-            if (panel) panel.classList.toggle('hidden');
         }
 
         async function verifyLicense() {
@@ -1507,15 +1559,17 @@
         function resetOracle() {
             chatHistory = []; turnCount = 0; updateTurnIndicator();
             lucidityInteracted = false;
-            // Reset chat thread
-            document.getElementById('chat-thread').innerHTML = '';
-            // Show welcome
-            var welcome = document.getElementById('chat-welcome');
-            welcome.style.display = 'flex';
-            document.getElementById('t-chat-welcome-text').innerText = 
-                (currentLang === 'zh' ? '我在聆听。分享你的梦境...' : 'I am listening. Share your dream with me...');
+            // Reset quote card to welcome state
+            const welcomeContainer = document.getElementById('chat-welcome');
+            welcomeContainer.innerHTML =
+                '<p class="text-base font-display italic text-white/80 leading-relaxed text-center py-6" id="t-chat-welcome-text">' +
+                (currentLang === 'zh' ? '我在聆听。分享你的梦境...' : 'I am listening. Share your dream with me...') +
+                '</p><p class="text-[10px] text-gray-500 text-center pb-4" id="t-chat-welcome-hint"></p>';
+            // renderLanguage() will fill in t-chat-welcome-hint automatically
             document.getElementById('report-view-inline').classList.add('hidden');
             document.getElementById('chat-input-area').classList.remove('hidden');
+            document.getElementById('ai-quote-card').classList.remove('hidden');
+            gsap.set("#chat-input-area, #turn-indicator", { opacity: 1 });
             document.getElementById('t-chat-placeholder').value = "";
             // Reset env pill selected states
             document.querySelectorAll('.env-pill.active').forEach(p => {
@@ -1890,52 +1944,44 @@
                 alert(currentLang === 'zh' ? '下载失败：' + e.message : 'Download failed: ' + e.message);
             }
         }     function addBubble(text, side) {
-            const container = document.getElementById('chat-thread');
-            const welcome = document.getElementById('chat-welcome');
-            // Hide welcome on first message
-            if (welcome) welcome.style.display = 'none';
+            const container = document.getElementById('chat-welcome');
+            const welcomeText = document.getElementById('t-chat-welcome-text');
+            // Remove default welcome text on first message
+            if (welcomeText) welcomeText.remove();
 
             const wrapper = document.createElement('div');
-            wrapper.className = `chat-bubble-wrapper ${side}`;
+            wrapper.className = `mb-0.5 flex flex-col ${side === 'user' ? 'items-end' : 'items-start'}`;
 
-            const avatar = document.createElement('div');
-            avatar.className = 'chat-avatar';
-            avatar.innerHTML = side === 'user' 
-                ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>'
-                : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>';
+            const label = document.createElement('span');
+            label.className = `text-[8px] uppercase tracking-widest font-bold ${side === 'user' ? 'text-accent/60' : 'text-white/40'}`;
+            label.innerText = side === 'user' ? 'YOU' : 'AETHERIS';
 
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${side}`;
-            bubble.innerHTML = `<div class="chat-bubble-text">${text.replace(/\n/g, '<br>')}</div>`;
+            const msg = document.createElement('div');
+            msg.className = `max-w-[85%] px-4 py-2.5 rounded-2xl text-sm font-light leading-relaxed ${
+                side === 'user'
+                    ? 'bg-accent/15 text-white/90 rounded-tr-md'
+                    : 'bg-white/5 text-white/80 rounded-tl-md'
+            }`;
+            msg.innerText = text;
 
-            if (side === 'user') {
-                wrapper.appendChild(bubble);
-                wrapper.appendChild(avatar);
-            } else {
-                wrapper.appendChild(avatar);
-                wrapper.appendChild(bubble);
-            }
-
+            wrapper.appendChild(label);
+            wrapper.appendChild(msg);
             container.appendChild(wrapper);
+
             gsap.from(wrapper, { opacity: 0, y: 12, duration: 0.4 });
-            scrollChatToBottom();
+            container.scrollTop = container.scrollHeight;
             return wrapper;
         }
 
         function addThinkingBubble() {
-            const container = document.getElementById('chat-thread');
+            const container = document.getElementById('chat-welcome');
             const div = document.createElement('div');
-            div.className = 'chat-bubble-wrapper ai';
-            div.innerHTML = `<div class="chat-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="chat-bubble ai"><div class="flex gap-2 px-2"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+            div.className = `mb-0.5 flex flex-col items-start`;
+            div.innerHTML = `<span class="text-[8px] uppercase tracking-widest font-bold text-white/40">AETHERIS</span><div class="max-w-[85%] px-4 py-2.5 rounded-2xl bg-white/5 rounded-tl-md"><div class="flex gap-2"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
             container.appendChild(div);
             gsap.from(div, { opacity: 0, y: 12, duration: 0.4 });
-            scrollChatToBottom();
+            container.scrollTop = container.scrollHeight;
             return div;
-        }
-
-        function scrollChatToBottom() {
-            const container = document.getElementById('chat-messages');
-            if (container) container.scrollTop = container.scrollHeight;
         }
 
         /**
@@ -2543,18 +2589,12 @@
             navbar.classList.add('app-mode-nav');
             var interpret = document.getElementById('interpret');
             interpret.classList.add('app-mode-fullscreen');
-            // Show chat topbar
-            var topbar = document.getElementById('chat-topbar');
-            if (topbar) topbar.classList.add('flex');
-            if (topbar) topbar.classList.remove('hidden');
             document.body.classList.add('app-mode');
             window.scrollTo({ top: 0 });
             gsap.fromTo(interpret, { opacity: 0, scale: 0.97 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' });
             // Resume GPU-accelerated particles
             var pc = document.getElementById('particleCanvas');
             if (pc) pc.classList.remove('app-hidden');
-            // Focus input
-            setTimeout(function() { document.getElementById('t-chat-placeholder').focus(); }, 600);
         }
 
         function exitAppMode() {
@@ -2563,8 +2603,6 @@
             document.querySelectorAll('.app-hidden').forEach(function(el) { el.classList.remove('app-hidden'); });
             document.getElementById('navbar').classList.remove('app-mode-nav');
             document.getElementById('interpret').classList.remove('app-mode-fullscreen');
-            var topbar = document.getElementById('chat-topbar');
-            if (topbar) { topbar.classList.remove('flex'); topbar.classList.add('hidden'); }
             window.scrollTo({ top: AppState.scrollY });
         }
 
