@@ -3412,16 +3412,53 @@
                 const data = await res.json();
                 if (loadingDiv) loadingDiv.classList.add('hidden');
                 if (data.error) {
-                    if (resultContent) resultContent.innerText = data.error;
+                    if (resultContent) resultContent.innerHTML = '<p class="text-sm text-red-400/80">' + escapeHtml(data.error) + '</p>';
                 } else {
-                    if (resultContent) resultContent.innerHTML = data.interpretation;
+                    // Format interpretation text into proper paragraphs with nice layout
+                    var formatted = formatSymbolReport(data.interpretation || '');
+                    if (resultContent) resultContent.innerHTML = formatted;
                 }
                 if (resultDiv) resultDiv.classList.remove('hidden');
             } catch (e) {
                 if (loadingDiv) loadingDiv.classList.add('hidden');
-                if (resultContent) resultContent.innerText = 'Failed to connect. Please try again.';
+                if (resultContent) resultContent.innerHTML = '<p class="text-sm text-red-400/80">Failed to connect. Please try again.</p>';
                 if (resultDiv) resultDiv.classList.remove('hidden');
             }
+        }
+
+        function formatSymbolReport(text) {
+            if (!text) return '<p class="text-sm text-gray-500 italic">No interpretation available.</p>';
+            // Escape HTML
+            var escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            // Convert **bold** to <strong>
+            escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90 font-medium">$1</strong>');
+            // Convert *italic* to <em>
+            escaped = escaped.replace(/\*(.+?)\*/g, '<em class="text-amber-300/80">$1</em>');
+            // Split by double newlines into paragraphs
+            var paragraphs = escaped.split(/\n{2,}/);
+            var html = paragraphs.map(function(p) {
+                p = p.trim();
+                if (!p) return '';
+                // Single newlines become <br>
+                p = p.replace(/\n/g, '<br>');
+                // Check if it starts with a bullet point
+                if (p.match(/^[•·\-*]\s/)) {
+                    return '<p class="text-sm text-gray-300 leading-relaxed mb-3 pl-4 border-l-2 border-accent/30">' + p.substring(2) + '</p>';
+                }
+                return '<p class="text-sm text-gray-300 leading-relaxed mb-4">' + p + '</p>';
+            }).filter(Boolean).join('');
+            // If no paragraphs detected (single block), split by common section markers
+            if (!html) {
+                html = '<p class="text-sm text-gray-300 leading-relaxed">' + escaped.replace(/\n/g, '<br>') + '</p>';
+            }
+            return html;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
         function quickSymbol(symbol) {
