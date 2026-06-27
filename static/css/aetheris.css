@@ -436,13 +436,15 @@ canvas#hero-vortex {
 /* ── Scroll Indicator ── */
 .scroll-indicator {
     position: absolute;
-    bottom: 40px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    z-index: 25;
+    pointer-events: none;
 }
 
 .scroll-line {
