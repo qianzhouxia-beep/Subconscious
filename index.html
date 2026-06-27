@@ -107,6 +107,10 @@
 
             <!-- Right: Actions -->
             <div class="flex items-center gap-3">
+                <button id="app-mode-close" onclick="exitAppMode()" class="hidden items-center gap-1.5 text-[10px] uppercase tracking-widest text-gray-400 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition-all" aria-label="Exit app mode">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span id="t-app-back">Back</span>
+                </button>
                 <button onclick="toggleLang()" id="lang-btn" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/5 transition-all" aria-label="Switch language">ZH</button>
                 <a href="mailto:support@api-tokenmaster.com" target="_blank" class="hidden sm:inline-flex items-center gap-2 border border-starlight-white/10 px-5 py-2 rounded-full text-[11px] uppercase tracking-widest text-white hover:bg-white/5 transition-all duration-500" id="t-nav-hi">Say Hi ↗</a>
                 <!-- User Account Area (injected by SMAuth) -->
@@ -136,10 +140,47 @@
             <p class="text-lg md:text-xl text-gray-400 font-light max-w-xl mx-auto mb-16" id="t-hero-desc">
                 A <span class="text-white font-display italic">Dream Oracle</span> that decodes the hidden messages from your subconscious mind.
             </p>
-            <button onclick="gsap.to(window, {duration: 1.5, scrollTo: '#interpret', ease: 'power4.inOut'})"
+            <button onclick="enterAppMode()"
                     class="px-12 py-5 bg-white text-black rounded-full font-bold text-[11px] md:text-xs uppercase tracking-widest hover:scale-105 transition-all" id="t-hero-start">
                 Start Interpretation
             </button>
+        </div>
+    </section>
+
+    <!-- ===== How It Works Section ===== -->
+    <section id="how-it-works" class="py-32 px-6 max-w-6xl mx-auto relative z-10">
+        <div class="text-center mb-16 reveal-on-scroll">
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-how-eyebrow">How It Works</span>
+            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-how-title">Your Journey in <span class="accent-gradient">Three</span> Steps</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-card p-8 md:p-10 rounded-2xl text-center reveal-on-scroll">
+                <div class="card-number">01</div>
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/></svg>
+                </div>
+                <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-how-step1-title">1. Share Your Dream</h3>
+                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step1-desc">Type or speak your dream into the oracle. The more detail you share, the deeper the insight.</p>
+            </div>
+            <div class="glass-card p-8 md:p-10 rounded-2xl text-center reveal-on-scroll" style="transition-delay:0.15s;">
+                <div class="card-number">02</div>
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-400/5 flex items-center justify-center text-amber-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+                </div>
+                <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-how-step2-title">2. AI Decodes</h3>
+                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step2-desc">DeepSeek analyzes your dream for symbols, archetypes, and emotional patterns.</p>
+            </div>
+            <div class="glass-card p-8 md:p-10 rounded-2xl text-center reveal-on-scroll" style="transition-delay:0.3s;">
+                <div class="card-number">03</div>
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z"/></svg>
+                </div>
+                <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-how-step3-title">3. Receive Wisdom</h3>
+                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step3-desc">Get your personalized dream report with psychological insights and actionable guidance.</p>
+            </div>
+        </div>
+        <div class="text-center mt-12 reveal-on-scroll">
+            <button onclick="enterAppMode()" class="px-10 py-4 bg-accent text-bg rounded-full text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 hover:scale-105 transition-all" id="t-how-cta">Begin Your Journey</button>
         </div>
     </section>
 
@@ -474,6 +515,122 @@
                 </div>
                 <div class="text-center pb-8"><button onclick="exitAppMode()" class="text-[9px] text-gray-500 hover:text-white underline underline-offset-2" id="t-app-back-link">← Back to Home</button></div>
             </div>
+    </section>
+
+    <!-- ===== FAQ Section ===== -->
+    <section id="faq" class="py-32 px-6 max-w-4xl mx-auto relative z-10 border-t border-white/5">
+        <div class="text-center mb-16 reveal-on-scroll">
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold">FAQ</span>
+            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-faq-title">Frequently Asked <span class="accent-gradient">Questions</span></h2>
+        </div>
+        <div class="space-y-4 reveal-on-scroll" id="faq-container">
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q1">How does the AI dream analysis work?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a1">Our AI analyzes your dream narrative for archetypal patterns, symbols, and emotional themes, combining Jungian psychology with Eastern wisdom traditions.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q2">What is the free tarot reading?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Upgrade for unlimited readings.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q3">What payment methods do you accept?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a3">We accept PayPal (credit/debit cards) and USDT crypto via NOWPayments.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q4">Is my data private?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a4">We do not store your dreams. Sessions are ephemeral. Payment data is handled securely by PayPal and NOWPayments.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q5">Can I export my report?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be saved as a standalone HTML file or emailed to you.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Free Tarot: Three-Card Spread ===== -->
+    <section id="free-tarot" class="py-32 px-6 relative border-t border-white/5 bg-void-black/20">
+        <div class="max-w-5xl mx-auto relative z-10">
+            <div class="text-center mb-16 reveal-on-scroll">
+                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-tarot-eyebrow">FREE READING</span>
+                <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-tarot-title">Free <span class="text-amber-400/80">Tarot</span> Spread of the Day</h2>
+                <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-tarot-desc">Draw three cards and receive a free AI-powered interpretation. No sign-up required.</p>
+            </div>
+            <div class="glass-card p-8 md:p-12 rounded-2xl max-w-3xl mx-auto text-center reveal-on-scroll" style="border:1px solid rgba(255,213,79,0.12);">
+                <!-- Deck & Draw Area -->
+                <div class="flex flex-col items-center gap-6 mb-8" id="tarot-draw-area">
+                    <div id="tarot-deck" class="tarot-deck" onclick="shuffleTarotDeck()">
+                        <span class="text-2xl opacity-50">✦</span>
+                    </div>
+                    <button onclick="shuffleTarotDeck()" class="px-6 py-2 bg-amber-400/10 border border-amber-400/30 text-amber-300 rounded-full text-[10px] uppercase tracking-widest font-semibold hover:bg-amber-400/20 transition-all" id="t-tarot-shuffle">Shuffle the Deck</button>
+                    <button id="tarot-draw-btn" onclick="drawTarotCard()" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-draw">Draw a Card</button>
+                </div>
+
+                <!-- Three-Card Spread -->
+                <div id="tarot-spread" class="hidden">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-6" id="t-tarot-spread-title">Your Three-Card Spread</p>
+                    <div class="tarot-spread-area flex flex-wrap justify-center gap-6 md:gap-10">
+                        <!-- Slot 1: Past -->
+                        <div class="flex flex-col items-center">
+                            <div class="tarot-position-label" id="t-tarot-past">Past</div>
+                            <div id="tarot-slot-1" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=1) flipTarotCard(1)">
+                                <div class="tarot-card-inner">
+                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
+                                    <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
+                                </div>
+                            </div>
+                            <button id="tarot-flip-1" onclick="flipTarotCard(1)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
+                            <div id="tarot-reading-1" class="hidden mt-3 text-left max-w-[200px]"></div>
+                        </div>
+                        <!-- Slot 2: Present -->
+                        <div class="flex flex-col items-center">
+                            <div class="tarot-position-label" id="t-tarot-present">Present</div>
+                            <div id="tarot-slot-2" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=2) flipTarotCard(2)">
+                                <div class="tarot-card-inner">
+                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
+                                    <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
+                                </div>
+                            </div>
+                            <button id="tarot-flip-2" onclick="flipTarotCard(2)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
+                            <div id="tarot-reading-2" class="hidden mt-3 text-left max-w-[200px]"></div>
+                        </div>
+                        <!-- Slot 3: Future -->
+                        <div class="flex flex-col items-center">
+                            <div class="tarot-position-label" id="t-tarot-future">Future</div>
+                            <div id="tarot-slot-3" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=3) flipTarotCard(3)">
+                                <div class="tarot-card-inner">
+                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
+                                    <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
+                                </div>
+                            </div>
+                            <button id="tarot-flip-3" onclick="flipTarotCard(3)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
+                            <div id="tarot-reading-3" class="hidden mt-3 text-left max-w-[200px]"></div>
+                        </div>
+                    </div>
+                    <!-- Combined Reading -->
+                    <div id="tarot-complete-reading" class="hidden mt-6"></div>
+                    <!-- Upsell -->
+                    <div id="tarot-upsell" class="hidden mt-6 pt-6 border-t border-white/10">
+                        <p class="text-[10px] text-gray-500 mb-3" id="t-tarot-upsell">Want to see how this connects to your dreams? Unlock the full report.</p>
+                        <button onclick="scrollToSection('pricing')" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-upsell-btn">See Plans</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- ===== Symbol Quick Search Section ===== -->
@@ -2603,7 +2760,8 @@
             if (answer) answer.classList.toggle('hidden');
         }
 
-        // ═══ Toast ═══
+        // ═══ Toast & Helpers ═══
+        function scrollToSection(id) { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         function showToast(msg) {
             var t = document.createElement('div');
             t.className = 'sm-toast';
