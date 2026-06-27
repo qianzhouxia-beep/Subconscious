@@ -264,9 +264,9 @@
         <div id="app-layout" class="hidden flex h-screen overflow-hidden" style="padding-top:52px;">
 
             <!-- ═══ LEFT SIDEBAR: Account + History ═══ -->
-            <aside id="sidebar-left" class="w-[280px] flex-shrink-0 border-r border-white/5 flex flex-col bg-bg/80 overflow-y-auto" style="display:none;">
+            <aside id="sidebar-left" class="w-[280px] flex-shrink-0 border-r border-white/5 flex flex-col bg-bg/80 overflow-y-auto p-4" style="display:none;">
                 <!-- Account Section — only shows when logged in -->
-                <div id="sidebar-account" class="p-4 border-b border-white/5 hidden">
+                <div id="sidebar-account" class="border-b border-white/5 hidden pb-4 mb-4">
                     <div class="flex items-center justify-between mb-1">
                         <span class="text-[9px] uppercase tracking-widest text-gray-500">Account</span>
                     </div>
@@ -277,7 +277,7 @@
                     </div>
                 </div>
                 <!-- History Section -->
-                <div id="sidebar-history" class="flex-1 p-4">
+                <div id="sidebar-history" class="flex-1">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[9px] uppercase tracking-widest text-gray-500" id="t-sidebar-history">Dream Log</span>
                         <button onclick="refreshHistory()" class="text-[8px] text-gray-600 hover:text-white transition-all">↻</button>
