@@ -1889,69 +1889,120 @@ from urllib.parse import urlencode as _urlenc
 @app.route('/api/auth/social/<provider>')
 def social_login(provider):
     if provider == 'google':
-        client_id = os.getenv('GOOGLE_CLIENT_ID')
+        # Try using account_module's helper if available
+        _helper = app.config.get("_social_google_auth_url")
+        if _helper:
+            auth_url, err = _helper()
+            if err:
+                return jsonify({'detail': err}), 500
+            return jsonify({'auth_url': auth_url})
+
+        # Fallback: inline implementation with CORRECT env var names
+        client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID')
+        redirect_uri = os.getenv('GOOGLE_OAUTH_REDIRECT_URI', '')
         if not client_id:
-            return jsonify({'detail': 'Google OAuth not configured'}), 500
-        redirect_uri = url_for('google_callback', _external=True)
+            return jsonify({'detail': 'Google OAuth not configured (missing GOOGLE_OAUTH_CLIENT_ID)'}), 500
         auth_url = 'https://accounts.google.com/o/oauth2/v2/auth?' + _urlenc({
             'client_id': client_id,
             'redirect_uri': redirect_uri,
             'response_type': 'code',
             'scope': 'openid email profile',
+            'access_type': 'online',
+            'prompt': 'select_account',
         })
         return jsonify({'auth_url': auth_url})
     else:
         return jsonify({'detail': provider + ' login is being configured. Please use email.'}), 501
 
-@app.route('/api/auth/google/callback')
+# Callback path MUST match GOOGLE_OAUTH_REDIRECT_URI in Zeabur env vars
+@app.route('/api/auth/social/google/callback')
 def google_callback():
     code = request.args.get('code', '')
     if not code:
-        return jsonify({'detail': 'Authorization code missing'}), 400
+        return redirect('/?oauth_error=authorization_code_missing')
 
-    client_id = os.getenv('GOOGLE_CLIENT_ID', '')
-    client_secret = os.getenv('GOOGLE_CLIENT_SECRET', '')
-    if not client_id or not client_secret:
-        return jsonify({'detail': 'Google OAuth not configured'}), 500
+    # Try using account_module's helper if available
+    _callback_helper = app.config.get("_handle_google_callback")
+    if _callback_helper:
+        token, email, err = _callback_helper(code)
+        if err:
+            return redirect('/?oauth_error=' + err)
+        resp = make_response(redirect('/?oauth_token=' + email))
+        resp.set_cookie('sm_auth_token', token, max_age=31536000, httponly=True, samesite='Lax')
+        return resp
 
-    # Exchange code for access_token
-    token_res = requests.post(
-        'https://oauth2.googleapis.com/token',
-        data={
-            'code': code,
-            'client_id': client_id,
-            'client_secret': client_secret,
-            'redirect_uri': url_for('google_callback', _external=True),
-            'grant_type': 'authorization_code',
-        },
-        timeout=15,
-    )
-    if not token_res.ok:
-        logger.error("google_token_error", extra={"status": token_res.status_code, "body": token_res.text[:200]})
-        return jsonify({'detail': 'Google token exchange failed'}), 502
+    # Fallback: inline implementation with CORRECT env var names
+    client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '')
+    client_secret = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', '')
+    redirect_uri = os.getenv('GOOGLE_OAUTH_REDIRECT_URI', '')
 
-    access_token = token_res.json().get('access_token', '')
-    if not access_token:
-        return jsonify({'detail': 'No access_token from Google'}), 502
+    if not all([client_id, client_secret, code]):
+        return redirect('/?oauth_error=google_oauth_misconfigured')
 
-    # Fetch user info
-    userinfo_res = requests.get(
-        'https://www.googleapis.com/oauth2/v2/userinfo',
-        headers={'Authorization': 'Bearer ' + access_token},
-        timeout=10,
-    )
-    if not userinfo_res.ok:
-        return jsonify({'detail': 'Failed to fetch Google user info'}), 502
+    try:
+        token_res = requests.post(
+            'https://oauth2.googleapis.com/token',
+            data={
+                'code': code,
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code',
+            },
+            timeout=15,
+        )
+        if not token_res.ok:
+            logger.error("google_token_error", extra={"status": token_res.status_code, "body": token_res.text[:200]})
+            return redirect('/?oauth_error=token_exchange_failed')
 
-    userinfo = userinfo_res.json()
-    email = userinfo.get('email', '')
-    if not email:
-        return jsonify({'detail': 'Google did not return email'}), 400
+        access_token = token_res.json().get('access_token', '')
+        if not access_token:
+            return redirect('/?oauth_error=no_access_token')
 
-    # Set auth cookie and redirect back to frontend with oauth_token
-    resp = make_response(redirect('/?oauth_token=' + email))
-    resp.set_cookie('sm_auth_token', email, max_age=31536000, httponly=True, samesite='Lax')
-    return resp
+        userinfo_res = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': 'Bearer ' + access_token},
+            timeout=10,
+        )
+        if not userinfo_res.ok:
+            return redirect('/?oauth_error=userinfo_failed')
+
+        userinfo = userinfo_res.json()
+        email = userinfo.get('email', '')
+        if not email:
+            return redirect('/?oauth_error=no_email_from_google')
+
+        # Generate JWT token for the user
+        import hashlib as _hashlib, uuid as _uuid, time as _time
+        try:
+            import jwt as _jwt
+            # Find or create user in DB
+            with get_db() as conn:
+                row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
+                if row:
+                    user_id = row["id"]
+                    conn.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user_id,))
+                else:
+                    user_id = _uuid.uuid4().hex
+                    pwd_hash = _hashlib.sha256(os.urandom(24).hex().encode()).hexdigest()
+                    google_sub = userinfo.get("id", "")
+                    conn.execute("INSERT INTO users (id,email,password_hash,google_sub) VALUES(?,?,?,?)",
+                                 (user_id, email, pwd_hash, google_sub))
+            jwt_token = _jwt.encode({
+                "sub": user_id, "email": email,
+                "iat": int(_time.time()),
+                "exp": int(_time.time()) + 8760*3600,
+            }, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithm="HS256")
+        except Exception as e:
+            logger.error("google_jwt_error", extra={"err": str(e)})
+            jwt_token = email  # fallback: use raw email as token
+
+        resp = make_response(redirect('/?oauth_token=' + jwt_token))
+        resp.set_cookie('sm_auth_token', jwt_token, max_age=31536000, httponly=True, samesite='Lax')
+        return resp
+    except Exception as e:
+        logger.error("google_callback_error", extra={"err": str(e)})
+        return redirect('/?oauth_error=internal_error')
 
 
 if __name__ == '__main__':
