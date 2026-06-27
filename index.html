@@ -520,17 +520,19 @@
                 </div>
                 <!-- Step 4: Complete Reading + Save/Share -->
                 <div id="tarot-result" class="hidden">
-                    <div id="tarot-complete-reading" class="mt-6 pt-6 border-t border-white/10"></div>
-                    <div class="flex flex-wrap gap-3 justify-center mt-6">
-                        <button onclick="saveTarotToJournal()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">💾 Save to Journal</button>
-                        <button onclick="shareTarotReading()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">📤 Share Image</button>
-                        <button onclick="downloadTarotReading()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">📄 Download</button>
+                    <div id="tarot-complete-reading" class="mt-6"></div>
+                    <div class="flex flex-wrap gap-3 justify-center mt-8">
+                        <button onclick="saveTarotToJournal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg> <span id="t-tarot-save">Save to Journal</span></button>
+                        <button onclick="shareTarotReading()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg> <span id="t-tarot-share">Share</span></button>
+                        <button onclick="downloadTarotReading()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[9px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> <span id="t-tarot-download">Download</span></button>
                     </div>
-                    <div id="tarot-upsell" class="hidden mt-6 pt-6 border-t border-white/10">
-                        <p class="text-[10px] text-gray-500 mb-3" id="t-tarot-upsell">Want to see how this connects to your dreams? Unlock the full report.</p>
-                        <button onclick="scrollToSection('pricing')" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-upsell-btn">See Plans</button>
+                    <div id="tarot-upsell" class="hidden mt-8 pt-6 border-t border-white/10 text-center">
+                        <p class="text-[10px] text-gray-500 mb-4" id="t-tarot-upsell">Want to see how this connects to your dreams? Unlock the full report.</p>
+                        <button onclick="scrollToSection('pricing')" class="px-8 py-3 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-upsell-btn">See Plans</button>
                     </div>
-                    <button onclick="resetTarotFlow()" class="mt-4 text-[9px] uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-all">↻ New Reading</button>
+                    <div class="text-center mt-6">
+                        <button onclick="resetTarotFlow()" class="inline-flex items-center gap-2 text-[9px] uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-all"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span id="t-tarot-new">New Reading</span></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2851,16 +2853,19 @@
             var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
             var topic = _tarotState.topic || (isZh ? '你的个人成长' : 'your personal growth');
 
-            // Build card images row (3 cards side by side)
-            var cardImgHtml = '<div class="flex flex-wrap justify-center gap-4 md:gap-6 mb-6">';
+            // Build card images row — larger, with decorative glow
+            var cardImgHtml = '<div class="flex flex-wrap justify-center gap-6 md:gap-10 py-4">';
             for (var i = 0; i < 3; i++) {
                 var di = _tarotState.drawn[i];
                 var fn = String(di).padStart(2, '0') + '-' + tarotCards[di].en.toLowerCase().replace(/^the /, '').replace(/\s+/g, '-') + '.png';
                 var name = isZh ? tarotCards[di].zh : tarotCards[di].en;
-                cardImgHtml += '<div class="flex flex-col items-center" style="width:100px;">' +
-                    '<div class="text-[9px] uppercase tracking-widest text-amber-400/60 mb-2 text-center">' + posLabels[i] + '</div>' +
-                    '<img src="/static/tarot/' + fn + '" alt="' + name + '" class="w-full rounded-lg shadow-lg" style="border:1px solid rgba(255,255,255,0.1);aspect-ratio:2/3;object-fit:cover;" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + fn + '\';">' +
-                    '<div class="text-[10px] text-white/70 mt-1.5 text-center font-medium">' + name + '</div>' +
+                cardImgHtml += '<div class="flex flex-col items-center" style="width:120px;">' +
+                    '<div class="text-[9px] uppercase tracking-[0.2em] text-amber-400/50 mb-2 text-center font-semibold">' + posLabels[i] + '</div>' +
+                    '<div class="relative" style="width:110px;height:165px;">' +
+                        '<div class="absolute inset-0 bg-accent/10 rounded-xl blur-lg opacity-50" style="transform:translateY(4px) scale(0.95);"></div>' +
+                        '<img src="/static/tarot/' + fn + '" alt="' + name + '" class="relative w-full h-full rounded-xl shadow-lg" style="border:1.5px solid rgba(255,255,255,0.12);object-fit:cover;" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + fn + '\';">' +
+                    '</div>' +
+                    '<div class="text-xs text-white/80 mt-2 text-center font-medium">' + name + '</div>' +
                 '</div>';
             }
             cardImgHtml += '</div>';
@@ -2871,18 +2876,35 @@
             _tarotState.dailyCount++;
             localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
 
-            // Show card images + loading immediately
+            // Build the full report with glass-card styling (matching dream report)
             var completeEl = document.getElementById('tarot-complete-reading');
             if (completeEl) {
-                completeEl.innerHTML = '<div>' +
-                    '<h4 class="text-sm font-display italic text-amber-300 mb-4">' + (isZh ? '🃏 塔罗完整解读' : '🃏 Complete Tarot Reading') + '</h4>' +
-                    cardImgHtml +
-                    '<div id="tarot-ai-loading" class="text-center py-8">' +
-                        '<div class="inline-block w-6 h-6 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin mb-3"></div>' +
-                        '<p class="text-xs text-gray-500">' + (isZh ? 'AI 正在解读牌阵...' : 'AI is interpreting your spread...') + '</p>' +
-                    '</div>' +
-                    '<div id="tarot-ai-reading" class="hidden text-xs text-gray-200 leading-relaxed space-y-3"></div>' +
-                '</div>';
+                var topicLabel = isZh ? '问题' : 'Topic';
+                var reportHtml =
+                    '<div class="glass-card px-6 py-8 md:px-8 md:py-10 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">' +
+                        // Header with icon
+                        '<div class="flex items-center gap-3 mb-6">' +
+                            '<span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="none" stroke="#fbbf24" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span>' +
+                            '<h4 class="text-base text-white/80 font-semibold">' + (isZh ? '塔罗完整解读' : 'Complete Tarot Reading') + '</h4>' +
+                        '</div>' +
+                        // Topic badge
+                        '<div class="mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">' +
+                            '<span class="text-[9px] uppercase tracking-widest text-gray-500">' + topicLabel + '</span>' +
+                            '<span class="text-xs text-gray-300">' + topic.replace(/<[^>]*>/g, '') + '</span>' +
+                        '</div>' +
+                        // Card images
+                        cardImgHtml +
+                        // Divider
+                        '<div class="border-t border-white/5 my-6"></div>' +
+                        // Loading state
+                        '<div id="tarot-ai-loading" class="text-center py-12">' +
+                            '<div class="inline-block w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mb-4"></div>' +
+                            '<p class="text-[10px] uppercase tracking-widest text-gray-500">' + (isZh ? 'AI 正在解读牌阵...' : 'AI is interpreting your spread...') + '</p>' +
+                        '</div>' +
+                        // AI reading content
+                        '<div id="tarot-ai-reading" class="hidden text-sm text-gray-200 font-light leading-relaxed space-y-4"></div>' +
+                    '</div>';
+                completeEl.innerHTML = reportHtml;
                 completeEl.classList.remove('hidden');
             }
             document.getElementById('tarot-spread').classList.add('hidden');
@@ -2904,12 +2926,37 @@
                 })
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.reading) {
-                    // Parse bold markers and convert to HTML
-                    var readingHtml = data.reading.replace(/\*\*(.+?)\*\*/g, '<strong class="text-amber-300/90 font-semibold">$1</strong>')
-                        .replace(/\n\n/g, '</p><p class="text-xs text-gray-200 leading-relaxed">')
-                        .replace(/\n/g, '<br>');
+                    // Parse AI reading into rich HTML with sections
+                    var text = data.reading;
+                    // Escape HTML
+                    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    // Convert **bold** headers
+                    text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90 font-medium">$1</strong>');
+                    // Split by double newlines into sections
+                    var sections = text.split(/\n\s*\n/);
+                    var readingHtml = sections.map(function(sec) {
+                        sec = sec.trim();
+                        if (!sec) return '';
+                        sec = sec.replace(/\n/g, '<br>');
+                        // Check if section starts with a bold-marked header
+                        if (sec.match(/^<strong/)) {
+                            // Section with a header — wrap in a card-like div
+                            var parts = sec.split(/<\/strong>/);
+                            var header = parts[0] + '</strong>';
+                            var body = parts.slice(1).join('</strong>');
+                            return '<div class="pl-4 border-l-2 border-accent/30 py-1 mb-4">' +
+                                '<div class="text-xs leading-relaxed text-gray-200">' + header + '</div>' +
+                                '<div class="text-sm leading-relaxed text-gray-300 mt-1">' + body + '</div>' +
+                            '</div>';
+                        }
+                        // Has bullet points
+                        if (sec.match(/^[•·\-*]\s/)) {
+                            return '<div class="text-sm text-gray-300 leading-relaxed mb-4 pl-4 border-l-2 border-accent/30">' + sec.replace(/^[•·\-*]\s*/gm, '').replace(/\n/g, '<br>') + '</div>';
+                        }
+                        return '<p class="text-sm text-gray-300 leading-relaxed mb-4">' + sec + '</p>';
+                    }).join('');
                     if (readingEl) {
-                        readingEl.innerHTML = '<p class="text-xs text-gray-200 leading-relaxed">' + readingHtml + '</p>';
+                        readingEl.innerHTML = readingHtml;
                         readingEl.classList.remove('hidden');
                     }
                 } else {
@@ -2923,10 +2970,10 @@
                         var di = _tarotState.drawn[i];
                         var name = isZh ? tarotCards[di].zh : tarotCards[di].en;
                         var meaning = isZh ? (_tarotMeanings[di] || '深刻洞察') : (_tarotMeaningsEn[di] || 'Deep insight');
-                        var fallbackPosMeanings = isZh ? [
-                            '过去的影响：', '当下的课题：', '未来的方向：'
-                        ] : ['Past influence: ', 'Present focus: ', 'Future direction: '];
-                        fallbackHtml += '<div class="mb-3"><span class="text-[10px] uppercase tracking-widest text-amber-400/70 font-semibold">' + posLabels[i] + '</span> <span class="text-xs text-white/80 font-medium">' + name + '</span><p class="text-xs text-gray-400 leading-relaxed mt-1">' + meaning + '</p></div>';
+                        fallbackHtml += '<div class="pl-4 border-l-2 border-accent/30 mb-3">' +
+                            '<span class="text-[10px] uppercase tracking-widest text-amber-400/70 font-semibold">' + posLabels[i] + '</span>' +
+                            ' <span class="text-sm text-white/80 font-medium">' + name + '</span>' +
+                            '<p class="text-sm text-gray-400 leading-relaxed mt-1">' + meaning + '</p></div>';
                     }
                     readingEl.innerHTML = fallbackHtml;
                     readingEl.classList.remove('hidden');
