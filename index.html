@@ -102,6 +102,7 @@
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#interpret" id="t-nav-interpret">Interpretation</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#symbols" id="t-nav-symbols">Symbols</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#features" id="t-nav-features">Celestial</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#journal" id="t-nav-journal">Journal</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#pricing" id="t-nav-pricing">Pricing</a>
             </div>
 
@@ -517,50 +518,6 @@
             </div>
     </section>
 
-    <!-- ===== FAQ Section ===== -->
-    <section id="faq" class="py-32 px-6 max-w-4xl mx-auto relative z-10 border-t border-white/5">
-        <div class="text-center mb-16 reveal-on-scroll">
-            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold">FAQ</span>
-            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-faq-title">Frequently Asked <span class="accent-gradient">Questions</span></h2>
-        </div>
-        <div class="space-y-4 reveal-on-scroll" id="faq-container">
-            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q1">How does the AI dream analysis work?</h3>
-                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a1">Our AI analyzes your dream narrative for archetypal patterns, symbols, and emotional themes, combining Jungian psychology with Eastern wisdom traditions.</div>
-            </div>
-            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q2">What is the free tarot reading?</h3>
-                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Upgrade for unlimited readings.</div>
-            </div>
-            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q3">What payment methods do you accept?</h3>
-                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a3">We accept PayPal (credit/debit cards) and USDT crypto via NOWPayments.</div>
-            </div>
-            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q4">Is my data private?</h3>
-                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a4">We do not store your dreams. Sessions are ephemeral. Payment data is handled securely by PayPal and NOWPayments.</div>
-            </div>
-            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q5">Can I export my report?</h3>
-                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be saved as a standalone HTML file or emailed to you.</div>
-            </div>
-        </div>
-    </section>
 
     <!-- ===== Free Tarot: Three-Card Spread ===== -->
     <section id="free-tarot" class="py-32 px-6 relative border-t border-white/5 bg-void-black/20">
@@ -750,44 +707,70 @@
 
 
     <!-- ===== Journal Section (移除旧 Archive，保留占位容器) ===== -->
-    <section id="journal" class="hidden"></section>
+    <section id="journal" class="py-32 px-6 max-w-5xl mx-auto relative z-10 border-t border-white/5">
+        <div class="text-center mb-16 reveal-on-scroll">
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-journal-eyebrow">DREAM JOURNAL</span>
+            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-journal-title">Your <span class="text-amber-400/80">Dream</span> Archive</h2>
+            <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-journal-desc">Every dream decoded, every insight saved. Your personal journey through the subconscious.</p>
+        </div>
+        <!-- Journal Entries -->
+        <div id="journal-entries" class="space-y-4"></div>
+        <!-- Empty State -->
+        <div id="journal-empty" class="text-center py-16 glass-card rounded-2xl">
+            <div class="text-5xl mb-4 opacity-20">📖</div>
+            <p class="text-gray-500 text-sm" id="t-journal-empty">No dreams saved yet. Complete a reading and save it here.</p>
+        </div>
+    </section>
 
     <!-- Pricing Section -->
     <section id="pricing" class="relative py-32 px-6 border-t border-white/5 bg-bg">
         <div class="max-w-6xl mx-auto text-center">
             <h2 class="text-4xl md:text-5xl font-display italic text-white mb-6" id="t-pricing-title">Invest in your <span class="accent-gradient">self</span></h2>
-            <p class="text-gray-500 text-xs uppercase tracking-widest mb-24" id="t-pricing-sub">Choose your path to enlightenment</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="glass-card p-12 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-6" id="t-tier1-name">The Spark</span>
-                    <div class="text-5xl font-display italic mb-8">$4.99</div>
-                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
-                        <li id="t-tier1-f1">1 Deep Interpretation</li>
-                        <li id="t-tier1-f2">Eastern Wisdom Alignment</li>
-                        <li id="t-tier1-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
+            <p class="text-gray-500 text-xs uppercase tracking-widest mb-16" id="t-pricing-sub">Choose your path to enlightenment</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Free Tier -->
+                <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier0-name">Free</span>
+                    <div class="text-4xl font-display italic mb-6">$0</div>
+                    <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
+                        <li id="t-tier0-f1">1 Tarot Reading / Day</li>
+                        <li id="t-tier0-f2">Basic Symbol Lookup</li>
                     </ul>
-                    <div id="paypal-4-99"><button onclick="SMAuth.showPaymentPrompt('spark','The Spark',4.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
+                    <button onclick="document.getElementById('free-tarot').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier0-cta">Try Free</button>
                 </div>
-                <div class="glass-card p-12 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
-                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Most Popular</div>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-6" id="t-tier2-name">The Seeker</span>
-                    <div class="text-5xl font-display italic mb-8">$12.99</div>
-                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
-                        <li id="t-tier2-f1">5 Deep Interpretations</li>
-                        <li id="t-tier2-f2">Personalized Destiny Map</li>
-                        <li id="t-tier2-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Powered by DeepSeek-R1</li>
+                <!-- Single Report -->
+                <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier1-name">Single Report</span>
+                    <div class="text-4xl font-display italic mb-6">$1.99</div>
+                    <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
+                        <li id="t-tier1-f1">1 Complete Dream Report</li>
+                        <li id="t-tier1-f2">Tarot Card Included</li>
+                        <li id="t-tier1-f3">No Save / Export</li>
                     </ul>
-                    <div id="paypal-12-99"><button onclick="SMAuth.showPaymentPrompt('seeker','The Seeker',12.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
+                    <button onclick="SMAuth.showPaymentPrompt('single','Single Report',1.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier1-cta">Buy Now</button>
                 </div>
-                <div class="glass-card p-12 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-6" id="t-tier3-name">The Oracle</span>
-                    <div class="text-5xl font-display italic mb-8">$29.99</div>
-                    <ul class="text-gray-400 text-sm space-y-4 mb-12">
-                        <li id="t-tier3-f1">Unlimited Monthly Access</li>
-                        <li id="t-tier3-f2">DeepSeek R1 High-Priority</li>
-                        <li id="t-tier3-f3" class="text-accent text-[9px] uppercase tracking-widest font-bold">Nous Hermes 3 Integration</li>
+                <!-- 3 Reports (Best Value) -->
+                <div class="glass-card p-8 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
+                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Best Value</div>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4" id="t-tier2-name">Starter Pack</span>
+                    <div class="text-4xl font-display italic mb-6">$4.99</div>
+                    <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
+                        <li id="t-tier2-f1">3 Complete Reports</li>
+                        <li id="t-tier2-f2">Save &amp; Export</li>
+                        <li id="t-tier2-f3">Dream Journal Access</li>
                     </ul>
-                    <div id="paypal-29-99"><button onclick="SMAuth.showPaymentPrompt('oracle','The Oracle',29.99)" class="px-8 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button></div>
+                    <div id="paypal-4-99"><button onclick="SMAuth.showPaymentPrompt('starter','Starter Pack',4.99)" class="px-8 py-3 bg-accent text-bg rounded-lg text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all w-full">Buy Now</button></div>
+                </div>
+                <!-- Monthly Unlimited -->
+                <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier3-name">Unlimited</span>
+                    <div class="text-4xl font-display italic mb-6">$9.99<span class="text-sm text-gray-500">/mo</span></div>
+                    <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
+                        <li id="t-tier3-f1">Unlimited Reports</li>
+                        <li id="t-tier3-f2">Priority Processing</li>
+                        <li id="t-tier3-f3">All Features Unlocked</li>
+                    </ul>
+                    <button onclick="SMAuth.showPaymentPrompt('unlimited','Unlimited Monthly',9.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier3-cta">Subscribe</button>
                 </div>
             </div>
         </div>
@@ -825,6 +808,50 @@
         </div>
     </div>
 
+    <!-- ===== FAQ Section ===== -->
+    <section id="faq" class="py-32 px-6 max-w-4xl mx-auto relative z-10 border-t border-white/5">
+        <div class="text-center mb-16 reveal-on-scroll">
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold">FAQ</span>
+            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-faq-title">Frequently Asked <span class="accent-gradient">Questions</span></h2>
+        </div>
+        <div class="space-y-4 reveal-on-scroll" id="faq-container">
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q1">How does the AI dream analysis work?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a1">Our AI analyzes your dream narrative for archetypal patterns, symbols, and emotional themes, combining Jungian psychology with Eastern wisdom traditions.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q2">What is the free tarot reading?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Upgrade for unlimited readings.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q3">What payment methods do you accept?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a3">We accept PayPal (credit/debit cards) and USDT crypto via NOWPayments.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q4">Is my data private?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a4">We do not store your dreams. Sessions are ephemeral. Payment data is handled securely by PayPal and NOWPayments.</div>
+            </div>
+            <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm text-white/80 font-medium" id="t-faq-q5">Can I export my report?</h3>
+                    <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be saved as a standalone HTML file or emailed to you.</div>
+            </div>
+        </div>
+    </section>
     <footer class="py-24 text-center bg-bg border-t border-white/5">
         <div class="flex justify-center gap-12 mb-16 text-[11px] uppercase tracking-[0.4em] text-gray-400 font-bold">
             <button onclick="openModal('terms')" id="t-footer-terms">USAGE TERMS</button>
@@ -2786,6 +2813,7 @@
             renderLanguage();
             initReferral();
             checkReferralStatus();
+            renderJournal();
 
             // --- Voice button: addEventListener (more reliable than inline handlers) ---
             const voiceBtn = document.getElementById('t-voice-btn');
