@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=16">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=17">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=7"></script>
@@ -1312,10 +1312,23 @@
             // 初始更新
             setTimeout(updateDepthIndicator, 500);
         });
-        // 滑块变化时更新（仅剩清醒程度滑块，标记交互）
+        // 滑块变化时更新（仅剩清醒程度滑块，标记交互 + 实时更新标签文字）
         document.querySelectorAll('input[type="range"][data-label]').forEach(slider => {
             slider.addEventListener('input', () => {
                 lucidityInteracted = true;
+                // 将滑块值映射到 data-labels 中的文字，更新对应 label
+                const labelId = slider.dataset.label;
+                const labelEl = document.getElementById(labelId);
+                if (labelEl) {
+                    try {
+                        const labels = JSON.parse(slider.dataset.labels || '[]');
+                        if (labels.length > 0) {
+                            const val = parseInt(slider.value) || 3;
+                            const seg = Math.floor((val - 1) / 2);  // 1-10 → 0-4
+                            labelEl.textContent = labels[Math.min(seg, labels.length - 1)];
+                        }
+                    } catch (e) { console.warn('[Slider] label parse error', e); }
+                }
                 setTimeout(updateDepthIndicator, 50);
             });
         });
@@ -1645,6 +1658,11 @@
                         }
 
                         gsap.fromTo("#report-view-inline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+
+                        // Auto-save to Dream Journal after report renders
+                        setTimeout(() => {
+                            try { saveToJournal(); } catch(e) { console.warn('[Journal] save failed', e); }
+                        }, 800);
                     }, 3000);
                 }
             } catch (err) {

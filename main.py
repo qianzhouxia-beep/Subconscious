@@ -1883,6 +1883,77 @@ def tarot_wallpaper():
         return _cors(jsonify({"error": "Failed to generate wallpaper"}), 500)
 
 
+# ── Google OAuth ───────────────────────────────────────
+from urllib.parse import urlencode as _urlenc
+
+@app.route('/api/auth/social/<provider>')
+def social_login(provider):
+    if provider == 'google':
+        client_id = os.getenv('GOOGLE_CLIENT_ID')
+        if not client_id:
+            return jsonify({'detail': 'Google OAuth not configured'}), 500
+        redirect_uri = url_for('google_callback', _external=True)
+        auth_url = 'https://accounts.google.com/o/oauth2/v2/auth?' + _urlenc({
+            'client_id': client_id,
+            'redirect_uri': redirect_uri,
+            'response_type': 'code',
+            'scope': 'openid email profile',
+        })
+        return jsonify({'auth_url': auth_url})
+    else:
+        return jsonify({'detail': provider + ' login is being configured. Please use email.'}), 501
+
+@app.route('/api/auth/google/callback')
+def google_callback():
+    code = request.args.get('code', '')
+    if not code:
+        return jsonify({'detail': 'Authorization code missing'}), 400
+
+    client_id = os.getenv('GOOGLE_CLIENT_ID', '')
+    client_secret = os.getenv('GOOGLE_CLIENT_SECRET', '')
+    if not client_id or not client_secret:
+        return jsonify({'detail': 'Google OAuth not configured'}), 500
+
+    # Exchange code for access_token
+    token_res = requests.post(
+        'https://oauth2.googleapis.com/token',
+        data={
+            'code': code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': url_for('google_callback', _external=True),
+            'grant_type': 'authorization_code',
+        },
+        timeout=15,
+    )
+    if not token_res.ok:
+        logger.error("google_token_error", extra={"status": token_res.status_code, "body": token_res.text[:200]})
+        return jsonify({'detail': 'Google token exchange failed'}), 502
+
+    access_token = token_res.json().get('access_token', '')
+    if not access_token:
+        return jsonify({'detail': 'No access_token from Google'}), 502
+
+    # Fetch user info
+    userinfo_res = requests.get(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        headers={'Authorization': 'Bearer ' + access_token},
+        timeout=10,
+    )
+    if not userinfo_res.ok:
+        return jsonify({'detail': 'Failed to fetch Google user info'}), 502
+
+    userinfo = userinfo_res.json()
+    email = userinfo.get('email', '')
+    if not email:
+        return jsonify({'detail': 'Google did not return email'}), 400
+
+    # Set auth cookie and redirect back to frontend with oauth_token
+    resp = make_response(redirect('/?oauth_token=' + email))
+    resp.set_cookie('sm_auth_token', email, max_age=31536000, httponly=True, samesite='Lax')
+    return resp
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
     # 生产环境严禁开启 debug=True（会导致内存泄漏和任意代码执行风险）
