@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.db
+*.sqlite
+*.log
+.env
+node_modules/
+
+# Backup directories
+*-backup-*/
+backup_*/
+deploy-temp/
+
+# Model files (too large)
+models/
+*.pt
+*.bin
+
+# Test files
+test_*.py
+*_test.py
+
+# Additional excludes
+.workbuddy/
+test-output/
+*-backup-*/
+*.zip
+*.fixed-backup
+*_backup.*
+run_test.bat
+fix_*.py
+voice_*.py
+

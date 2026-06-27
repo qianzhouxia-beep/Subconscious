@@ -1,0 +1,25 @@
+        const tarotCards = [
+            { en: 'The Fool', zh: '愚者' },
+            { en: 'The Magician', zh: '魔术师' },
+            { en: 'The High Priestess', zh: '女祭司' },
+            { en: 'The Empress', zh: '女皇' },
+            { en: 'The Emperor', zh: '皇帝' },
+            { en: 'The Hierophant', zh: '教皇' },
+            { en: 'The Lovers', zh: '恋人' },
+            { en: 'The Chariot', zh: '战车' },
+            { en: 'Strength', zh: '力量' },
+            { en: 'The Hermit', zh: '隐者' },
+            { en: 'Wheel of Fortune', zh: '命运之轮' },
+            { en: 'Justice', zh: '正义' },
+            { en: 'The Hanged Man', zh: '倒吊人' },
+            { en: 'Death', zh: '死神' },
+            { en: 'Temperance', zh: '节制' },
+            { en: 'The Devil', zh: '恶魔' },
+            { en: 'The Tower', zh: '高塔' },
+            { en: 'The Star', zh: '星星' },
+            { en: 'The Moon', zh: '月亮' },
+            { en: 'The Sun', zh: '太阳' },
+            { en: 'Judgement', zh: '审判' },
+            { en: 'The World', zh: '世界' }
+        ];
+

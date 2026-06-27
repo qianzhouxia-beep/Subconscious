@@ -1,0 +1,995 @@
+/* ============================================================
+   Subconscious Mirror — Dream Purple Design System v2.0
+   Based on DESIGN.md — Deep Space + Frosted Glass + Dream Purple
+   Colors: #7c5cff (dream purple) / #0a0a12 (deep space) / #111122 (card bg)
+   Core: glass morphism + purple glow + stellar atmosphere
+   Preserved: elliptical vortex canvas, particles, cursor glow (enhanced)
+   ============================================================ */
+
+/* ---- Scroll & Base ---- */
+html { scroll-behavior: smooth; scroll-padding-top: 100px; }
+
+body {
+    background-color: #0a0a12;
+    color: rgba(255, 255, 255, 0.85);
+    overflow-x: hidden;
+    transition: background-color 0.5s ease;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ---- Accent Gradient (recolored to purple) ---- */
+.accent-gradient {
+    background: linear-gradient(135deg, #9b7fff 0%, #7c5cff 50%, #5a3fd9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ---- Video Overlay ---- */
+.video-overlay {
+    background: radial-gradient(circle at center, rgba(10, 10, 18, 0) 0%, rgba(10, 10, 18, 0.88) 100%);
+}
+
+/* ---- Nebula Background (purple-tinted) ---- */
+#nebula-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 50% 40%, rgba(124, 92, 255, 0.08) 0%, #0a0a12 100%);
+    pointer-events: none; z-index: -1; transition: background 0.3s ease;
+}
+
+/* ---- Particle Canvas ---- */
+canvas#particleCanvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; opacity: 0.7;
+}
+
+/* ---- Hero Vortex Canvas ---- */
+canvas#hero-vortex {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 15; opacity: 0.85;
+}
+
+/* ---- Cursor Glow (purple) ---- */
+#cursor-glow {
+    pointer-events: none; position: fixed; top: 0; left: 0;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.05) 0%, transparent 70%);
+    transform: translate(-50%, -50%); z-index: -1;
+}
+
+/* ============================================================
+   FROSTED GLASS CARDS (核心毛玻璃组件)
+   ============================================================ */
+.glass-card {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.20),
+        0 1px 4px rgba(0, 0, 0, 0.10);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glass-card.overflow-visible {
+    overflow: visible !important;
+}
+
+/* Top edge highlight (purple shimmer) */
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124, 92, 255, 0.25), transparent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(124, 92, 255, 0.15);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        0 0 40px rgba(124, 92, 255, 0.06);
+    transform: translateY(-4px);
+}
+
+.glass-card:hover::before {
+    opacity: 1;
+}
+
+/* Icon container hover effect */
+.glass-card .icon-container {
+    position: relative;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glass-card:hover .icon-container {
+    transform: scale(1.1) rotate(3deg);
+}
+
+.glass-card .icon-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(124, 92, 255, 0.2), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.5s ease;
+}
+
+.glass-card:hover .icon-container::after {
+    width: 80px;
+    height: 80px;
+}
+
+/* Floating decorative number on cards */
+.glass-card .card-number {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-family: 'Playfair Display', 'Georgia', serif;
+    font-size: 3rem;
+    font-weight: 300;
+    color: rgba(124, 92, 255, 0.06);
+    line-height: 1;
+    transition: all 0.5s ease;
+}
+
+.glass-card:hover .card-number {
+    color: rgba(124, 92, 255, 0.12);
+    transform: translateX(-5px);
+}
+
+/* Floating particle dots inside cards */
+.glass-card .particle-dot {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(124, 92, 255, 0.25);
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.5s ease;
+}
+
+.glass-card:hover .particle-dot {
+    opacity: 1;
+}
+
+.glass-card .particle-dot:nth-child(1) { top: 20%; left: 10%; animation: float 3s ease-in-out infinite; }
+.glass-card .particle-dot:nth-child(2) { top: 60%; right: 15%; animation: float 4s ease-in-out infinite 1s; }
+.glass-card .particle-dot:nth-child(3) { bottom: 30%; left: 20%; animation: float 3.5s ease-in-out infinite 0.5s; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+/* ---- Feature Titles (purple gradient) ---- */
+.feature-title {
+    background: linear-gradient(135deg, #f5f5f5 0%, #9b7fff 50%, #7c5cff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.5s ease;
+}
+
+.glass-card:hover .feature-title {
+    letter-spacing: 1px;
+}
+
+.glass-card .feature-tag {
+    transition: all 0.3s ease;
+}
+
+.glass-card:hover .feature-tag {
+    opacity: 1 !important;
+}
+
+/* Features section card hover (enhanced) */
+#features .glass-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 80px rgba(124, 92, 255, 0.08),
+        inset 0 0 40px rgba(124, 92, 255, 0.02);
+}
+
+/* ============================================================
+   HERO: 3D TAROT CARD + ORB + ENTRY BUTTONS
+   ============================================================ */
+
+/* ── 3D Tarot Card ── */
+.tarot-3d-container {
+    perspective: 1200px;
+    width: 180px;
+    height: 270px;
+    position: relative;
+}
+
+.tarot-3d-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: cardSpin 12s ease-in-out infinite;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tarot-3d-card:hover {
+    animation-play-state: paused;
+    transform: perspective(1000px) rotateY(0deg) scale(1.05);
+}
+
+.tarot-3d-card .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    box-shadow: 0 15px 50px rgba(124,92,255,0.15),
+                0 0 80px rgba(124,92,255,0.05),
+                inset 0 0 40px rgba(124,92,255,0.03);
+}
+
+.tarot-3d-card .card-front {
+    background: #111122;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tarot-3d-card .card-front .card-border {
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(124,92,255,0.2);
+    border-radius: 12px;
+    background: transparent;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.tarot-3d-card .card-front .tarot-real-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    z-index: 1;
+}
+
+.tarot-3d-card .card-front .card-label {
+    position: absolute;
+    bottom: 12px;
+    z-index: 4;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 2px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+.tarot-3d-card .card-front .moon-symbol {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd54f, #b8860b);
+    box-shadow: 0 0 30px rgba(255,213,79,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.tarot-3d-card .card-front .card-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #9b7fff, #ffd54f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tarot-3d-card .card-front .card-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.tarot-3d-card .card-back {
+    transform: rotateY(180deg);
+    overflow: hidden;
+}
+
+.tarot-3d-card .card-back .card-back-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+@keyframes cardSpin {
+    0%, 100% { transform: perspective(1000px) rotateY(-15deg) rotateX(5deg); }
+    25% { transform: perspective(1000px) rotateY(15deg) rotateX(-5deg); }
+    50% { transform: perspective(1000px) rotateY(-15deg) rotateX(-5deg); }
+    75% { transform: perspective(1000px) rotateY(15deg) rotateX(5deg); }
+}
+
+@keyframes spinSlow {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Entry Buttons ── */
+.entry-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.entry-btn::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(124,92,255,0.3), transparent, rgba(255,213,79,0.2));
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -1;
+}
+
+.entry-btn:hover::after { opacity: 1; }
+.entry-btn:hover { transform: translateY(-2px); }
+
+/* ── Scroll Indicator ── */
+.scroll-indicator {
+    position: absolute;
+    bottom: 16px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 25;
+    pointer-events: none;
+}
+
+.scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(124,92,255,0.5), transparent);
+    animation: scrollLine 2s ease-in-out infinite;
+}
+
+@keyframes scrollLine {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+/* ── Glow Text ── */
+.glow-text {
+    text-shadow: 0 0 40px rgba(124,92,255,0.3);
+}
+
+/* ── Reveal Animation ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Responsive: 3D tarot ── */
+@media (max-width: 768px) {
+    .tarot-3d-container {
+        width: 120px;
+        height: 180px;
+    }
+    .tarot-3d-card .card-front .moon-symbol {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    .tarot-3d-card .card-front .card-number {
+        font-size: 26px;
+    }
+    .scroll-indicator {
+        bottom: 24px;
+    }
+}
+
+/* ============================================================
+   FEATURE CARDS (参考设计 — 6列网格)
+   ============================================================ */
+.feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 32px 28px;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,92,255,0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.feature-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(124,92,255,0.2);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(124,92,255,0.06);
+}
+
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card .icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background: rgba(124,92,255,0.1);
+    border: 1px solid rgba(124,92,255,0.15);
+    transition: all 0.3s;
+}
+
+.feature-card:hover .icon-wrapper {
+    background: rgba(124,92,255,0.2);
+    border-color: rgba(124,92,255,0.3);
+    box-shadow: 0 0 20px rgba(124,92,255,0.1);
+}
+
+/* ============================================================
+   PULSING 3D ORB (保留原动画，增强紫色光晕)
+   ============================================================ */
+.pulsing-orb {
+    width: 60px; height: 60px;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #7c5cff 60%, #5a3fd9 100%);
+    box-shadow: 0 0 20px rgba(124, 92, 255, 0.4);
+    animation: breathe 4s ease-in-out infinite;
+}
+
+.pulsing-orb:hover {
+    box-shadow: 0 0 50px rgba(124, 92, 255, 0.6);
+}
+
+@keyframes breathe {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.85;
+        box-shadow: 0 0 20px rgba(124, 92, 255, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+        box-shadow: 0 0 40px rgba(124, 92, 255, 0.5);
+    }
+}
+
+/* ============================================================
+   INPUT GLOW CARD
+   ============================================================ */
+.input-glow-card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(124, 92, 255, 0.12);
+    transition: all 0.4s ease;
+    border-radius: 14px;
+}
+
+.input-glow-card:focus-within {
+    border-color: #7c5cff;
+    box-shadow: 0 0 20px rgba(124, 92, 255, 0.15);
+}
+
+/* ---- AI Quote Glow ---- */
+.ai-quote-glow {
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #c5bfff 60%, #a89bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ---- Temporal Line (purple) ---- */
+.temporal-line {
+    background: linear-gradient(to bottom, transparent, rgba(124, 92, 255, 0.3), rgba(124, 92, 255, 0.6));
+}
+
+/* ---- Range Slider ----- */
+input[type="range"] { -webkit-appearance: none; appearance: none; }
+
+/* ---- Nav Pill ---- */
+.nav-pill {
+    backdrop-filter: blur(16px);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+/* ---- Typing Dots (purple) ---- */
+.typing-dot {
+    width: 6px; height: 6px;
+    background: #7c5cff;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: blink 1.4s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ---- Voice Recording ---- */
+@keyframes mic-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.voice-recording {
+    color: #ff6b6b !important;
+    border-color: rgba(255, 107, 107, 0.4) !important;
+    animation: mic-pulse 1.2s ease-in-out infinite;
+}
+.voice-recording svg {
+    filter: drop-shadow(0 0 6px rgba(255, 107, 107, 0.5));
+}
+
+@keyframes voicePulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.animate-spin { animation: spin 0.8s linear infinite; }
+
+/* ---- Blur Transition ---- */
+.blurred {
+    filter: blur(18px);
+    opacity: 0.2;
+    pointer-events: none;
+    transition: all 1.5s ease-in-out;
+}
+
+.paypal-sdk-container { min-height: 48px; }
+
+.unblurred {
+    filter: blur(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ---- Scrollbar (purple tint) ---- */
+.custom-scrollbar::-webkit-scrollbar,
+.scrollbar-lucent::-webkit-scrollbar { width: 5px; }
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.scrollbar-lucent::-webkit-scrollbar-track { background: transparent; }
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.scrollbar-lucent::-webkit-scrollbar-thumb {
+    background: rgba(124, 92, 255, 0.2);
+    border-radius: 10px;
+    border: 1px solid rgba(124, 92, 255, 0.08);
+    transition: background 0.3s;
+}
+
+.scrollbar-lucent::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 92, 255, 0.4);
+}
+
+/* ---- Environment Pill ---- */
+.env-pill.active {
+    border-color: rgba(124, 92, 255, 0.4) !important;
+    color: #9b7fff !important;
+    background: rgba(124, 92, 255, 0.1) !important;
+}
+
+.env-pill:hover {
+    border-color: rgba(124, 92, 255, 0.25) !important;
+    color: rgba(124, 92, 255, 0.8) !important;
+}
+
+/* ---- Depth Indicator Dot ---- */
+.depth-dot[style*="rgba(124,92,255,0.9)"] {
+    animation: depthPulse 2s ease-in-out infinite;
+}
+
+@keyframes depthPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.8; }
+}
+
+/* ---- Modal ---- */
+.modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(5, 5, 8, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.modal-content {
+    max-width: 600px; width: 90%;
+    background: #111122;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    padding: 48px;
+    position: relative;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.40),
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        0 0 60px rgba(124, 92, 255, 0.06);
+}
+
+#modal-text {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+/* ---- Range Slider Thumb (purple) ---- */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #7c5cff;
+    cursor: pointer; border: 2px solid #111122;
+    box-shadow: 0 0 8px rgba(124, 92, 255, 0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #7c5cff;
+    cursor: pointer; border: 2px solid #111122;
+    box-shadow: 0 0 8px rgba(124, 92, 255, 0.4);
+}
+
+/* ---- Text Contrast ---- */
+.text-gray-400 { color: #a0a0a0 !important; }
+.text-gray-500 { color: #8a8a8a !important; }
+
+/* ---- Mobile Hamburger Menu ---- */
+.mobile-menu-btn { display: none; }
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05); cursor: pointer;
+    }
+    .mobile-menu-btn span {
+        display: block; width: 16px; height: 1.5px;
+        background: white; transition: all 0.3s; position: relative;
+    }
+    .mobile-menu-btn span::before, .mobile-menu-btn span::after {
+        content: ''; position: absolute; width: 100%; height: 100%;
+        background: white; transition: all 0.3s;
+    }
+    .mobile-menu-btn span::before { top: -5px; }
+    .mobile-menu-btn span::after { top: 5px; }
+    .mobile-nav {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(10, 10, 18, 0.95);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        z-index: 60; flex-direction: column; align-items: center;
+        justify-content: center; gap: 2rem;
+    }
+    .mobile-nav.active { display: flex; }
+    .mobile-nav a {
+        font-size: 1.5rem; color: #a0a0a0;
+        text-transform: uppercase; letter-spacing: 0.2em;
+        transition: color 0.3s;
+    }
+    .mobile-nav a:hover { color: white; }
+}
+
+/* ---- Reduced Motion ---- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    .typing-dot { animation: none; opacity: 0.6; }
+}
+
+/* ---- Network Status ---- */
+#network-status {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: #7c3aed; color: white;
+    text-align: center; padding: 8px; font-size: 12px;
+    z-index: 200; transform: translateY(-100%);
+    transition: transform 0.3s;
+}
+#network-status.visible { transform: translateY(0); }
+#network-status.reconnected { background: #34d399; }
+
+/* ---- Additional Purple Accents ---- */
+/* Nav link underline */
+.nav-link::after {
+    background-color: #7c5cff;
+}
+
+/* Scroll reveal animations */
+@keyframes fadeInSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.reveal-on-scroll {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+.reveal-on-load {
+    opacity: 0;
+    animation: fadeInSlideUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Nav link animation */
+.nav-link { position: relative; }
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0; height: 1px;
+    bottom: -4px; left: 0;
+    transition: width 0.3s ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* ══════════════════════════════════════════════════════════════
+   APP MODE — full-screen chat & report
+   ══════════════════════════════════════════════════════════════ */
+
+body.app-mode { overflow: hidden; height: 100vh; }
+.app-hidden { display: none !important; }
+
+nav.app-mode-nav {
+  background: rgba(10, 10, 18, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+}
+nav.app-mode-nav .nav-link { display: none; }
+nav.app-mode-nav #t-nav-hi { display: none; }
+nav.app-mode-nav #lang-btn { display: inline-flex; }
+
+/* App mode close/back button */
+#app-mode-close { display: none; }
+nav.app-mode-nav #app-mode-close { display: inline-flex; }
+
+/* Inline report view (replaces modal) */
+#report-view-inline {
+  min-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding-bottom: 40px;
+}
+
+/* ═══ Tarot Draw Section ═══ */
+.tarot-spread-area {
+  perspective: 1200px;
+}
+
+.tarot-card-slot {
+  width: 140px;
+  height: 210px;
+  perspective: 800px;
+  cursor: pointer;
+}
+
+.tarot-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.tarot-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.tarot-card-front,
+.tarot-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tarot-card-back {
+  z-index: 2;
+  background: #0d0a1a;
+  overflow: hidden;
+}
+
+.tarot-card-back .card-back-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tarot-card-front {
+  transform: rotateY(180deg);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.tarot-card-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tarot card deck (shuffle animation) */
+.tarot-deck {
+  width: 100px;
+  height: 150px;
+  background: linear-gradient(135deg, #7c5cff 30%, #5a3fd9 70%);
+  border: 2px solid rgba(124, 92, 255, 0.5);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.tarot-deck:hover { transform: scale(1.05); }
+.tarot-deck:active { transform: scale(0.95); }
+.tarot-deck::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+}
+
+/* Shuffle animation */
+@keyframes shuffleCards {
+  0% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(-30px) rotate(-5deg); }
+  50% { transform: translateX(30px) rotate(5deg); }
+  75% { transform: translateX(-20px) rotate(-3deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+.tarot-deck.shuffling {
+  animation: shuffleCards 0.6s ease-in-out 2;
+}
+
+/* Position labels */
+.tarot-position-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Position marker glow */
+.slot-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.slot-glow.active { opacity: 1; }
+
+/* ═══ FAQ Accordion ═══ */
+.faq-item .faq-chevron { transition: transform 0.3s ease; }
+.faq-item.active .faq-chevron { transform: rotate(180deg); }
+.faq-answer { overflow: hidden; transition: max-height 0.4s ease; }
+
+/* ═══ Dream Journal ═══ */
+.journal-entry {
+  transition: all 0.3s ease;
+}
+.journal-entry:hover {
+  border-color: rgba(124, 92, 255, 0.3) !important;
+  transform: translateX(4px);
+}
+
+/* ═══ Toast ═══ */
+.sm-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  background: rgba(30,24,55,0.95);
+  border: 1px solid rgba(124,92,255,0.3);
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.sm-toast.show { opacity: 1; }
+
+/* ═══ Three-Column Chat Layout ═══ */
+
+/* Chat bubble wrappers */
+.chat-bubble-wrapper { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 14px; max-width: 80%; }
+.chat-bubble-wrapper.user { margin-left: auto; flex-direction: row-reverse; }
+.chat-bubble-wrapper.ai { margin-right: auto; flex-direction: row; }
+
+.chat-bubble { padding: 10px 16px; border-radius: 18px; font-size: 14px; line-height: 1.6; font-weight: 300; word-break: break-word; }
+.chat-bubble.user { background: linear-gradient(135deg,#7c5cff,#5a3fd9); color: #fff; border-bottom-right-radius: 4px; }
+.chat-bubble.ai { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); border:1px solid rgba(255,255,255,0.06); border-bottom-left-radius: 4px; }
+.chat-bubble-text { white-space: pre-wrap; }
+
+/* Typing dots */
+.typing-dot { width:6px; height:6px; border-radius:50%; background:rgba(124,92,255,0.6); animation:typingBounce 1.4s ease-in-out infinite; display:inline-block; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,80%,100% { transform:translateY(0); opacity:0.3; } 40% { transform:translateY(-6px); opacity:1; } }
+
+/* Chat textarea */
+.chat-textarea { width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:10px 14px; color:#fff; font-size:14px; font-family:'Inter',system-ui,sans-serif; font-weight:300; resize:none; outline:none; transition:border-color 0.3s; max-height:100px; line-height:1.5; }
+.chat-textarea:focus { border-color:rgba(124,92,255,0.4); background:rgba(255,255,255,0.06); }
+.chat-textarea::placeholder { color:rgba(255,255,255,0.25); }
+
+/* Sidebar history items */
+.history-item { cursor:pointer; padding:8px 10px; border-radius:8px; transition:background 0.2s; }
+.history-item:hover { background:rgba(124,92,255,0.08); }
+.history-item:active { background:rgba(124,92,255,0.15); }
+
+/* App mode fullscreen: override for new layout */
+#interpret.app-mode-fullscreen { position:fixed; inset:0; z-index:40; background:#0a0a12; }
+
+/* Responsive: hide sidebars on mobile */
+@media (max-width: 1024px) {
+    #sidebar-left, #sidebar-right { display: none !important; }
+    .chat-bubble-wrapper { max-width: 92%; }
+    .chat-bubble { font-size: 13px; padding: 8px 12px; }
+    .chat-textarea { font-size: 13px; }
+}
