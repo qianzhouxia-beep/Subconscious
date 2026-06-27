@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=10">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=11">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=7"></script>
@@ -187,7 +187,6 @@
                                 <div class="card-number">XVII</div>
                                 <div class="card-title">The Star</div>
                             </div>
-                            <div class="card-label">The Star · XVII</div>
                         </div>
                         <!-- Back: Mandala -->
                         <div class="card-face card-back">
@@ -605,7 +604,14 @@
                             <div class="tarot-position-label" id="t-tarot-past">Past</div>
                             <div id="tarot-slot-1" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=1) flipTarotCard(1)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
+                                    <div class="tarot-card-back">
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <div class="back-pattern"></div>
+                                        <div class="back-diamond"></div>
+                                    </div>
                                     <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
                                 </div>
                             </div>
@@ -617,7 +623,14 @@
                             <div class="tarot-position-label" id="t-tarot-present">Present</div>
                             <div id="tarot-slot-2" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=2) flipTarotCard(2)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
+                                    <div class="tarot-card-back">
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <div class="back-pattern"></div>
+                                        <div class="back-diamond"></div>
+                                    </div>
                                     <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
                                 </div>
                             </div>
@@ -629,10 +642,13 @@
                             <div class="tarot-position-label" id="t-tarot-future">Future</div>
                             <div id="tarot-slot-3" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=3) flipTarotCard(3)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back"><span class="text-2xl opacity-40">?</span></div>
-                                    <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
-                                </div>
-                            </div>
+                                    <div class="tarot-card-back">
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <span class="corner-star">✦</span>
+                                        <div class="back-pattern"></div>
+                                        <div class="back-diamond"></div>
                             <button id="tarot-flip-3" onclick="flipTarotCard(3)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
                             <div id="tarot-reading-3" class="hidden mt-3 text-left max-w-[200px]"></div>
                         </div>
