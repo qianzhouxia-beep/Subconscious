@@ -2849,15 +2849,6 @@
         function showTarotCompleteReading() {
             var isZh = currentLang === 'zh';
             var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
-            var posMeanings = isZh ? [
-                '这张牌代表你过去经历的能量和影响，它奠定了你当前处境的基调。',
-                '这张牌反映了你当下的状态、挑战和机遇，是解读的核心。',
-                '这张牌揭示了可能的未来趋势——是你的潜力和发展方向。'
-            ] : [
-                'This card represents the energies of your past that shaped your present.',
-                'This card reflects your current state — the core of your reading.',
-                'This card reveals the potential future — your direction and growth.'
-            ];
             var topic = _tarotState.topic || (isZh ? '你的个人成长' : 'your personal growth');
 
             // Build card images row (3 cards side by side)
@@ -2874,44 +2865,23 @@
             }
             cardImgHtml += '</div>';
 
-            // Build per-card details
-            var cardHtml = '';
-            for (var i = 0; i < 3; i++) {
-                var di = _tarotState.drawn[i];
-                var name = isZh ? tarotCards[di].zh : tarotCards[di].en;
-                var meaning = isZh ? (_tarotMeanings[di] || '深刻洞察') : (_tarotMeaningsEn[di] || 'Deep insight');
-                cardHtml += '<div class="mb-4 pb-3 border-b border-white/5 last:border-0">' +
-                    '<div class="flex items-center gap-2 mb-1">' +
-                        '<span class="text-[10px] uppercase tracking-widest text-amber-400/70 font-semibold">' + posLabels[i] + '</span>' +
-                        '<span class="w-1 h-1 rounded-full bg-amber-400/30"></span>' +
-                        '<span class="text-xs text-white/80 font-medium">' + name + '</span>' +
-                    '</div>' +
-                    '<p class="text-[10px] text-gray-500 italic mb-1">' + posMeanings[i] + '</p>' +
-                    '<p class="text-xs text-gray-300 leading-relaxed">' + meaning + '</p>' +
-                '</div>';
-            }
-
-            // Combined narrative
-            var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
-            var narrative = isZh
-                ? '关于「' + topic + '」的三牌阵解读：过去（' + cardNames[0] + '）的能量流动塑造了今天的你；现在（' + cardNames[1] + '）正指引你关注当下的课题；未来（' + cardNames[2] + '）预示着通过觉察与成长可达成的方向。三张牌共同编织了一段关于转化的故事。'
-                : 'Regarding "' + topic + '": The past energy (' + cardNames[0] + ') shaped who you are today; the present (' + cardNames[1] + ') guides your current focus; the future (' + cardNames[2] + ') shows where growth leads. Together, these three cards weave a story of transformation.';
-
             // Save daily count
             var today = new Date().toDateString();
             localStorage.setItem('sm_tarot_date', today);
             _tarotState.dailyCount++;
             localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
-            // Show result section
+
+            // Show card images + loading immediately
             var completeEl = document.getElementById('tarot-complete-reading');
             if (completeEl) {
                 completeEl.innerHTML = '<div>' +
                     '<h4 class="text-sm font-display italic text-amber-300 mb-4">' + (isZh ? '🃏 塔罗完整解读' : '🃏 Complete Tarot Reading') + '</h4>' +
                     cardImgHtml +
-                    cardHtml +
-                    '<div class="mt-5 pt-4 border-t border-amber-400/20">' +
-                        '<p class="text-xs text-amber-200/80 leading-relaxed font-medium">' + narrative + '</p>' +
+                    '<div id="tarot-ai-loading" class="text-center py-8">' +
+                        '<div class="inline-block w-6 h-6 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin mb-3"></div>' +
+                        '<p class="text-xs text-gray-500">' + (isZh ? 'AI 正在解读牌阵...' : 'AI is interpreting your spread...') + '</p>' +
                     '</div>' +
+                    '<div id="tarot-ai-reading" class="hidden text-xs text-gray-200 leading-relaxed space-y-3"></div>' +
                 '</div>';
                 completeEl.classList.remove('hidden');
             }
@@ -2920,6 +2890,50 @@
             var upsell = document.getElementById('tarot-upsell');
             if (upsell) upsell.classList.remove('hidden');
             updateTarotFreeCount();
+
+            // Call AI for the reading
+            var readingEl = document.getElementById('tarot-ai-reading');
+            var loadingEl = document.getElementById('tarot-ai-loading');
+            fetch(API_BASE + API_PREFIX + '/tarot/reading', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cards: _tarotState.drawn,
+                    topic: topic,
+                    lang: currentLang
+                })
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.reading) {
+                    // Parse bold markers and convert to HTML
+                    var readingHtml = data.reading.replace(/\*\*(.+?)\*\*/g, '<strong class="text-amber-300/90 font-semibold">$1</strong>')
+                        .replace(/\n\n/g, '</p><p class="text-xs text-gray-200 leading-relaxed">')
+                        .replace(/\n/g, '<br>');
+                    if (readingEl) {
+                        readingEl.innerHTML = '<p class="text-xs text-gray-200 leading-relaxed">' + readingHtml + '</p>';
+                        readingEl.classList.remove('hidden');
+                    }
+                } else {
+                    throw new Error('No reading returned');
+                }
+            }).catch(function() {
+                // Fallback: show hardcoded per-card meanings
+                if (readingEl) {
+                    var fallbackHtml = '';
+                    for (var i = 0; i < 3; i++) {
+                        var di = _tarotState.drawn[i];
+                        var name = isZh ? tarotCards[di].zh : tarotCards[di].en;
+                        var meaning = isZh ? (_tarotMeanings[di] || '深刻洞察') : (_tarotMeaningsEn[di] || 'Deep insight');
+                        var fallbackPosMeanings = isZh ? [
+                            '过去的影响：', '当下的课题：', '未来的方向：'
+                        ] : ['Past influence: ', 'Present focus: ', 'Future direction: '];
+                        fallbackHtml += '<div class="mb-3"><span class="text-[10px] uppercase tracking-widest text-amber-400/70 font-semibold">' + posLabels[i] + '</span> <span class="text-xs text-white/80 font-medium">' + name + '</span><p class="text-xs text-gray-400 leading-relaxed mt-1">' + meaning + '</p></div>';
+                    }
+                    readingEl.innerHTML = fallbackHtml;
+                    readingEl.classList.remove('hidden');
+                }
+            }).finally(function() {
+                if (loadingEl) loadingEl.classList.add('hidden');
+            });
         }
 
         function saveTarotToJournal() {
