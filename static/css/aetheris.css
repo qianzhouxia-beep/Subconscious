@@ -374,44 +374,6 @@ canvas#hero-vortex {
     to { transform: rotate(360deg); }
 }
 
-/* ── 3D Pulsing Orb ── */
-.orb-3d {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    position: relative;
-    background: radial-gradient(circle at 35% 35%, rgba(124,92,255,0.8), rgba(90,63,217,0.3));
-    box-shadow: 0 0 40px rgba(124,92,255,0.3),
-                0 0 80px rgba(124,92,255,0.1);
-    animation: orbFloat 4s ease-in-out infinite, glowPulse 3s ease-in-out infinite;
-}
-
-.orb-3d .orb-ring {
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 1px solid rgba(124,92,255,0.15);
-    animation: ringPulse 3s ease-in-out infinite;
-}
-
-.orb-3d .orb-ring:nth-child(2) { inset: -8px; animation-delay: 0.5s; }
-.orb-3d .orb-ring:nth-child(3) { inset: -12px; animation-delay: 1s; }
-
-@keyframes orbFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-@keyframes ringPulse {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.05); }
-}
-
-@keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 20px rgba(124,92,255,0.2); }
-    50% { box-shadow: 0 0 60px rgba(124,92,255,0.4); }
-}
-
 /* ── Entry Buttons ── */
 .entry-btn {
     position: relative;
@@ -489,10 +451,6 @@ canvas#hero-vortex {
     }
     .tarot-3d-card .card-front .card-number {
         font-size: 26px;
-    }
-    .orb-3d {
-        width: 60px;
-        height: 60px;
     }
     .scroll-indicator {
         bottom: 24px;

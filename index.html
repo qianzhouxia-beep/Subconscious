@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=9">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=10">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=7"></script>
@@ -130,7 +130,7 @@
     </div>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
+    <section id="hero" class="relative min-h-screen w-full flex items-center justify-center overflow-hidden" style="padding-bottom:100px;">
         <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline crossorigin="anonymous" poster="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg"></video>
         <div class="absolute inset-0 video-overlay z-10"></div>
         <!-- Vortex 3D Canvas -->
@@ -173,8 +173,8 @@
                 </button>
             </div>
 
-            <!-- 3D Rotating Tarot Card + Floating Orb -->
-            <div class="flex items-center justify-center gap-6 md:gap-12 reveal" style="animation-delay:0.5s">
+            <!-- 3D Rotating Tarot Card -->
+            <div class="flex items-center justify-center reveal" style="animation-delay:0.5s">
                 <!-- 3D Tarot Card -->
                 <div class="tarot-3d-container animate-float">
                     <div class="tarot-3d-card">
@@ -196,19 +196,6 @@
                             <div class="card-label-back">Subconscious Mirror</div>
                         </div>
                     </div>
-                </div>
-
-                <!-- + Divider -->
-                <div class="text-gray-600 text-2xl font-light hidden md:block" style="font-family:'Playfair Display',serif;">+</div>
-
-                <!-- 3D Pulsing Orb -->
-                <div class="flex flex-col items-center gap-3">
-                    <div class="orb-3d" style="animation-delay:0.3s">
-                        <div class="orb-ring"></div>
-                        <div class="orb-ring"></div>
-                        <div class="orb-ring"></div>
-                    </div>
-                    <span class="text-[9px] uppercase tracking-[0.3em] text-accent/50 font-semibold" id="t-orb-label">AI Oracle</span>
                 </div>
             </div>
         </div>
