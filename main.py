@@ -988,7 +988,7 @@ def symbol_lookup():
     symbol = req_data.get('symbol', '').strip()
     lang = req_data.get('lang', 'en')
     if not symbol: return _cors(jsonify({"error": "Symbol is required"}), 400)
-    system_content = f"You are a dream symbol oracle. The user asks about the dream symbol '{symbol}'. Provide a concise but insightful interpretation (2-4 paragraphs) covering: common psychological meaning, archetypal/cultural significance, and what this symbol may reveal about the dreamer's inner state. Do NOT ask follow-up questions. Respond in {'Chinese' if lang == 'zh' else 'English'}."
+    system_content = f"You are a dream symbol oracle. The user asks about the dream symbol '{symbol}'. Provide a concise but insightful interpretation (2-4 paragraphs) covering: common psychological meaning, archetypal/cultural significance, and what this symbol may reveal about the dreamer's inner state. IMPORTANT: Use a blank line (double newline) between each paragraph to separate them clearly. Do NOT ask follow-up questions. Respond in {'Chinese' if lang == 'zh' else 'English'}."
     try:
         def _build_symbol_payload(provider, model_override):
             payload = {

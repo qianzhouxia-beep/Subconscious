@@ -3437,23 +3437,44 @@
             escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90 font-medium">$1</strong>');
             // Convert *italic* to <em>
             escaped = escaped.replace(/\*(.+?)\*/g, '<em class="text-amber-300/80">$1</em>');
-            // Split by double newlines into paragraphs
-            var paragraphs = escaped.split(/\n{2,}/);
+
+            // Try split by double newlines first
+            var paragraphs = escaped.split(/\n\s*\n/);
+            // If that gives just one paragraph, try splitting intelligently by sentence endings
+            if (paragraphs.length <= 1) {
+                // Split by Chinese/English sentence endings that start a new topical sentence
+                // Pattern: 句号/感叹号/问号 followed by a space and then a new topic-indicating phrase
+                var sentenceParts = escaped.split(/(?<=[。！？.!?])\s+(?=[A-Z\u4e00-\u9fff])/);
+                // If still just one piece, use sentence length as heuristic
+                if (sentenceParts.length <= 1 && escaped.length > 200) {
+                    // Try splitting by natural breaks — "In X," "X means" type patterns
+                    sentenceParts = escaped.split(/(?<=[。])\s*(?=[\u4e00-\u9fff]{2,4}[\u3001\uff0c：])/);
+                }
+                // Group sentences into reasonable paragraphs (2-4 sentences each)
+                if (sentenceParts.length > 1) {
+                    var grouped = [];
+                    var groupSize = Math.max(2, Math.ceil(sentenceParts.length / 3));
+                    for (var i = 0; i < sentenceParts.length; i += groupSize) {
+                        grouped.push(sentenceParts.slice(i, i + groupSize).join(''));
+                    }
+                    paragraphs = grouped;
+                } else {
+                    paragraphs = [escaped];
+                }
+            }
+
             var html = paragraphs.map(function(p) {
-                p = p.trim();
+                p = (p || '').trim();
                 if (!p) return '';
                 // Single newlines become <br>
                 p = p.replace(/\n/g, '<br>');
                 // Check if it starts with a bullet point
                 if (p.match(/^[•·\-*]\s/)) {
-                    return '<p class="text-sm text-gray-300 leading-relaxed mb-3 pl-4 border-l-2 border-accent/30">' + p.substring(2) + '</p>';
+                    return '<p class="text-sm text-gray-300 leading-relaxed mb-3 pl-4 border-l-2 border-accent/30">' + p.replace(/^[•·\-*]\s/, '') + '</p>';
                 }
                 return '<p class="text-sm text-gray-300 leading-relaxed mb-4">' + p + '</p>';
             }).filter(Boolean).join('');
-            // If no paragraphs detected (single block), split by common section markers
-            if (!html) {
-                html = '<p class="text-sm text-gray-300 leading-relaxed">' + escaped.replace(/\n/g, '<br>') + '</p>';
-            }
+
             return html;
         }
 
