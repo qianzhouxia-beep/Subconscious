@@ -2705,7 +2705,7 @@
         function updateTarotFreeCount() {
             var today = new Date().toDateString();
             var savedDate = localStorage.getItem('sm_tarot_date');
-            _tarotState.dailyCount = savedDate === today ? (parseInt(localStorage.getItem('sm_tarot_draws') || '0') : 0;
+            _tarotState.dailyCount = savedDate === today ? parseInt(localStorage.getItem('sm_tarot_draws') || '0') : 0;
             var el = document.getElementById('tarot-free-count');
             if (el) {
                 var remaining = 3 - _tarotState.dailyCount;
