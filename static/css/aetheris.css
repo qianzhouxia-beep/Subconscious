@@ -870,7 +870,7 @@ nav.app-mode-nav #app-mode-close { display: inline-flex; }
 .tarot-deck {
   width: 100px;
   height: 150px;
-  background: linear-gradient(135deg, #7c5cff 30%, #5a3fd9 70%);
+  background: url('/static/tarot/card-back-new.jpg') center/cover no-repeat, #0d0a1a;
   border: 2px solid rgba(124, 92, 255, 0.5);
   border-radius: 8px;
   cursor: pointer;
@@ -879,6 +879,7 @@ nav.app-mode-nav #app-mode-close { display: inline-flex; }
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 }
 .tarot-deck:hover { transform: scale(1.05); }
 .tarot-deck:active { transform: scale(0.95); }
@@ -886,9 +887,10 @@ nav.app-mode-nav #app-mode-close { display: inline-flex; }
   content: '';
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
   border-radius: 5px;
 }
+.tarot-deck span { position: relative; z-index: 1; }
 
 /* Shuffle animation */
 @keyframes shuffleCards {
