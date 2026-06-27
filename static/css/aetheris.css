@@ -3,7 +3,7 @@
    Based on DESIGN.md — Deep Space + Frosted Glass + Dream Purple
    Colors: #7c5cff (dream purple) / #0a0a12 (deep space) / #111122 (card bg)
    Core: glass morphism + purple glow + stellar atmosphere
-   Preserved: 3D rotating orb (Three.js), particles, cursor glow (enhanced)
+   Preserved: elliptical vortex canvas, particles, cursor glow (enhanced)
    ============================================================ */
 
 /* ---- Scroll & Base ---- */
@@ -43,8 +43,8 @@ canvas#particleCanvas {
     pointer-events: none; z-index: 0; opacity: 0.7;
 }
 
-/* ---- Hero 3D Orb Canvas ---- */
-canvas#hero-3d-orb {
+/* ---- Hero Vortex Canvas ---- */
+canvas#hero-vortex {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 15; opacity: 0.85;
 }
@@ -533,7 +533,7 @@ nav.app-mode-nav {
 }
 nav.app-mode-nav .nav-link { display: none; }
 nav.app-mode-nav #t-nav-hi { display: none; }
-nav.app-mode-nav #t-nav-lang { display: inline-flex; }
+nav.app-mode-nav #lang-btn { display: inline-flex; }
 
 /* App mode close/back button */
 #app-mode-close { display: none; }
