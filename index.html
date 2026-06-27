@@ -22,8 +22,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <!-- Fonts: Google Fonts with system fallback stack -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Instrument+Serif:ital@1&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet">
+    <!-- Fonts: Playfair Display (titles) + Inter (body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
     <!-- Tailwind CSS: locked version, CDN runtime compile (small project, acceptable) -->
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <!-- Locked CDN versions (no @latest) — defer to not block render -->
@@ -31,10 +31,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=5">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=6">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=6"></script>
+    <script src="/static/js/i18n.js?v=7"></script>
     <script src="/static/js/tarot.js?v=3"></script>
     <script src="/static/js/optimizer.js?v=2"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
@@ -46,8 +46,8 @@
                 extend: {
                     fontFamily: { 
                         body: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'], 
-                        display: ['Instrument Serif', 'Georgia', 'Times New Roman', 'serif'],
-                        serif: ['Source Serif 4', 'Instrument Serif', 'Georgia', 'serif']
+                        display: ['"Playfair Display"', 'Georgia', 'Times New Roman', 'serif'],
+                        serif: ['"Playfair Display"', 'Georgia', 'serif']
                     },
                     colors: { 
                         bg: '#0a0a12',
@@ -130,23 +130,93 @@
     </div>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative h-screen w-full flex items-center justify-center overflow-hidden">
+    <section id="hero" class="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
         <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline crossorigin="anonymous" poster="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg"></video>
         <div class="absolute inset-0 video-overlay z-10"></div>
         <!-- Vortex 3D Canvas -->
         <canvas id="hero-vortex" class="absolute inset-0 z-15 pointer-events-none"></canvas>
-        <div class="relative z-20 text-center px-6 pt-24 max-w-6xl">
-            <span class="text-[10px] text-gray-500 uppercase tracking-[0.5em] mb-12 block" id="t-hero-eyebrow">Revealing the Unseen</span>
-            <h1 id="t-hero-title" class="text-5xl md:text-7xl lg:text-[9.5rem] font-display italic leading-[0.8] tracking-tighter text-white mb-10">
-                Subconscious <br> <span class="accent-gradient pr-4">Mirror</span>
+        <div class="relative z-20 text-center px-4 pt-20 max-w-5xl mx-auto">
+            
+            <!-- Label with decorative lines -->
+            <div class="flex items-center justify-center gap-3 mb-8 reveal">
+                <div class="h-px w-8 bg-accent/40"></div>
+                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/70 font-semibold" id="t-hero-eyebrow">Revealing the Unseen</span>
+                <div class="h-px w-8 bg-accent/40"></div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 reveal" id="t-hero-title" style="font-family:'Playfair Display',serif;font-style:italic;line-height:1.1;">
+                <span class="text-white">Subconscious</span><br>
+                <span class="glow-text" style="background:linear-gradient(135deg,#9b7fff,#7c5cff,#ffd54f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Mirror</span>
             </h1>
-            <p class="text-lg md:text-xl text-gray-400 font-light max-w-xl mx-auto mb-16" id="t-hero-desc">
-                A <span class="text-white font-display italic">Dream Oracle</span> that decodes the hidden messages from your subconscious mind.
+
+            <!-- Subtitle -->
+            <p class="text-base md:text-lg text-gray-400 font-light max-w-xl mx-auto mb-12 reveal" id="t-hero-desc" style="animation-delay:0.15s">
+                Where dreams meet their deeper meaning. Unlock the hidden messages your subconscious is whispering.
             </p>
-            <button onclick="enterAppMode()"
-                    class="px-12 py-5 bg-white text-black rounded-full font-bold text-[11px] md:text-xs uppercase tracking-widest hover:scale-105 transition-all" id="t-hero-start">
-                Start Interpretation
-            </button>
+
+            <!-- Dual Entry Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 reveal" style="animation-delay:0.3s">
+                <!-- Free Tarot (Primary) -->
+                <button onclick="document.getElementById('free-tarot').scrollIntoView({behavior:'smooth'})"
+                        class="entry-btn px-8 py-4 rounded-full text-[10px] uppercase tracking-widest font-bold flex items-center gap-3 bg-accent text-bg hover:bg-accent/80 transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5" stroke-width="1.5"/><path d="M8 8h8M8 12h6M8 16h7" stroke-width="1.5"/><circle cx="16" cy="18" r="2" fill="currentColor" opacity="0.3"/></svg>
+                    <span id="t-hero-tarot-btn">Free Tarot Reading</span>
+                    <span class="px-2 py-0.5 rounded-full text-[8px] tracking-wider" style="background:rgba(255,213,79,0.15);border:1px solid rgba(255,213,79,0.3);color:#ffd54f;">FREE</span>
+                </button>
+                <!-- Dream Analysis (Secondary) -->
+                <button onclick="enterAppMode()"
+                        class="entry-btn px-8 py-4 rounded-full text-[10px] uppercase tracking-widest flex items-center gap-3 border border-white/15 text-white hover:bg-white/5 transition-all" id="t-hero-start">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke-width="1.5"/><path d="M19 10v2a7 7 0 01-14 0v-2" stroke-width="1.5"/><line x1="12" y1="19" x2="12" y2="23" stroke-width="1.5"/><line x1="8" y1="23" x2="16" y2="23" stroke-width="1.5"/></svg>
+                    <span id="t-hero-dream-btn">Analyze Your Dream</span>
+                    <span class="text-gray-500 text-[8px] tracking-wider">$1.99</span>
+                </button>
+            </div>
+
+            <!-- 3D Rotating Tarot Card + Floating Orb -->
+            <div class="flex items-center justify-center gap-6 md:gap-12 reveal" style="animation-delay:0.5s">
+                <!-- 3D Tarot Card -->
+                <div class="tarot-3d-container animate-float">
+                    <div class="tarot-3d-card">
+                        <!-- Front: Real tarot image -->
+                        <div class="card-face card-front">
+                            <div class="card-border"></div>
+                            <img src="/static/tarot/17-star.png" alt="The Star" class="tarot-real-img" onerror="this.style.display='none';this.parentElement.querySelector('.card-fallback').style.display='flex';">
+                            <div class="card-fallback" style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(145deg,#1a1a2e,#222244);border-radius:16px;">
+                                <div class="moon-symbol">🌙</div>
+                                <div class="card-number">XVII</div>
+                                <div class="card-title">The Star</div>
+                            </div>
+                            <div class="card-label">The Star · XVII</div>
+                        </div>
+                        <!-- Back: Mandala -->
+                        <div class="card-face card-back">
+                            <div class="card-border"></div>
+                            <div class="mandala"></div>
+                            <div class="card-label-back">Subconscious Mirror</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- + Divider -->
+                <div class="text-gray-600 text-2xl font-light hidden md:block" style="font-family:'Playfair Display',serif;">+</div>
+
+                <!-- 3D Pulsing Orb -->
+                <div class="flex flex-col items-center gap-3">
+                    <div class="orb-3d" style="animation-delay:0.3s">
+                        <div class="orb-ring"></div>
+                        <div class="orb-ring"></div>
+                        <div class="orb-ring"></div>
+                    </div>
+                    <span class="text-[9px] uppercase tracking-[0.3em] text-accent/50 font-semibold" id="t-orb-label">AI Oracle</span>
+                </div>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="scroll-indicator reveal" style="animation-delay:0.8s">
+                <span class="text-[8px] uppercase tracking-[0.4em] text-gray-600">Scroll</span>
+                <div class="scroll-line"></div>
+            </div>
         </div>
     </section>
 
@@ -640,69 +710,62 @@
 
 
 
-    <!-- ===== Aetheris: Features Section ===== -->
+    <!-- ===== Features: 6 Pillars ===== -->
     <section id="features" class="py-32 px-6 max-w-7xl mx-auto relative z-10">
         <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-6xl font-display italic text-white mb-6" id="t-features-title">The <span class="accent-gradient">Aetheris</span> Engine</h2>
-            <p class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">Three pillars of subconscious analysis</p>
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">What You Get</span>
+            <h2 class="text-4xl md:text-6xl font-display italic text-white mt-4 mb-6" id="t-features-title">Every Dream, <span class="accent-gradient">Fully</span> Understood</h2>
+            <p class="text-gray-500 text-sm max-w-lg mx-auto">7 exclusive sections reveal every layer of your dream's hidden meaning.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Feature 1: AI Interpretation -->
-            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll">
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="card-number">01</div>
-                
-                <div class="icon-container">
-                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent shadow-lg shadow-accent/10">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Feature 1 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4a4 4 0 00-4 4c0 1.5.7 2.8 1.8 3.7L9 14l3-2 3 2-.8-2.3A4.5 4.5 0 0012 4z" stroke-width="1.5"/></svg>
                 </div>
-                
-                <div>
-                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat1-title">AI Interpretation</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat1-desc">Our neural networks process your narratives to identify linguistic patterns and archetype manifestations, providing a scientifically-backed decoding of complex dream imagery.</p>
-                </div>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat1-title">Psychology Analysis</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat1-desc">Jungian archetypes, shadow elements, and unconscious patterns decoded from your dream.</p>
             </div>
-
-            <!-- Feature 2: Pattern Tracking -->
-            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll" style="transition-delay:0.15s;">
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="card-number">02</div>
-                
-                <div class="icon-container">
-                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400/20 to-amber-400/5 flex items-center justify-center text-amber-400 shadow-lg shadow-amber-400/10">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
-                    </div>
+            <!-- Feature 2 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" stroke-width="1.5"/><path d="m20 20-4.3-4.3" stroke-width="1.5"/></svg>
                 </div>
-                
-                <div>
-                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat2-title">Pattern Tracking</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat2-desc">Visualize recurring motifs over months of entries. Identify the emotional triggers and environmental factors that dictate the quality and clarity of your REM cycles.</p>
-                </div>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat2-title">Symbol Decoding</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat2-desc">Deep analysis of key dream symbols — personal, cultural, and archetypal meanings.</p>
             </div>
-
-            <!-- Feature 3: Celestial Alignment -->
-            <div class="glass-card p-8 md:p-10 rounded-2xl flex flex-col space-y-6 reveal-on-scroll" style="transition-delay:0.3s;">
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="particle-dot"></div>
-                <div class="card-number">03</div>
-                
-                <div class="icon-container">
-                    <div class="w-14 h-14 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center text-accent shadow-lg shadow-accent/10">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
-                    </div>
+            <!-- Feature 3 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2l1.5 5.5L19 7l-4.5 3.5L16 16l-4-3-4 3 1.5-5.5L5 7l5.5-.5z" stroke-width="1.5"/></svg>
                 </div>
-                
-                <div>
-                    <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-feat3-title">Celestial Alignment</h3>
-                    <p class="text-sm text-gray-400 leading-relaxed" id="t-feat3-desc">Correlate your subconscious data with lunar phases and celestial positioning to understand how external cosmic rhythms influence your internal landscape.</p>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat3-title">Emotional Landscape</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat3-desc">Your dream's emotional journey mapped — where feelings shifted and why.</p>
+            </div>
+            <!-- Feature 4 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="1.5" stroke-width="1.5"/><path d="M8 8h8M8 12h6M8 16h7" stroke-width="1.5"/></svg>
                 </div>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat4-title">Tarot Guidance</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat4-desc">A Major Arcana card matched to your dream's core energy, with full interpretation.</p>
+            </div>
+            <!-- Feature 5 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+                </div>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat5-title">Real-Life Mirror</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat5-desc">How your dream patterns connect to unresolved situations and inner conflicts.</p>
+            </div>
+            <!-- Feature 6 -->
+            <div class="feature-card reveal-on-scroll">
+                <div class="icon-wrapper">
+                    <svg class="w-5 h-5 text-accent-light" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-width="1.5"/></svg>
+                </div>
+                <h3 class="text-white font-semibold text-base mb-2" id="t-feat6-title">Actionable Wisdom</h3>
+                <p class="text-gray-400 text-sm leading-relaxed" id="t-feat6-desc">3-5 concrete, personalized steps you can take starting today.</p>
             </div>
         </div>
     </section>
@@ -3070,10 +3133,14 @@
             }
         });
 
-        // Observe scroll reveals for new dream cards
+        // Observe scroll reveals for new dream cards + Hero reveal
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.reveal-on-scroll').forEach(el => {
                 if (window.__scrollObserver) window.__scrollObserver.observe(el);
+            });
+            // Trigger Hero reveal animations on load
+            document.querySelectorAll('#hero .reveal').forEach(function(el, i) {
+                setTimeout(function() { el.classList.add('visible'); }, i * 150);
             });
         });
     </script>

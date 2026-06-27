@@ -138,7 +138,7 @@ canvas#hero-vortex {
     position: absolute;
     top: 20px;
     right: 20px;
-    font-family: 'Instrument Serif', 'Source Serif 4', serif;
+    font-family: 'Playfair Display', 'Georgia', serif;
     font-size: 3rem;
     font-weight: 300;
     color: rgba(124, 92, 255, 0.06);
@@ -175,6 +175,10 @@ canvas#hero-vortex {
     50% { transform: translateY(-10px); }
 }
 
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
 /* ---- Feature Titles (purple gradient) ---- */
 .feature-title {
     background: linear-gradient(135deg, #f5f5f5 0%, #9b7fff 50%, #7c5cff 100%);
@@ -203,6 +207,347 @@ canvas#hero-vortex {
         0 20px 40px rgba(0, 0, 0, 0.4),
         0 0 80px rgba(124, 92, 255, 0.08),
         inset 0 0 40px rgba(124, 92, 255, 0.02);
+}
+
+/* ============================================================
+   HERO: 3D TAROT CARD + ORB + ENTRY BUTTONS
+   ============================================================ */
+
+/* ── 3D Tarot Card ── */
+.tarot-3d-container {
+    perspective: 1200px;
+    width: 180px;
+    height: 270px;
+    position: relative;
+}
+
+.tarot-3d-card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: cardSpin 12s ease-in-out infinite;
+    cursor: pointer;
+    transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tarot-3d-card:hover {
+    animation-play-state: paused;
+    transform: perspective(1000px) rotateY(0deg) scale(1.05);
+}
+
+.tarot-3d-card .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    box-shadow: 0 15px 50px rgba(124,92,255,0.15),
+                0 0 80px rgba(124,92,255,0.05),
+                inset 0 0 40px rgba(124,92,255,0.03);
+}
+
+.tarot-3d-card .card-front {
+    background: #111122;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tarot-3d-card .card-front .card-border {
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(124,92,255,0.2);
+    border-radius: 12px;
+    background: transparent;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.tarot-3d-card .card-front .tarot-real-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    z-index: 1;
+}
+
+.tarot-3d-card .card-front .card-label {
+    position: absolute;
+    bottom: 12px;
+    z-index: 4;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 2px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+.tarot-3d-card .card-front .moon-symbol {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffd54f, #b8860b);
+    box-shadow: 0 0 30px rgba(255,213,79,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.tarot-3d-card .card-front .card-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #9b7fff, #ffd54f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.tarot-3d-card .card-front .card-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+}
+
+.tarot-3d-card .card-back {
+    background: linear-gradient(145deg, #1a1a2e, #0d0d1a);
+    transform: rotateY(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tarot-3d-card .card-back .card-label-back {
+    position: absolute;
+    bottom: 16px;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 9px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.tarot-3d-card .card-back .mandala {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    animation: spinSlow 20s linear infinite;
+}
+
+.tarot-3d-card .card-back .mandala::before,
+.tarot-3d-card .card-back .mandala::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+}
+
+.tarot-3d-card .card-back .mandala::before {
+    inset: 10px;
+    border: 2px solid;
+    border-color: rgba(124,92,255,0.2) transparent rgba(124,92,255,0.2) transparent;
+}
+
+.tarot-3d-card .card-back .mandala::after {
+    inset: 30px;
+    border: 1px solid;
+    border-color: transparent rgba(255,213,79,0.3) transparent rgba(255,213,79,0.3);
+}
+
+@keyframes cardSpin {
+    0%, 100% { transform: perspective(1000px) rotateY(-15deg) rotateX(5deg); }
+    25% { transform: perspective(1000px) rotateY(15deg) rotateX(-5deg); }
+    50% { transform: perspective(1000px) rotateY(-15deg) rotateX(-5deg); }
+    75% { transform: perspective(1000px) rotateY(15deg) rotateX(5deg); }
+}
+
+@keyframes spinSlow {
+    to { transform: rotate(360deg); }
+}
+
+/* ── 3D Pulsing Orb ── */
+.orb-3d {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    position: relative;
+    background: radial-gradient(circle at 35% 35%, rgba(124,92,255,0.8), rgba(90,63,217,0.3));
+    box-shadow: 0 0 40px rgba(124,92,255,0.3),
+                0 0 80px rgba(124,92,255,0.1);
+    animation: orbFloat 4s ease-in-out infinite, glowPulse 3s ease-in-out infinite;
+}
+
+.orb-3d .orb-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid rgba(124,92,255,0.15);
+    animation: ringPulse 3s ease-in-out infinite;
+}
+
+.orb-3d .orb-ring:nth-child(2) { inset: -8px; animation-delay: 0.5s; }
+.orb-3d .orb-ring:nth-child(3) { inset: -12px; animation-delay: 1s; }
+
+@keyframes orbFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes ringPulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(124,92,255,0.2); }
+    50% { box-shadow: 0 0 60px rgba(124,92,255,0.4); }
+}
+
+/* ── Entry Buttons ── */
+.entry-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.entry-btn::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(124,92,255,0.3), transparent, rgba(255,213,79,0.2));
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -1;
+}
+
+.entry-btn:hover::after { opacity: 1; }
+.entry-btn:hover { transform: translateY(-2px); }
+
+/* ── Scroll Indicator ── */
+.scroll-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(124,92,255,0.5), transparent);
+    animation: scrollLine 2s ease-in-out infinite;
+}
+
+@keyframes scrollLine {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+/* ── Glow Text ── */
+.glow-text {
+    text-shadow: 0 0 40px rgba(124,92,255,0.3);
+}
+
+/* ── Reveal Animation ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Responsive: 3D tarot ── */
+@media (max-width: 768px) {
+    .tarot-3d-container {
+        width: 120px;
+        height: 180px;
+    }
+    .tarot-3d-card .card-front .moon-symbol {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    .tarot-3d-card .card-front .card-number {
+        font-size: 26px;
+    }
+    .orb-3d {
+        width: 60px;
+        height: 60px;
+    }
+    .scroll-indicator {
+        bottom: 24px;
+    }
+}
+
+/* ============================================================
+   FEATURE CARDS (参考设计 — 6列网格)
+   ============================================================ */
+.feature-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 32px 28px;
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,92,255,0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.feature-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(124,92,255,0.2);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 40px rgba(124,92,255,0.06);
+}
+
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card .icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    background: rgba(124,92,255,0.1);
+    border: 1px solid rgba(124,92,255,0.15);
+    transition: all 0.3s;
+}
+
+.feature-card:hover .icon-wrapper {
+    background: rgba(124,92,255,0.2);
+    border-color: rgba(124,92,255,0.3);
+    box-shadow: 0 0 20px rgba(124,92,255,0.1);
 }
 
 /* ============================================================
