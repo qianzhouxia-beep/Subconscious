@@ -260,7 +260,7 @@
         </div>
 
         <!-- Three-Column Layout -->
-        <div id="app-layout" class="flex h-screen overflow-hidden" style="padding-top:52px;">
+        <div id="app-layout" class="hidden flex h-screen overflow-hidden" style="padding-top:52px;">
 
             <!-- ═══ LEFT SIDEBAR: Account + History ═══ -->
             <aside id="sidebar-left" class="w-[280px] flex-shrink-0 border-r border-white/5 flex flex-col bg-bg/80 overflow-y-auto" style="display:none;">
@@ -1502,6 +1502,8 @@
             if (defaultDreamtype) { defaultDreamtype.classList.add('active'); defaultDreamtype.style.borderColor = 'rgba(124,92,255,0.4)'; defaultDreamtype.style.color = '#9b7fff'; defaultDreamtype.style.background = 'rgba(124,92,255,0.1)'; }
             const defaultStress = document.querySelector('#stress-pills .env-pill[data-value="Mild"]');
             if (defaultStress) { defaultStress.classList.add('active'); defaultStress.style.borderColor = 'rgba(124,92,255,0.4)'; defaultStress.style.color = '#9b7fff'; defaultStress.style.background = 'rgba(124,92,255,0.1)'; }
+            // Show welcome back
+            showWelcomeIfEmpty();
         }
 
         async function sendMessage() {
@@ -1517,6 +1519,9 @@
 
             // Add user message as right-aligned bubble
             addBubble(content, 'user');
+            // Remove welcome bubble on first message
+            var welcomeBubble = document.getElementById('welcome-bubble');
+            if (welcomeBubble) { welcomeBubble.remove(); }
             dreamInput.value = "";
             sendBtn.disabled = true;
 
@@ -1894,6 +1899,29 @@
         function scrollChatBottom() {
             var el = document.getElementById('chat-messages');
             if (el) el.scrollTop = el.scrollHeight;
+        }
+
+        function showWelcomeIfEmpty() {
+            var thread = document.getElementById('chat-thread');
+            if (!thread) return;
+            // Only show welcome if the thread is truly empty (no messages loaded)
+            if (thread.children.length === 0) {
+                var welcomeText = (typeof i18n !== 'undefined' && i18n[currentLang]) ? i18n[currentLang].chat_welcome : 'I am listening. Share your dream with me...';
+                var hintText = (typeof i18n !== 'undefined' && i18n[currentLang]) ? i18n[currentLang].chat_welcome_hint : '';
+                var wrapper = document.createElement('div');
+                wrapper.className = 'chat-bubble-wrapper ai';
+                wrapper.id = 'welcome-bubble';
+                var bubble = document.createElement('div');
+                bubble.className = 'chat-bubble ai';
+                var html = '<div class="chat-bubble-text text-lg font-display italic text-accent-light/90">' + welcomeText + '</div>';
+                if (hintText) {
+                    html += '<div class="chat-bubble-text text-xs text-gray-500 mt-2">' + hintText + '</div>';
+                }
+                bubble.innerHTML = html;
+                wrapper.appendChild(bubble);
+                thread.appendChild(wrapper);
+                gsap.from(wrapper, { opacity: 0, y: 12, duration: 0.6, delay: 0.3 });
+            }
         }
 
         /**
@@ -2502,6 +2530,7 @@
             var interpret = document.getElementById('interpret');
             interpret.classList.add('app-mode-fullscreen');
             // Show sidebar and topbar
+            document.getElementById('app-layout').classList.remove('hidden');
             document.getElementById('sidebar-left').style.display = 'flex';
             document.getElementById('sidebar-right').style.display = 'block';
             var topbar = document.getElementById('chat-topbar');
@@ -2516,6 +2545,8 @@
             initHistory();
             updateSidebarAccount();
             hookSMAuthSync();
+            // Show welcome message if chat is empty
+            showWelcomeIfEmpty();
             setTimeout(function() { document.getElementById('t-chat-placeholder').focus(); }, 600);
         }
 
@@ -2525,6 +2556,7 @@
             document.querySelectorAll('.app-hidden').forEach(function(el) { el.classList.remove('app-hidden'); });
             document.getElementById('navbar').classList.remove('app-mode-nav');
             document.getElementById('interpret').classList.remove('app-mode-fullscreen');
+            document.getElementById('app-layout').classList.add('hidden');
             document.getElementById('sidebar-left').style.display = 'none';
             document.getElementById('sidebar-right').style.display = 'none';
             document.getElementById('chat-topbar').classList.add('hidden');
