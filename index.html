@@ -261,27 +261,19 @@
         </div>
 
         <!-- Three-Column Layout -->
-        <div id="app-layout" class="flex h-screen" style="padding-top:52px;">
+        <div id="app-layout" class="flex h-screen overflow-hidden" style="padding-top:52px;">
 
             <!-- ═══ LEFT SIDEBAR: Account + History ═══ -->
             <aside id="sidebar-left" class="w-[280px] flex-shrink-0 border-r border-white/5 flex flex-col bg-bg/80 overflow-y-auto" style="display:none;">
-                <!-- Account Section -->
-                <div id="sidebar-account" class="p-4 border-b border-white/5">
-                    <div id="sidebar-user-logged-out">
-                        <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-3" id="t-sidebar-account">Account</p>
-                        <button onclick="SMAuth.showLoginModal()" class="w-full py-2 bg-accent/10 border border-accent/20 rounded-lg text-[10px] uppercase tracking-widest text-accent hover:bg-accent/20 transition-all" id="t-sidebar-login">Sign In</button>
-                        <button onclick="SMAuth.showRegisterModal()" class="w-full py-2 mt-2 border border-white/10 rounded-lg text-[10px] uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-all" id="t-sidebar-register">Register</button>
+                <!-- Account Section — only shows when logged in -->
+                <div id="sidebar-account" class="p-4 border-b border-white/5 hidden">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[9px] uppercase tracking-widest text-gray-500">Account</span>
                     </div>
-                    <div id="sidebar-user-logged-in" class="hidden">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[9px] uppercase tracking-widest text-gray-500">Account</span>
-                            <button onclick="SMAuth.logout()" class="text-[8px] text-gray-600 hover:text-white transition-all" id="t-sidebar-logout">Logout</button>
-                        </div>
-                        <p id="sidebar-user-email" class="text-sm text-white/80 truncate"></p>
-                        <div class="flex items-center gap-2 mt-2">
-                            <span class="text-[10px] text-gray-400" id="t-sidebar-balance-label">Balance:</span>
-                            <span id="sidebar-user-balance" class="text-[10px] text-accent font-bold">--</span>
-                        </div>
+                    <p id="sidebar-user-email" class="text-sm text-white/80 truncate"></p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <span class="text-[10px] text-gray-400">Balance:</span>
+                        <span id="sidebar-user-balance" class="text-[10px] text-accent font-bold">—</span>
                     </div>
                 </div>
                 <!-- History Section -->
@@ -301,7 +293,7 @@
                 <!-- Messages Area -->
                 <div id="chat-messages" class="flex-1 overflow-y-auto px-4 md:px-6">
                     <!-- Messages Thread -->
-                    <div id="chat-thread" class="space-y-4 pt-16 pb-4"></div>
+                    <div id="chat-thread" class="space-y-4 pt-4 pb-4"></div>
                     <!-- Inline Report View -->
                     <div id="report-view-inline" class="hidden pb-8">
                         <div class="glass-card px-6 py-8 md:px-8 md:py-10 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">
@@ -1383,24 +1375,45 @@
 
         // ── Sidebar: Account & History ──
         function updateSidebarAccount() {
-            var loggedOut = document.getElementById('sidebar-user-logged-out');
-            var loggedIn = document.getElementById('sidebar-user-logged-in');
-            if (!loggedOut || !loggedIn) return;
-            if (window.SMAuth && window.SMAuth.isLoggedIn) {
-                loggedOut.classList.add('hidden');
-                loggedIn.classList.remove('hidden');
+            var accountEl = document.getElementById('sidebar-account');
+            if (!accountEl) return;
+            if (window.SMAuth && SMAuth.isLoggedIn) {
+                accountEl.classList.remove('hidden');
                 document.getElementById('sidebar-user-email').innerText = SMAuth.user?.email || '';
                 var bal = document.getElementById('sidebar-user-balance');
                 if (SMAuth.premium) {
                     var rem = SMAuth.premium.remaining;
                     var tot = SMAuth.premium.total;
-                    bal.innerText = rem !== undefined ? rem + '/' + tot : 'Unlimited';
+                    bal.innerText = rem !== undefined ? rem + ' / ' + tot : 'Unlimited';
                 } else {
                     bal.innerText = '0';
                 }
             } else {
-                loggedOut.classList.remove('hidden');
-                loggedIn.classList.add('hidden');
+                accountEl.classList.add('hidden');
+            }
+        }
+
+        // Hook into SMAuth login/logout to sync sidebar
+        function hookSMAuthSync() {
+            if (window.SMAuth) {
+                var origLogin = SMAuth.login;
+                if (origLogin && !origLogin.__hooked) {
+                    SMAuth.login = function() {
+                        var result = origLogin.apply(this, arguments);
+                        if (result && result.then) result.then(function() { setTimeout(updateSidebarAccount, 500); });
+                        return result;
+                    };
+                    SMAuth.login.__hooked = true;
+                }
+                var origLogout = SMAuth.logout;
+                if (origLogout && !origLogout.__hooked) {
+                    SMAuth.logout = function() {
+                        var result = origLogout.apply(this, arguments);
+                        updateSidebarAccount();
+                        return result;
+                    };
+                    SMAuth.logout.__hooked = true;
+                }
             }
         }
 
@@ -2514,6 +2527,7 @@
             // Init session + fetch history
             initHistory();
             updateSidebarAccount();
+            hookSMAuthSync();
             setTimeout(function() { document.getElementById('t-chat-placeholder').focus(); }, 600);
         }
 

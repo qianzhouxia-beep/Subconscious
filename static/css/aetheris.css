@@ -822,16 +822,6 @@ input[type="range"]::-moz-range-thumb {
 body.app-mode { overflow: hidden; height: 100vh; }
 .app-hidden { display: none !important; }
 
-#interpret.app-mode-fullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  padding-top: 80px;
-  padding-bottom: 20px;
-  background: #0a0a12;
-  overflow-y: auto;
-}
-
 nav.app-mode-nav {
   background: rgba(10, 10, 18, 0.95) !important;
   backdrop-filter: blur(20px) !important;
