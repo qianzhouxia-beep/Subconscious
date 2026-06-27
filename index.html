@@ -871,6 +871,7 @@
         // Server-side session (replaces localStorage premium)
         let sessionId = null;
         let isPremiumUser = false;
+        window.isPremiumUser = false;  // exposed for external access (tests, SMAuth)
         let userEmail = null;
 
         let refId = localStorage.getItem('sm_ref_id') || null;
@@ -930,6 +931,7 @@
                 const data = await res.json();
                 sessionId = data.sessionId;
                 isPremiumUser = data.premium || false;
+                window.isPremiumUser = isPremiumUser;
             } catch (e) {
                 console.error("Session init failed:", e);
             }
@@ -1430,6 +1432,7 @@
         // ═══ Unified Report Unlock (called from verifyLicense + payment callback) ═══
         function unlockReport() {
             isPremiumUser = true;
+            window.isPremiumUser = true;
             document.getElementById('locked-preview').classList.add('hidden');
             document.getElementById('res-paid-wrapper').classList.remove('hidden');
             // Show tarot section — check if image actually loaded successfully
@@ -1643,6 +1646,7 @@
 
                         if (result.status === 'full') {
                             isPremiumUser = true;
+                            window.isPremiumUser = true;
                             document.getElementById('locked-preview').classList.add('hidden');
                             document.getElementById('res-paid-wrapper').classList.remove('hidden');
                             // Show tarot section only after image loads successfully
