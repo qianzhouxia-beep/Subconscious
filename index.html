@@ -102,7 +102,7 @@
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#interpret" id="t-nav-interpret">Interpretation</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#symbols" id="t-nav-symbols">Symbols</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#features" id="t-nav-features">Celestial</a>
-                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#journal" id="t-nav-journal">Journal</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="javascript:void(0)" onclick="openJournalFromNav()" id="t-nav-journal">Journal</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#pricing" id="t-nav-pricing">Pricing</a>
             </div>
 
@@ -226,7 +226,7 @@
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
                 </div>
                 <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-how-step2-title">2. AI Decodes</h3>
-                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step2-desc">DeepSeek analyzes your dream for symbols, archetypes, and emotional patterns.</p>
+                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step2-desc">Our AI analyzes your dream for symbols, archetypes, and emotional patterns.</p>
             </div>
             <div class="glass-card p-8 md:p-10 rounded-2xl text-center reveal-on-scroll" style="transition-delay:0.3s;">
                 <div class="card-number">03</div>
@@ -256,8 +256,9 @@
                 <span class="text-accent text-lg" style="font-family:'Playfair Display',serif;font-style:italic;">S</span>
                 <span class="text-[9px] uppercase tracking-[0.3em] text-gray-500 hidden sm:inline">Dream Oracle</span>
             </div>
-            <button onclick="newJourney()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-oracle-new">New</button>
-        </div>
+                <button onclick="newJourney()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-oracle-new">New</button>
+                <button onclick="toggleJournalView()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all ml-4" id="t-app-journal">Journal</button>
+            </div>
 
         <!-- Three-Column Layout -->
         <div id="app-layout" class="hidden flex h-screen overflow-hidden" style="padding-top:52px;">
@@ -336,6 +337,21 @@
                             <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">Email Report</button>
                             <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">Save Report</button>
                             <button onclick="newJourney()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-white/60 hover:text-white bg-accent/20 border border-accent/30 rounded-full hover:bg-accent/30 transition-all" id="t-report-new">New Journey</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Journal View (inside App) -->
+                <div id="journal-view" class="hidden flex-1 overflow-y-auto px-4 md:px-6 py-4">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-display italic text-white" id="t-journal-app-title">Dream Journal</h3>
+                            <button onclick="toggleJournalView()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-journal-back">Back to Chat</button>
+                        </div>
+                        <div id="journal-entries-app" class="space-y-4"></div>
+                        <div id="journal-empty-app" class="text-center py-16 glass-card rounded-2xl">
+                            <div class="text-5xl mb-4 opacity-20">📖</div>
+                            <p class="text-gray-500 text-sm" id="t-journal-empty-app">No dreams saved yet. Complete a reading to save it here.</p>
                         </div>
                     </div>
                 </div>
@@ -548,7 +564,7 @@
     <!-- ===== Features: 6 Pillars ===== -->
     <section id="features" class="py-32 px-6 max-w-7xl mx-auto relative z-10">
         <div class="text-center mb-16">
-            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">What You Get</span>
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">Your Report Includes</span>
             <h2 class="text-4xl md:text-6xl font-display italic text-white mt-4 mb-6" id="t-features-title">Every Dream, <span class="accent-gradient">Fully</span> Understood</h2>
             <p class="text-gray-500 text-sm max-w-lg mx-auto">7 exclusive sections reveal every layer of your dream's hidden meaning.</p>
         </div>
@@ -605,22 +621,6 @@
         </div>
     </section>
 
-
-    <!-- ===== Journal Section (移除旧 Archive，保留占位容器) ===== -->
-    <section id="journal" class="py-32 px-6 max-w-5xl mx-auto relative z-10 border-t border-white/5">
-        <div class="text-center mb-16 reveal-on-scroll">
-            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-journal-eyebrow">DREAM JOURNAL</span>
-            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-journal-title">Your <span class="text-amber-400/80">Dream</span> Archive</h2>
-            <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-journal-desc">Every dream decoded, every insight saved. Your personal journey through the subconscious.</p>
-        </div>
-        <!-- Journal Entries -->
-        <div id="journal-entries" class="space-y-4"></div>
-        <!-- Empty State -->
-        <div id="journal-empty" class="text-center py-16 glass-card rounded-2xl">
-            <div class="text-5xl mb-4 opacity-20">📖</div>
-            <p class="text-gray-500 text-sm" id="t-journal-empty">No dreams saved yet. Complete a reading and save it here.</p>
-        </div>
-    </section>
 
     <!-- Pricing Section -->
     <section id="pricing" class="relative py-32 px-6 border-t border-white/5 bg-bg">
@@ -748,7 +748,7 @@
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q5">Can I export my report?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be saved as a standalone HTML file or emailed to you.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be downloaded as HTML or emailed to you.</div>
             </div>
         </div>
     </section>
@@ -758,7 +758,7 @@
             <button onclick="openModal('privacy')" id="t-footer-privacy">PRIVACY POLICY</button>
         </div>
         <div class="text-4xl md:text-7xl lg:text-[10rem] font-display italic text-white/[0.03] mb-12">Subconscious Mirror</div>
-        <p class="text-gray-700 text-[10px] uppercase tracking-[0.5em]" id="t-footer-copy">&copy; 2026 TokenMaster Global. All rights reserved. <span class="ml-4 opacity-30 text-[8px]">v33.3.0</span></p>
+        <p class="text-gray-700 text-[10px] uppercase tracking-[0.5em]" id="t-footer-copy">&copy; 2026 TokenMaster Global. All rights reserved. <span class="ml-4 opacity-30 text-[8px]">v3.3.0</span></p>
     </footer>
 
     <script>
@@ -2744,6 +2744,72 @@
         }
 
         // ═══ Dream Journal (localStorage) ═══
+        function toggleJournalView() {
+            var jv = document.getElementById('journal-view');
+            var cm = document.getElementById('chat-messages');
+            if (jv && !jv.classList.contains('hidden')) {
+                jv.classList.add('hidden');
+                if (cm) cm.classList.remove('hidden');
+            } else {
+                if (cm) cm.classList.add('hidden');
+                if (jv) jv.classList.remove('hidden');
+                renderJournalToApp();
+            }
+        }
+
+        function renderJournalToApp() {
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            var container = document.getElementById('journal-entries-app');
+            var empty = document.getElementById('journal-empty-app');
+            if (!container) return;
+            if (journal.length === 0) {
+                container.innerHTML = '';
+                if (empty) empty.classList.remove('hidden');
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+            container.innerHTML = journal.map(function(entry) {
+                var d = new Date(entry.date);
+                var dateStr = currentLang === 'zh'
+                    ? d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日'
+                    : d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+                var tarotBadge = entry.tarotCard ? '<span class="text-[10px] text-amber-400">' + entry.tarotCard + '</span>' : '';
+                return '<div class="journal-entry glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="openJournalEntryApp(' + entry.id + ')" style="border:1px solid rgba(255,255,255,0.06)">' +
+                    '<div class="flex items-center justify-between mb-2"><span class="text-[9px] uppercase tracking-widest text-gray-500">' + dateStr + '</span>' + tarotBadge + '</div>' +
+                    '<p class="text-sm text-gray-300 truncate">' + (entry.dreamPreview || 'Dream analysis') + '</p></div>';
+            }).join('');
+        }
+
+        function openJournalEntryApp(id) {
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            var entry = journal.find(function(e) { return e.id === id; });
+            if (!entry) return;
+            // Switch to chat area and show report
+            var jv = document.getElementById('journal-view');
+            var cm = document.getElementById('chat-messages');
+            if (jv) jv.classList.add('hidden');
+            if (cm) cm.classList.remove('hidden');
+            document.getElementById('chat-input-area').classList.add('hidden');
+            document.getElementById('report-view-inline').classList.remove('hidden');
+            document.getElementById('res-free').innerHTML = entry.freeHTML || '';
+            if (entry.isPremium && entry.paidHTML) {
+                document.getElementById('locked-preview').classList.add('hidden');
+                document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                document.getElementById('res-paid').innerHTML = entry.paidHTML;
+            } else {
+                document.getElementById('locked-preview').classList.remove('hidden');
+                document.getElementById('res-paid-wrapper').classList.add('hidden');
+            }
+            gsap.fromTo("#report-view-inline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
+        }
+
+        function openJournalFromNav() {
+            enterAppMode();
+            setTimeout(function() {
+                toggleJournalView();
+            }, 400);
+        }
+
         function saveToJournal() {
             var freeHTML = document.getElementById('res-free')?.innerHTML || '';
             var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
