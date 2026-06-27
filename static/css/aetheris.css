@@ -319,48 +319,15 @@ canvas#hero-vortex {
 }
 
 .tarot-3d-card .card-back {
-    background: linear-gradient(145deg, #1a1a2e, #0d0d1a);
     transform: rotateY(180deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
 }
 
-.tarot-3d-card .card-back .card-label-back {
-    position: absolute;
-    bottom: 16px;
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: 9px;
-    color: rgba(255,255,255,0.15);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-}
-
-.tarot-3d-card .card-back .mandala {
-    width: 100px;
-    height: 100px;
-    position: relative;
-    animation: spinSlow 20s linear infinite;
-}
-
-.tarot-3d-card .card-back .mandala::before,
-.tarot-3d-card .card-back .mandala::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-}
-
-.tarot-3d-card .card-back .mandala::before {
-    inset: 10px;
-    border: 2px solid;
-    border-color: rgba(124,92,255,0.2) transparent rgba(124,92,255,0.2) transparent;
-}
-
-.tarot-3d-card .card-back .mandala::after {
-    inset: 30px;
-    border: 1px solid;
-    border-color: transparent rgba(255,213,79,0.3) transparent rgba(255,213,79,0.3);
+.tarot-3d-card .card-back .card-back-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
 }
 
 @keyframes cardSpin {
@@ -876,97 +843,14 @@ nav.app-mode-nav #app-mode-close { display: inline-flex; }
 
 .tarot-card-back {
   z-index: 2;
-  background: radial-gradient(ellipse at 50% 40%, #1a1535, #0d0a1a);
-  border: 2px solid rgba(255, 213, 79, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  background: #0d0a1a;
   overflow: hidden;
 }
 
-/* Decorative outer border frame */
-.tarot-card-back::before {
-  content: '';
-  position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(255, 213, 79, 0.15);
-  border-radius: 6px;
-  pointer-events: none;
-}
-
-/* Central mandala circle */
-.tarot-card-back::after {
-  content: '';
-  position: absolute;
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  border: 1.5px solid rgba(124, 92, 255, 0.3);
-  background: radial-gradient(circle at 50% 50%, 
-    rgba(124, 92, 255, 0.08) 0%, 
-    rgba(124, 92, 255, 0.15) 40%, 
-    rgba(124, 92, 255, 0.05) 70%, 
-    transparent 100%);
-  box-shadow: inset 0 0 30px rgba(124, 92, 255, 0.05);
-  pointer-events: none;
-}
-
-/* Inner diamond */
-.tarot-card-back .back-diamond {
-  width: 44px;
-  height: 44px;
-  transform: rotate(45deg);
-  border: 1.5px solid rgba(255, 213, 79, 0.2);
-  background: rgba(124, 92, 255, 0.06);
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tarot-card-back .back-diamond::before {
-  content: '';
-  position: absolute;
-  width: 24px;
-  height: 24px;
-  transform: rotate(0deg);
-  border: 1px solid rgba(255, 213, 79, 0.1);
-  background: rgba(124, 92, 255, 0.08);
-}
-
-.tarot-card-back .back-diamond::after {
-  content: '✦';
-  position: absolute;
-  font-size: 18px;
-  color: rgba(255, 213, 79, 0.35);
-  transform: rotate(-45deg);
-}
-
-/* Corner stars */
-.tarot-card-back .corner-star {
-  position: absolute;
-  font-size: 8px;
-  color: rgba(255, 213, 79, 0.15);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.tarot-card-back .corner-star:nth-child(3) { top: 14px; left: 14px; }
-.tarot-card-back .corner-star:nth-child(4) { top: 14px; right: 14px; }
-.tarot-card-back .corner-star:nth-child(5) { bottom: 14px; left: 14px; }
-.tarot-card-back .corner-star:nth-child(6) { bottom: 14px; right: 14px; }
-
-/* Subtle cross-hatch pattern overlay */
-.tarot-card-back .back-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(124,92,255,0.02) 20px, rgba(124,92,255,0.02) 21px),
-    repeating-linear-gradient(-45deg, transparent, transparent 20px, rgba(124,92,255,0.02) 20px, rgba(124,92,255,0.02) 21px);
-  pointer-events: none;
-  z-index: 1;
+.tarot-card-back .card-back-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .tarot-card-front {
