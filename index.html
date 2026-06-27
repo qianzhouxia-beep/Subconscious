@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=14">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=15">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=7"></script>
@@ -244,7 +244,7 @@
 
     <!-- Interpretation Section -->
         <!-- ═══ Three-Column Chat Interface ═══ -->
-    <section id="interpret" class="min-h-screen bg-bg relative">
+    <section id="interpret" class="min-h-screen bg-bg relative hidden">
         
         <!-- Top Bar (app-mode only) -->
         <div id="chat-topbar" class="hidden fixed top-0 left-0 right-0 z-50 h-[52px] items-center justify-between px-4 md:px-6 border-b border-white/5" style="background:rgba(10,10,18,0.95);backdrop-filter:blur(20px);">
@@ -631,7 +631,7 @@
                 <!-- Free Tier -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll">
                     <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier0-name">Free</span>
-                    <div class="text-4xl font-display italic mb-6">$0</div>
+                    <div class="text-4xl font-display mb-6">$0</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
                         <li id="t-tier0-f1">1 Tarot Reading / Day</li>
                         <li id="t-tier0-f2">Basic Symbol Lookup</li>
@@ -641,7 +641,7 @@
                 <!-- Single Report -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
                     <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier1-name">Single Report</span>
-                    <div class="text-4xl font-display italic mb-6">$1.99</div>
+                    <div class="text-4xl font-display mb-6">$1.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
                         <li id="t-tier1-f1">1 Complete Dream Report</li>
                         <li id="t-tier1-f2">Tarot Card Included</li>
@@ -653,7 +653,7 @@
                 <div class="glass-card p-8 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
                     <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Best Value</div>
                     <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4" id="t-tier2-name">Starter Pack</span>
-                    <div class="text-4xl font-display italic mb-6">$4.99</div>
+                    <div class="text-4xl font-display mb-6">$4.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
                         <li id="t-tier2-f1">3 Complete Reports</li>
                         <li id="t-tier2-f2">Save &amp; Export</li>
@@ -664,7 +664,7 @@
                 <!-- Monthly Unlimited -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
                     <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier3-name">Unlimited</span>
-                    <div class="text-4xl font-display italic mb-6">$9.99<span class="text-sm text-gray-500">/mo</span></div>
+                    <div class="text-4xl font-display mb-6">$9.99<span class="text-sm text-gray-500">/mo</span></div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
                         <li id="t-tier3-f1">Unlimited Reports</li>
                         <li id="t-tier3-f2">Priority Processing</li>
@@ -2528,6 +2528,7 @@
             var navbar = document.getElementById('navbar');
             navbar.classList.add('app-mode-nav');
             var interpret = document.getElementById('interpret');
+            interpret.classList.remove('hidden');
             interpret.classList.add('app-mode-fullscreen');
             // Show sidebar and topbar
             document.getElementById('app-layout').classList.remove('hidden');
@@ -2556,6 +2557,7 @@
             document.querySelectorAll('.app-hidden').forEach(function(el) { el.classList.remove('app-hidden'); });
             document.getElementById('navbar').classList.remove('app-mode-nav');
             document.getElementById('interpret').classList.remove('app-mode-fullscreen');
+            document.getElementById('interpret').classList.add('hidden');
             document.getElementById('app-layout').classList.add('hidden');
             document.getElementById('sidebar-left').style.display = 'none';
             document.getElementById('sidebar-right').style.display = 'none';
