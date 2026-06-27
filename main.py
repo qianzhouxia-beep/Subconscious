@@ -574,6 +574,97 @@ def referral_click():
     except sqlite3.IntegrityError:
         return _cors(jsonify({"status": "ignored"}))
 
+# ─── Tarot AI Reading ──────────────────────────────────────────────────────────
+TAROT_CARDS = [
+    "The Fool", "The Magician", "The High Priestess", "The Empress",
+    "The Emperor", "The Hierophant", "The Lovers", "The Chariot",
+    "Strength", "The Hermit", "Wheel of Fortune", "Justice",
+    "The Hanged Man", "Death", "Temperance", "The Devil",
+    "The Tower", "The Star", "The Moon", "The Sun", "Judgement", "The World"
+]
+
+@app.route('/api/tarot/reading', methods=['POST', 'OPTIONS'])
+@limiter.limit("20 per minute")
+def tarot_reading():
+    if request.method == 'OPTIONS':
+        return _cors(make_response())
+    req_data = request.json or {}
+    card_indices = req_data.get('cards', [])
+    topic = req_data.get('topic', '')
+    lang = req_data.get('lang', 'zh')
+    
+    if not card_indices or len(card_indices) != 3:
+        return _cors(jsonify({"error": "Need exactly 3 card indices"}), 400)
+    if any(i < 0 or i > 21 for i in card_indices):
+        return _cors(jsonify({"error": "Card indices must be 0-21"}), 400)
+    
+    card_names_en = [TAROT_CARDS[i] for i in card_indices]
+    
+    if lang == 'zh':
+        system_content = (
+            "你是一位融合东西方智慧的资深塔罗解读师。你的风格专业、富有洞察力，"
+            "善于将古老的塔罗智慧与现代生活相结合，给出有建设性的指引。\n\n"
+            "用户抽取了一个三牌阵（过去-现在-未来），请你根据这三张牌的组合，"
+            "以及用户提出的问题/主题，给出完整且有深度的解读。\n\n"
+            "解读要求：\n"
+            "1. 先针对「过去」位置的第一张牌进行解读，解释它的能量如何影响了当前处境\n"
+            "2. 再针对「现在」位置的第二张牌进行解读，分析当下的课题与机遇\n"
+            "3. 再针对「未来」位置的第三张牌进行解读，揭示可能的发展方向\n"
+            "4. 最后给出这三张牌组合在一起的整体叙事——它们讲述了一个怎样的故事？\n"
+            "5. 结尾给出一句有启发性的建议或箴言\n\n"
+            "格式要求：使用自然段落，每部分用 **加粗标题** 区分。语言温暖但不浮夸，"
+            "保持专业塔罗解读的风格。每个段落控制在3-5句。\n\n"
+            "不要提及「作为AI」或「作为语言模型」，直接以塔罗解读师的身份回应。"
+        )
+        user_msg = f"问题/主题：{topic or '个人成长'}\n三张牌：{card_names_en[0]}（过去）、{card_names_en[1]}（现在）、{card_names_en[2]}（未来）\n\n请给出完整解读。"
+    else:
+        system_content = (
+            "You are a professional tarot reader blending Eastern and Western wisdom. "
+            "Your style is insightful, professional, and practical. "
+            "You give constructive guidance based on the cards.\n\n"
+            "The user has drawn a 3-card spread (Past-Present-Future). "
+            "Give a complete, meaningful interpretation.\n\n"
+            "Structure:\n"
+            "1. Interpret the first card (Past) and its influence\n"
+            "2. Interpret the second card (Present) — current challenges and opportunities\n"
+            "3. Interpret the third card (Future) — potential direction\n"
+            "4. Overall narrative — what story do these three cards tell together?\n"
+            "5. End with an inspiring suggestion or advice\n\n"
+            "Format: Use natural paragraphs with **bold headers**. "
+            "Keep each section to 3-5 sentences. Be warm but professional.\n"
+            "Do not mention being an AI. Speak as a tarot reader directly."
+        )
+        user_msg = f"Question/Topic: {topic or 'personal growth'}\nThree cards: {card_names_en[0]} (Past), {card_names_en[1]} (Present), {card_names_en[2]} (Future)\n\nPlease provide the complete reading."
+    
+    try:
+        def _build_tarot_payload(provider, model_override):
+            payload = {
+                "model": model_override,
+                "messages": [
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_msg}
+                ],
+                "max_tokens": 2048,
+            }
+            if provider["name"] == "deepseek":
+                payload["thinking"] = {"type": "disabled"}
+                payload["temperature"] = 0.7
+            else:
+                payload["temperature"] = 0.7
+            return payload
+        
+        res_json, used_provider = _call_llm_with_fallback(
+            _build_tarot_payload, timeout=45, mode='tarot', report_mode=False
+        )
+        ai_msg = res_json['choices'][0]['message']
+        text = ai_msg.get('content') or ai_msg.get('reasoning_content') or ""
+        return _cors(jsonify({"reading": text, "cards": card_names_en}))
+    except Exception as e:
+        app.logger.error(f"[Tarot] AI call failed: {e}")
+        # Fallback to template-based reading
+        return _cors(jsonify({"error": str(e)}), 500)
+
+
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
 @limiter.limit("10 per minute")
 def chat():
