@@ -31,12 +31,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=16">
-    <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=19">
+    <link rel="stylesheet" href="/static/css/sm-icons.css?v=3">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=7"></script>
-    <script src="/static/js/tarot.js?v=3"></script>
-    <script src="/static/js/optimizer.js?v=2"></script>
+    <script src="/static/js/i18n.js?v=9"></script>
+    <script src="/static/js/tarot.js?v=5"></script>
+    <script src="/static/js/optimizer.js?v=3"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
 
     <script>
@@ -102,7 +102,7 @@
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#interpret" id="t-nav-interpret">Interpretation</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#symbols" id="t-nav-symbols">Symbols</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#features" id="t-nav-features">Celestial</a>
-                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#journal" id="t-nav-journal">Journal</a>
+                <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="javascript:void(0)" onclick="openJournalFromNav()" id="t-nav-journal">Journal</a>
                 <a class="nav-link text-[11px] uppercase tracking-widest text-gray-400 hover:text-starlight-white transition-colors" href="#pricing" id="t-nav-pricing">Pricing</a>
             </div>
 
@@ -226,7 +226,7 @@
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
                 </div>
                 <h3 class="feature-title text-xl font-display italic text-white/90 mb-3" id="t-how-step2-title">2. AI Decodes</h3>
-                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step2-desc">DeepSeek analyzes your dream for symbols, archetypes, and emotional patterns.</p>
+                <p class="text-sm text-gray-400 leading-relaxed" id="t-how-step2-desc">Our AI analyzes your dream for symbols, archetypes, and emotional patterns.</p>
             </div>
             <div class="glass-card p-8 md:p-10 rounded-2xl text-center reveal-on-scroll" style="transition-delay:0.3s;">
                 <div class="card-number">03</div>
@@ -256,8 +256,9 @@
                 <span class="text-accent text-lg" style="font-family:'Playfair Display',serif;font-style:italic;">S</span>
                 <span class="text-[9px] uppercase tracking-[0.3em] text-gray-500 hidden sm:inline">Dream Oracle</span>
             </div>
-            <button onclick="newJourney()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-oracle-new">New</button>
-        </div>
+                <button onclick="newJourney()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-oracle-new">New</button>
+                <button onclick="toggleJournalView()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all ml-4" id="t-app-journal">Journal</button>
+            </div>
 
         <!-- Three-Column Layout -->
         <div id="app-layout" class="hidden flex h-screen overflow-hidden" style="padding-top:52px;">
@@ -336,6 +337,21 @@
                             <button onclick="SMAuth.sendReportEmail()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email">Email Report</button>
                             <button onclick="downloadReport()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf">Save Report</button>
                             <button onclick="newJourney()" class="px-5 py-2.5 text-[9px] uppercase tracking-widest text-white/60 hover:text-white bg-accent/20 border border-accent/30 rounded-full hover:bg-accent/30 transition-all" id="t-report-new">New Journey</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Journal View (inside App) -->
+                <div id="journal-view" class="hidden flex-1 overflow-y-auto px-4 md:px-6 py-4">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-display italic text-white" id="t-journal-app-title">Dream Journal</h3>
+                            <button onclick="toggleJournalView()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-all" id="t-journal-back">Back to Chat</button>
+                        </div>
+                        <div id="journal-entries-app" class="space-y-4"></div>
+                        <div id="journal-empty-app" class="text-center py-16 glass-card rounded-2xl">
+                            <div class="text-5xl mb-4 opacity-20">📖</div>
+                            <p class="text-gray-500 text-sm" id="t-journal-empty-app">No dreams saved yet. Complete a reading to save it here.</p>
                         </div>
                     </div>
                 </div>
@@ -423,61 +439,77 @@
     <!-- ===== Free Tarot: Three-Card Spread ===== -->
     <section id="free-tarot" class="py-32 px-6 relative border-t border-white/5 bg-void-black/20">
         <div class="max-w-5xl mx-auto relative z-10">
-            <div class="text-center mb-16 reveal-on-scroll">
-                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-tarot-eyebrow">FREE READING</span>
-                <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-tarot-title">Free <span class="text-amber-400/80">Tarot</span> Spread of the Day</h2>
-                <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-tarot-desc">Draw three cards and receive a free AI-powered interpretation. No sign-up required.</p>
+            <div class="text-center mb-12 reveal-on-scroll">
+                <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-tarot-eyebrow">FREE TAROT</span>
+                <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-tarot-title">Free <span class="text-amber-400/80">Tarot</span> Spread</h2>
+                <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-tarot-desc">Choose your reader, focus on a question, and draw three cards. No sign-up required.</p>
+                <div id="tarot-free-count" class="mt-3 text-[10px] text-accent/60 font-semibold"></div>
             </div>
-            <div class="glass-card p-8 md:p-12 rounded-2xl max-w-3xl mx-auto text-center reveal-on-scroll" style="border:1px solid rgba(255,213,79,0.12);">
-                <!-- Deck & Draw Area -->
-                <div class="flex flex-col items-center gap-6 mb-8" id="tarot-draw-area">
-                    <div id="tarot-deck" class="tarot-deck" onclick="shuffleTarotDeck()">
+            <div class="glass-card p-6 md:p-10 rounded-2xl max-w-3xl mx-auto text-center reveal-on-scroll relative overflow-visible" style="border:1px solid rgba(255,213,79,0.12);">
+                <!-- Step 0: Reader Selection -->
+                <div id="tarot-step-reader" class="">
+                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-2" id="t-tarot-reader-hint">Each reader has a unique interpretation style</p>
+                    <div id="tarot-reader-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6"></div>
+                    <div id="tarot-reader-selected" class="hidden mt-4 text-[10px] text-amber-300"></div>
+                    <button id="tarot-reader-confirm" onclick="confirmReader()" class="hidden mt-4 px-8 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all">Begin Reading</button>
+                </div>
+                <!-- Step 1: Daily Topic -->
+                <div id="tarot-step-topic" class="hidden">
+                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-4" id="t-tarot-step-label">Step 1 · Today's Reflection</p>
+                    <div class="mb-6 p-5 glass-card rounded-xl" style="border:1px solid rgba(255,213,79,0.08);">
+                        <p class="text-xs text-gray-400 mb-2" id="t-tarot-topic-label">Today's Reflection</p>
+                        <p class="text-sm text-amber-200 leading-relaxed mb-4" id="tarot-daily-topic">What is your heart truly avoiding right now?</p>
+                        <button onclick="startTarotWithTopic()" id="tarot-topic-draw-btn" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all mb-3 w-full md:w-auto">Draw Cards for This Question</button>
+                        <div class="mt-3 flex items-center gap-2">
+                            <input id="tarot-custom-q" type="text" placeholder="Or ask your own question..." class="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-accent/30" />
+                            <button onclick="startTarotWithCustomQuestion()" class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 transition-all whitespace-nowrap">Use This</button>
+                        </div>
+                    </div>
+                    <button onclick="resetTarotFlow()" class="text-[9px] uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-all">← Choose different reader</button>
+                </div>
+                <!-- Step 2: Shuffle & Draw -->
+                <div id="tarot-step-draw" class="hidden">
+                    <p class="text-[9px] uppercase tracking-widest text-gray-500 mb-4" id="tarot-step-label-2">Step 2 · Focus & Shuffle</p>
+                    <p class="text-xs text-gray-400 mb-6" id="tarot-focus-msg">Focus on your question, then shuffle the deck...</p>
+                    <div id="tarot-deck" class="tarot-deck mx-auto mb-6 cursor-pointer" onclick="shuffleTarotDeck()">
                         <span class="text-2xl opacity-50">✦</span>
                     </div>
-                    <button onclick="shuffleTarotDeck()" class="px-6 py-2 bg-amber-400/10 border border-amber-400/30 text-amber-300 rounded-full text-[10px] uppercase tracking-widest font-semibold hover:bg-amber-400/20 transition-all" id="t-tarot-shuffle">Shuffle the Deck</button>
-                    <button id="tarot-draw-btn" onclick="drawTarotCard()" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-draw">Draw a Card</button>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button id="tarot-shuffle-btn" onclick="shuffleTarotDeck()" class="px-6 py-2 bg-amber-400/10 border border-amber-400/30 text-amber-300 rounded-full text-[10px] uppercase tracking-widest font-semibold hover:bg-amber-400/20 transition-all">Shuffle</button>
+                        <button id="tarot-draw-btn" onclick="drawTarotCard()" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all hidden">Draw Card (<span id="tarot-draw-progress">0/3</span>)</button>
+                    </div>
                 </div>
-
-                <!-- Three-Card Spread -->
+                <!-- Step 3: Card Spread -->
                 <div id="tarot-spread" class="hidden">
                     <p class="text-[10px] uppercase tracking-widest text-gray-500 mb-6" id="t-tarot-spread-title">Your Three-Card Spread</p>
-                    <div class="tarot-spread-area flex flex-wrap justify-center gap-6 md:gap-10">
-                        <!-- Slot 1: Past -->
+                    <div class="tarot-spread-area flex flex-wrap justify-center gap-6 md:gap-10 mb-6">
                         <div class="flex flex-col items-center">
                             <div class="tarot-position-label" id="t-tarot-past">Past</div>
-                            <div id="tarot-slot-1" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=1) flipTarotCard(1)">
+                            <div id="tarot-slot-1" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=1&&_tarotState.revealed<1) flipTarotCard(1)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back">
-                                        <img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img">
-                                    </div>
+                                    <div class="tarot-card-back"><img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img"></div>
                                     <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
                                 </div>
                             </div>
                             <button id="tarot-flip-1" onclick="flipTarotCard(1)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
                             <div id="tarot-reading-1" class="hidden mt-3 text-left max-w-[200px]"></div>
                         </div>
-                        <!-- Slot 2: Present -->
                         <div class="flex flex-col items-center">
                             <div class="tarot-position-label" id="t-tarot-present">Present</div>
-                            <div id="tarot-slot-2" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=2) flipTarotCard(2)">
+                            <div id="tarot-slot-2" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=2&&_tarotState.revealed<2) flipTarotCard(2)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back">
-                                        <img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img">
-                                    </div>
+                                    <div class="tarot-card-back"><img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img"></div>
                                     <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
                                 </div>
                             </div>
                             <button id="tarot-flip-2" onclick="flipTarotCard(2)" class="hidden mt-2 text-[8px] uppercase tracking-widest text-amber-400/60 hover:text-amber-300 transition-all">Reveal</button>
                             <div id="tarot-reading-2" class="hidden mt-3 text-left max-w-[200px]"></div>
                         </div>
-                        <!-- Slot 3: Future -->
                         <div class="flex flex-col items-center">
                             <div class="tarot-position-label" id="t-tarot-future">Future</div>
-                            <div id="tarot-slot-3" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=3) flipTarotCard(3)">
+                            <div id="tarot-slot-3" class="tarot-card-slot" onclick="if(_tarotState.drawn.length>=3&&_tarotState.revealed<3) flipTarotCard(3)">
                                 <div class="tarot-card-inner">
-                                    <div class="tarot-card-back">
-                                        <img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img">
-                                    </div>
+                                    <div class="tarot-card-back"><img src="/static/tarot/card-back-new.jpg" alt="Card Back" class="card-back-img"></div>
                                     <div class="tarot-card-front"><img class="hidden" src="" alt="Tarot Card"></div>
                                 </div>
                             </div>
@@ -485,13 +517,20 @@
                             <div id="tarot-reading-3" class="hidden mt-3 text-left max-w-[200px]"></div>
                         </div>
                     </div>
-                    <!-- Combined Reading -->
-                    <div id="tarot-complete-reading" class="hidden mt-6"></div>
-                    <!-- Upsell -->
+                </div>
+                <!-- Step 4: Complete Reading + Save/Share -->
+                <div id="tarot-result" class="hidden">
+                    <div id="tarot-complete-reading" class="mt-6 pt-6 border-t border-white/10"></div>
+                    <div class="flex flex-wrap gap-3 justify-center mt-6">
+                        <button onclick="saveTarotToJournal()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">💾 Save to Journal</button>
+                        <button onclick="shareTarotReading()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">📤 Share Image</button>
+                        <button onclick="downloadTarotReading()" class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase tracking-widest text-gray-300 hover:bg-white/10 hover:text-white transition-all">📄 Download</button>
+                    </div>
                     <div id="tarot-upsell" class="hidden mt-6 pt-6 border-t border-white/10">
                         <p class="text-[10px] text-gray-500 mb-3" id="t-tarot-upsell">Want to see how this connects to your dreams? Unlock the full report.</p>
                         <button onclick="scrollToSection('pricing')" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all" id="t-tarot-upsell-btn">See Plans</button>
                     </div>
+                    <button onclick="resetTarotFlow()" class="mt-4 text-[9px] uppercase tracking-widest text-gray-500 hover:text-gray-300 transition-all">↻ New Reading</button>
                 </div>
             </div>
         </div>
@@ -548,7 +587,7 @@
     <!-- ===== Features: 6 Pillars ===== -->
     <section id="features" class="py-32 px-6 max-w-7xl mx-auto relative z-10">
         <div class="text-center mb-16">
-            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">What You Get</span>
+            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-features-sub">Your Report Includes</span>
             <h2 class="text-4xl md:text-6xl font-display italic text-white mt-4 mb-6" id="t-features-title">Every Dream, <span class="accent-gradient">Fully</span> Understood</h2>
             <p class="text-gray-500 text-sm max-w-lg mx-auto">7 exclusive sections reveal every layer of your dream's hidden meaning.</p>
         </div>
@@ -606,22 +645,6 @@
     </section>
 
 
-    <!-- ===== Journal Section (移除旧 Archive，保留占位容器) ===== -->
-    <section id="journal" class="py-32 px-6 max-w-5xl mx-auto relative z-10 border-t border-white/5">
-        <div class="text-center mb-16 reveal-on-scroll">
-            <span class="text-[9px] uppercase tracking-[0.3em] text-accent/60 font-bold" id="t-journal-eyebrow">DREAM JOURNAL</span>
-            <h2 class="text-4xl md:text-5xl font-display italic text-white mt-4 mb-4" id="t-journal-title">Your <span class="text-amber-400/80">Dream</span> Archive</h2>
-            <p class="text-gray-400 text-sm max-w-2xl mx-auto" id="t-journal-desc">Every dream decoded, every insight saved. Your personal journey through the subconscious.</p>
-        </div>
-        <!-- Journal Entries -->
-        <div id="journal-entries" class="space-y-4"></div>
-        <!-- Empty State -->
-        <div id="journal-empty" class="text-center py-16 glass-card rounded-2xl">
-            <div class="text-5xl mb-4 opacity-20">📖</div>
-            <p class="text-gray-500 text-sm" id="t-journal-empty">No dreams saved yet. Complete a reading and save it here.</p>
-        </div>
-    </section>
-
     <!-- Pricing Section -->
     <section id="pricing" class="relative py-32 px-6 border-t border-white/5 bg-bg">
         <div class="max-w-6xl mx-auto text-center">
@@ -638,39 +661,39 @@
                     </ul>
                     <button onclick="document.getElementById('free-tarot').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier0-cta">Try Free</button>
                 </div>
-                <!-- Single Report -->
+                <!-- Starter: 3 Credits -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier1-name">Single Report</span>
-                    <div class="text-4xl font-display mb-6">$1.99</div>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Starter</span>
+                    <div class="text-4xl font-display mb-6">$2.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier1-f1">1 Complete Dream Report</li>
-                        <li id="t-tier1-f2">Tarot Card Included</li>
-                        <li id="t-tier1-f3">No Save / Export</li>
+                        <li>3 Dream Reports</li>
+                        <li>Tarot Card Included</li>
+                        <li>No Save / Export</li>
                     </ul>
-                    <button onclick="SMAuth.showPaymentPrompt('single','Single Report',1.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier1-cta">Buy Now</button>
+                    <button onclick="SMAuth.showPaymentPrompt('credits_3','Starter · 3 Reports',2.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button>
                 </div>
-                <!-- 3 Reports (Best Value) -->
+                <!-- Popular: 10 Credits (Best Value) -->
                 <div class="glass-card p-8 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
-                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Best Value</div>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4" id="t-tier2-name">Starter Pack</span>
-                    <div class="text-4xl font-display mb-6">$4.99</div>
+                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap">Best Value</div>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4">Popular</span>
+                    <div class="text-4xl font-display mb-6">$6.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier2-f1">3 Complete Reports</li>
-                        <li id="t-tier2-f2">Save &amp; Export</li>
-                        <li id="t-tier2-f3">Dream Journal Access</li>
+                        <li>10 Dream Reports</li>
+                        <li>Save &amp; Export</li>
+                        <li>Dream Journal Access</li>
                     </ul>
-                    <div id="paypal-4-99"><button onclick="SMAuth.showPaymentPrompt('starter','Starter Pack',4.99)" class="px-8 py-3 bg-accent text-bg rounded-lg text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all w-full">Buy Now</button></div>
+                    <div id="paypal-6-99"><button onclick="SMAuth.showPaymentPrompt('credits_10','Popular · 10 Reports',6.99)" class="px-8 py-3 bg-accent text-bg rounded-lg text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all w-full">Buy Now</button></div>
                 </div>
-                <!-- Monthly Unlimited -->
+                <!-- Pro: 30 Credits -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier3-name">Unlimited</span>
-                    <div class="text-4xl font-display mb-6">$9.99<span class="text-sm text-gray-500">/mo</span></div>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Pro</span>
+                    <div class="text-4xl font-display mb-6">$14.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier3-f1">Unlimited Reports</li>
-                        <li id="t-tier3-f2">Priority Processing</li>
-                        <li id="t-tier3-f3">All Features Unlocked</li>
+                        <li>30 Dream Reports</li>
+                        <li>Priority Processing</li>
+                        <li>All Features Unlocked</li>
                     </ul>
-                    <button onclick="SMAuth.showPaymentPrompt('unlimited','Unlimited Monthly',9.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier3-cta">Subscribe</button>
+                    <button onclick="SMAuth.showPaymentPrompt('credits_30','Pro · 30 Reports',14.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button>
                 </div>
             </div>
         </div>
@@ -727,7 +750,7 @@
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q2">What is the free tarot reading?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Upgrade for unlimited readings.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Buy a credit pack for more readings.</div>
             </div>
             <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
                 <div class="flex justify-between items-center">
@@ -748,7 +771,7 @@
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q5">Can I export my report?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be saved as a standalone HTML file or emailed to you.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a5">Yes. Paid reports can be downloaded as HTML or emailed to you.</div>
             </div>
         </div>
     </section>
@@ -758,7 +781,7 @@
             <button onclick="openModal('privacy')" id="t-footer-privacy">PRIVACY POLICY</button>
         </div>
         <div class="text-4xl md:text-7xl lg:text-[10rem] font-display italic text-white/[0.03] mb-12">Subconscious Mirror</div>
-        <p class="text-gray-700 text-[10px] uppercase tracking-[0.5em]" id="t-footer-copy">&copy; 2026 TokenMaster Global. All rights reserved. <span class="ml-4 opacity-30 text-[8px]">v33.3.0</span></p>
+        <p class="text-gray-700 text-[10px] uppercase tracking-[0.5em]" id="t-footer-copy">&copy; 2026 TokenMaster Global. All rights reserved. <span class="ml-4 opacity-30 text-[8px]">v3.3.0</span></p>
     </footer>
 
     <script>
@@ -1312,10 +1335,23 @@
             // 初始更新
             setTimeout(updateDepthIndicator, 500);
         });
-        // 滑块变化时更新（仅剩清醒程度滑块，标记交互）
+        // 滑块变化时更新（仅剩清醒程度滑块，标记交互 + 实时更新标签文字）
         document.querySelectorAll('input[type="range"][data-label]').forEach(slider => {
             slider.addEventListener('input', () => {
                 lucidityInteracted = true;
+                // 将滑块值映射到 data-labels 中的文字，更新对应 label
+                const labelId = slider.dataset.label;
+                const labelEl = document.getElementById(labelId);
+                if (labelEl) {
+                    try {
+                        const labels = JSON.parse(slider.dataset.labels || '[]');
+                        if (labels.length > 0) {
+                            const val = parseInt(slider.value) || 3;
+                            const seg = Math.floor((val - 1) / 2);  // 1-10 → 0-4
+                            labelEl.textContent = labels[Math.min(seg, labels.length - 1)];
+                        }
+                    } catch (e) { console.warn('[Slider] label parse error', e); }
+                }
                 setTimeout(updateDepthIndicator, 50);
             });
         });
@@ -1645,6 +1681,11 @@
                         }
 
                         gsap.fromTo("#report-view-inline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+
+                        // Auto-save to Dream Journal after report renders
+                        setTimeout(() => {
+                            try { saveToJournal(); } catch(e) { console.warn('[Journal] save failed', e); }
+                        }, 800);
                     }, 3000);
                 }
             } catch (err) {
@@ -2566,39 +2607,336 @@
             window.scrollTo({ top: AppState.scrollY });
         }
 
-        // ═══ Tarot Archive — uses tarotCards from /static/js/tarot.js ═══
-        // (Single source of truth — no redeclaration here)
+        // ═══ Tarot Reader & Daily Topic Config ═══
+        var READER_CONFIG = [
+            { id:'mystic',  nameEn:'Mystic Raven',  descEn:'Poetic · Symbolic · Mysterious',  free:true  },
+            { id:'luna',    nameEn:'Luna Yao',      descEn:'Healing · Intuitive · Gentle',     free:true  },
+            { id:'oracle',  nameEn:'Oracle Prime',  descEn:'Direct · Clarity · Decisions',     free:false },
+            { id:'sage',    nameEn:'The Sage',      descEn:'Wisdom · Ancient · Timeless',    free:false },
+            { id:'shadow',  nameEn:'Shadow Walker', descEn:'Deep · Shadow · Transformative', free:false }
+        ];
+        var DAILY_TOPICS = [
+            "What is your heart truly avoiding right now?",
+            "Where in your life is a quiet transformation happening?",
+            "What truth are you afraid to speak aloud?",
+            "Which part of your past still asks for your attention?",
+            "What would your dream self tell you today?",
+            "Where are you clinging to control that you need to release?",
+            "What is the universe trying to show you through repetition?",
+            "Which inner voice have you been ignoring lately?"
+        ];
+        var _tarotState = { drawn:[], revealed:0, dailyCount:0, readerId:null, step:'reader', topic:'', dailyTopicIndex:0 };
 
-        // ═══ Free Tarot: Three-Card Spread ═══
-        var _tarotState = { drawn: [], revealed: 0, dailyCount: 0 };
-        var _tarotMeanings = [
-            "新的开始、无限可能、冒险精神","创造力、技能掌握、行动力","直觉、内在智慧、神秘知识",
-            "丰饶、滋养、母性力量","权威、秩序、稳定","传统、知识、精神导师",
-            "选择、联结、和谐","意志力、胜利、决心","勇气、内在力量、自信",
-            "内省、独处、智慧寻求","命运转变、周期循环、机遇","公正、真理、因果平衡",
-            "暂停、全新视角、释然","终结、转变、新生","平衡、调和、耐心",
-            "束缚、执念、直面阴影","崩塌、启示、重建","希望、灵感、平静",
-            "幻觉、直觉、潜意识深处","喜悦、成功、活力","觉醒、重生、自我评估",
-            "圆满、整合、完成"
-        ];
-        var _tarotMeaningsEn = [
-            "New beginnings, infinite potential, adventure","Creativity, skill, focused action","Intuition, inner wisdom, mystery",
-            "Abundance, nurturing, feminine power","Authority, structure, stability","Tradition, knowledge, spiritual guidance",
-            "Choices, union, harmony","Willpower, victory, determination","Courage, inner strength, confidence",
-            "Introspection, solitude, wisdom","Fate, cycles, opportunity","Justice, truth, karmic balance",
-            "Pause, new perspective, surrender","Endings, transformation, renewal","Balance, moderation, patience",
-            "Bondage, obsession, facing shadows","Collapse, revelation, rebuilding","Hope, inspiration, serenity",
-            "Illusion, intuition, deep subconscious","Joy, success, vitality","Awakening, rebirth, self-evaluation",
-            "Completion, integration, wholeness"
-        ];
+        function initTarotSection() {
+            // Render reader cards
+            var grid = document.getElementById('tarot-reader-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            READER_CONFIG.forEach(function(r) {
+                var isZh = currentLang === 'zh';
+                var name = isZh ? i18n.zh['tarot_reader_' + r.id] || r.nameEn : r.nameEn;
+                var desc = isZh ? i18n.zh['tarot_reader_' + r.id + '_desc'] || r.descEn : r.descEn;
+                var isPremium = !r.free;
+                var card = document.createElement('div');
+                card.className = 'glass-card p-4 rounded-xl cursor-pointer transition-all hover:border-accent/30 ' + (isPremium ? 'opacity-60' : '');
+                card.style.border = '1px solid rgba(255,255,255,0.06)';
+                card.setAttribute('data-reader', r.id);
+                card.innerHTML = '<div class="text-sm font-semibold text-white mb-1">' + name + '</div>' +
+                    '<div class="text-[9px] text-gray-400 leading-relaxed">' + desc + '</div>' +
+                    (isPremium ? '<div class="mt-2 text-[8px] uppercase tracking-widest text-amber-400/60">🔒 ' + (i18n[currentLang].tarot_reader_premium || 'Unlock with any plan') + '</div>' : '');
+                if (!isPremium) {
+                    card.onclick = function() { selectTarotReader(r.id); };
+                }
+                grid.appendChild(card);
+            });
+            // Load daily topic
+            var today = new Date().getDate();
+            var topicIdx = today % DAILY_TOPICS.length;
+            _tarotState.dailyTopicIndex = topicIdx;
+            var topicEl = document.getElementById('tarot-daily-topic');
+            if (topicEl) topicEl.innerText = DAILY_TOPICS[topicIdx];
+            // Update free count display
+            updateTarotFreeCount();
+        }
+
+        function selectTarotReader(readerId) {
+            _tarotState.readerId = readerId;
+            document.querySelectorAll('#tarot-reader-grid > div').forEach(function(card) {
+                card.style.border = card.getAttribute('data-reader') === readerId ? '1px solid rgba(124,92,255,0.5)' : '1px solid rgba(255,255,255,0.06)';
+                card.classList.remove('ring-2', 'ring-accent/40');
+                if (card.getAttribute('data-reader') === readerId) card.classList.add('ring-2', 'ring-accent/40');
+            });
+            var selectedEl = document.getElementById('tarot-reader-selected');
+            if (selectedEl) {
+                selectedEl.classList.remove('hidden');
+                var name = currentLang === 'zh' ? (i18n.zh['tarot_reader_' + readerId] || readerId) : (READER_CONFIG.find(function(r){return r.id===readerId;})||{}).nameEn || readerId;
+                selectedEl.innerText = (i18n[currentLang].tarot_reader_selected || 'Reading with ') + name;
+            }
+            var confirmBtn = document.getElementById('tarot-reader-confirm');
+            if (confirmBtn) confirmBtn.classList.remove('hidden');
+        }
+
+        function confirmReader() {
+            if (!_tarotState.readerId) return;
+            _tarotState.step = 'topic';
+            document.getElementById('tarot-step-reader').classList.add('hidden');
+            document.getElementById('tarot-step-topic').classList.remove('hidden');
+        }
+
+        function startTarotWithTopic() {
+            _tarotState.topic = DAILY_TOPICS[_tarotState.dailyTopicIndex] || '';
+            _tarotState.step = 'draw';
+            document.getElementById('tarot-step-topic').classList.add('hidden');
+            document.getElementById('tarot-step-draw').classList.remove('hidden');
+            document.getElementById('tarot-focus-msg').innerText = (i18n[currentLang].tarot_step_focus || 'Focus on your question...') + '\n"' + _tarotState.topic + '"';
+        }
+
+        function startTarotWithCustomQuestion() {
+            var input = document.getElementById('tarot-custom-q');
+            var q = input ? input.value.trim() : '';
+            if (!q) q = DAILY_TOPICS[_tarotState.dailyTopicIndex] || '';
+            _tarotState.topic = q;
+            _tarotState.step = 'draw';
+            document.getElementById('tarot-step-topic').classList.add('hidden');
+            document.getElementById('tarot-step-draw').classList.remove('hidden');
+            document.getElementById('tarot-focus-msg').innerText = (i18n[currentLang].tarot_step_focus || 'Focus on your question...') + '\n"' + _tarotState.topic + '"';
+        }
+
+        function updateTarotFreeCount() {
+            var today = new Date().toDateString();
+            var savedDate = localStorage.getItem('sm_tarot_date');
+            _tarotState.dailyCount = savedDate === today ? (parseInt(localStorage.getItem('sm_tarot_draws') || '0') : 0;
+            var el = document.getElementById('tarot-free-count');
+            if (el) {
+                var remaining = 3 - _tarotState.dailyCount;
+                el.innerText = (i18n[currentLang].tarot_free_remaining || 'Free readings remaining today: ') + remaining + '/3';
+                if (remaining <= 0) el.classList.add('text-red-400/60');
+                else el.classList.remove('text-red-400/60');
+            }
+        }
 
         function shuffleTarotDeck() {
             var deck = document.getElementById('tarot-deck');
             if (!deck || deck.classList.contains('shuffling')) return;
             deck.classList.add('shuffling');
+            // Rotate animation
+            deck.style.transition = 'transform 0.6s ease';
+            deck.style.transform = 'rotateY(180deg) scale(1.05)';
+            setTimeout(function() {
+                deck.style.transform = 'rotateY(0deg) scale(1)';
+            }, 600);
             setTimeout(function() { deck.classList.remove('shuffling'); }, 1200);
-            // Reset state
-            _tarotState = { drawn: [], revealed: 0, dailyCount: _tarotState.dailyCount || 0 };
+            // After shuffle, show draw button
+            setTimeout(function() {
+                var drawBtn = document.getElementById('tarot-draw-btn');
+                if (drawBtn) drawBtn.classList.remove('hidden');
+                var shuffleBtn = document.getElementById('tarot-shuffle-btn');
+                if (shuffleBtn) shuffleBtn.classList.add('hidden');
+            }, 800);
+        }
+
+        function drawTarotCard() {
+            if (_tarotState.drawn.length >= 3) {
+                // All 3 drawn → show spread + result
+                document.getElementById('tarot-step-draw').classList.add('hidden');
+                document.getElementById('tarot-spread').classList.remove('hidden');
+                return;
+            }
+            if (_tarotState.dailyCount >= 3) {
+                alert(i18n[currentLang].tarot_daily_used || 'Daily free tarot used.');
+                return;
+            }
+            // Draw a random card (not duplicate)
+            var idx = Math.floor(Math.random() * 22);
+            var attempts = 0;
+            while (_tarotState.drawn.includes(idx) && attempts < 100) {
+                idx = Math.floor(Math.random() * 22);
+                attempts++;
+            }
+            if (attempts >= 100) return; // safety
+            _tarotState.drawn.push(idx);
+            var slotNum = _tarotState.drawn.length;
+            var slot = document.getElementById('tarot-slot-' + slotNum);
+            if (!slot) return;
+            // Show card with deal animation
+            var inner = slot.querySelector('.tarot-card-inner');
+            var img = slot.querySelector('img');
+            var back = slot.querySelector('.tarot-card-back');
+            if (inner) { inner.style.display = 'block'; inner.classList.remove('flipped'); }
+            if (img) {
+                var fn = String(idx).padStart(2, '0') + '-' + tarotCards[idx].en.toLowerCase().replace(/^the /, '').replace(/\s+/g, '-') + '.png';
+                img.src = '/static/tarot/' + fn;
+                img.onerror = function() { this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + fn; };
+                img.classList.remove('hidden');
+            }
+            if (back) { back.style.display = 'flex'; back.style.opacity = '1'; }
+            // Deal animation: card slides in from deck position
+            if (inner) {
+                inner.style.transition = 'none';
+                inner.style.opacity = '0';
+                inner.style.transform = 'translateY(30px) scale(0.8)';
+                setTimeout(function() {
+                    inner.style.transition = 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                    inner.style.opacity = '1';
+                    inner.style.transform = 'translateY(0) scale(1)';
+                }, 50);
+            }
+            // Show flip button
+            var flipBtn = document.getElementById('tarot-flip-' + slotNum);
+            if (flipBtn) flipBtn.classList.remove('hidden');
+            // Update progress
+            var progEl = document.getElementById('tarot-draw-progress');
+            if (progEl) progEl.innerText = _tarotState.drawn.length + '/3';
+            // If all 3 drawn, auto-show spread after brief delay
+            if (_tarotState.drawn.length >= 3) {
+                setTimeout(function() {
+                    document.getElementById('tarot-step-draw').classList.add('hidden');
+                    document.getElementById('tarot-spread').classList.remove('hidden');
+                }, 800);
+            }
+        }
+
+        function flipTarotCard(slotNum) {
+            if (slotNum > _tarotState.drawn.length) return;
+            var idx = _tarotState.drawn[slotNum - 1];
+            var slot = document.getElementById('tarot-slot-' + slotNum);
+            if (!slot) return;
+            var inner = slot.querySelector('.tarot-card-inner');
+            if (!inner) return;
+            // Suspense pause before flip
+            if (!inner.classList.contains('flipped')) {
+                // Brief suspense (card glows)
+                var back = slot.querySelector('.tarot-card-back');
+                if (back) back.style.boxShadow = '0 0 30px rgba(255,213,79,0.4)';
+                setTimeout(function() {
+                    if (back) back.style.boxShadow = '';
+                    inner.classList.add('flipped');
+                    var flipBtn = document.getElementById('tarot-flip-' + slotNum);
+                    if (flipBtn) flipBtn.classList.add('hidden');
+                    _tarotState.revealed++;
+                    // Show interpretation with delay
+                    setTimeout(function() { showTarotReading(slotNum, idx); }, 400);
+                }, 800);
+            }
+        }
+
+        function showTarotReading(slotNum, idx) {
+            var isZh = currentLang === 'zh';
+            var positions = isZh ? ['过去','现在','未来'] : ['Past','Present','Future'];
+            var names = isZh ? [tarotCards[idx].zh, tarotCards[idx].en] : [tarotCards[idx].en, tarotCards[idx].zh];
+            var meaning = isZh ? (_tarotMeanings[idx] || '深刻洞察') : (_tarotMeaningsEn[idx] || 'Deep insight');
+            var readingEl = document.getElementById('tarot-reading-' + slotNum);
+            if (readingEl) {
+                var positionName = positions[slotNum - 1];
+                readingEl.innerHTML = '<div class="flex items-center gap-2 mb-1"><span class="text-[9px] uppercase tracking-widest text-amber-400/60">' + positionName + '</span></div><div class="text-sm text-gray-200 leading-relaxed"><strong class="text-white/90">' + names[0] + '</strong> — ' + meaning + '</div>';
+                readingEl.classList.remove('hidden');
+            }
+            // All 3 revealed → show complete reading + result
+            if (_tarotState.revealed >= 3) {
+                setTimeout(function() {
+                    showTarotCompleteReading();
+                }, 600);
+            }
+        }
+
+        function showTarotCompleteReading() {
+            var isZh = currentLang === 'zh';
+            var posLabels = isZh ? ['过去','现在','未来'] : ['Past','Present','Future'];
+            var combined = isZh ? '你的三牌阵讲述了一个完整的故事：' : 'Your three cards tell a complete story: ';
+            var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
+            combined += cardNames.join(' → ') + '. ';
+            combined += isZh ? '这三张牌的流动揭示了你的成长轨迹。' : 'The flow of these cards reveals your growth trajectory.';
+            // Save daily count
+            var today = new Date().toDateString();
+            localStorage.setItem('sm_tarot_date', today);
+            _tarotState.dailyCount++;
+            localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
+            // Show result section
+            var completeEl = document.getElementById('tarot-complete-reading');
+            if (completeEl) {
+                completeEl.innerHTML = '<div><h4 class="text-sm font-display italic text-amber-300 mb-3">' + (isZh ? '🃏 完整解读' : '🃏 Complete Reading') + '</h4><p class="text-sm text-gray-300 leading-relaxed mb-4">' + combined + '</p></div>';
+                completeEl.classList.remove('hidden');
+            }
+            document.getElementById('tarot-spread').classList.add('hidden');
+            document.getElementById('tarot-result').classList.remove('hidden');
+            var upsell = document.getElementById('tarot-upsell');
+            if (upsell) upsell.classList.remove('hidden');
+            updateTarotFreeCount();
+        }
+
+        function saveTarotToJournal() {
+            var isZh = currentLang === 'zh';
+            var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
+            var topic = _tarotState.topic || '';
+            var freeHTML = '<div class="mb-4"><h3 class="text-lg font-display italic text-amber-300/80 mb-2">' + (isZh ? '🃏 塔罗三牌阵' : '🃏 Tarot Three-Card Spread') + '</h3>' +
+                '<p class="text-sm text-gray-400 mb-2">' + (isZh ? '问题：' : 'Question: ') + topic + '</p>' +
+                '<div class="flex gap-4 my-4">' + _tarotState.drawn.map(function(di, i) {
+                    var pos = isZh ? ['过去','现在','未来'][i] : ['Past','Present','Future'][i];
+                    return '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-amber-400/60 mb-1">' + pos + '</div>' +
+                        '<div class="text-sm text-white/90">' + (isZh ? tarotCards[di].zh : tarotCards[di].en) + '</div></div>';
+                }).join('') + '</div></div>';
+            // Save to localStorage journal
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            journal.unshift({
+                id: Date.now(),
+                date: new Date().toISOString(),
+                dreamPreview: (isZh ? '塔罗解读：' : 'Tarot: ') + topic,
+                freeHTML: freeHTML,
+                isPremium: false,
+                tarotCard: cardNames.join(', ')
+            });
+            localStorage.setItem('sm_journal', JSON.stringify(journal.slice(0, 50)));
+            showToast(i18n[currentLang].journal_saved || 'Saved to Dream Journal');
+        }
+
+        function shareTarotReading() {
+            // Generate a shareable text
+            var isZh = currentLang === 'zh';
+            var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
+            var text = '🃏 ' + (isZh ? '我的塔罗三牌阵' : 'My Tarot Reading') + '\n' + _tarotState.topic + '\n\n' + cardNames.map(function(n, i) {
+                var pos = isZh ? ['过去','现在','未来'][i] : ['Past','Present','Future'][i];
+                return pos + ': ' + n;
+            }).join('\n') + '\n\n— ' + (isZh ? '来自 Subconscious Mirror' : 'via Subconscious Mirror');
+            if (navigator.share) {
+                navigator.share({ title:'Subconscious Mirror — Tarot Reading', text:text });
+            } else {
+                navigator.clipboard.writeText(text).then(function() {
+                    showToast('Reading copied to clipboard!');
+                });
+            }
+        }
+
+        function downloadTarotReading() {
+            var isZh = currentLang === 'zh';
+            var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
+            var topic = _tarotState.topic || '';
+            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (isZh ? '塔罗解读' : 'Tarot Reading') + '</title><style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;background:#0a0a12;color:#e0e0e0;}h1{color:#9b7fff;}.card{background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;margin:12px 0;border:1px solid rgba(124,92,255,0.2);}</style></head><body>' +
+                '<h1>🃏 ' + (isZh ? '塔罗三牌阵解读' : 'Tarot Three-Card Reading') + '</h1>' +
+                '<p style="color:#999">' + (isZh ? '问题：' : 'Question: ') + topic + '</p>' +
+                '<div>' + _tarotState.drawn.map(function(di, i) {
+                    var pos = isZh ? ['过去','现在','未来'][i] : ['Past','Present','Future'][i];
+                    return '<div class="card"><div style="color:#9b7fff;font-size:11px;text-transform:uppercase;">' + pos + '</div><div style="font-size:18px;color:#fff;">' + (isZh ? tarotCards[di].zh : tarotCards[di].en) + '</div><div style="color:#aaa;font-size:13px;">' + (isZh ? (_tarotMeanings[di]||'') : (_tarotMeaningsEn[di]||'')) + '</div></div>';
+                }).join('') + '</div>' +
+                '<p style="margin-top:30px;color:#666;font-size:12px;">— Subconscious Mirror | mirror.api-tokenmaster.com</p>' +
+                '</body></html>';
+            var blob = new Blob([html], {type:'text/html'});
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = 'tarot-reading.html'; a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function resetTarotFlow() {
+            _tarotState = { drawn:[], revealed:0, dailyCount:_tarotState.dailyCount, readerId:null, step:'reader', topic:'', dailyTopicIndex:_tarotState.dailyTopicIndex };
+            // Reset UI
+            document.getElementById('tarot-result').classList.add('hidden');
+            document.getElementById('tarot-spread').classList.add('hidden');
+            document.getElementById('tarot-step-draw').classList.add('hidden');
+            document.getElementById('tarot-step-topic').classList.add('hidden');
+            document.getElementById('tarot-step-reader').classList.remove('hidden');
+            document.getElementById('tarot-reader-confirm').classList.add('hidden');
+            document.getElementById('tarot-reader-selected').classList.add('hidden');
+            // Reset card slots
             for (var si = 1; si <= 3; si++) {
                 var slot = document.getElementById('tarot-slot-' + si);
                 if (!slot) continue;
@@ -2613,119 +2951,84 @@
                 var readingEl = document.getElementById('tarot-reading-' + si);
                 if (readingEl) { readingEl.classList.add('hidden'); readingEl.innerHTML = ''; }
             }
-            document.getElementById('tarot-draw-area').classList.remove('hidden');
             document.getElementById('tarot-complete-reading').classList.add('hidden');
-            document.getElementById('tarot-spread').classList.add('hidden');
-            var upsell = document.getElementById('tarot-upsell');
-            if (upsell) upsell.classList.add('hidden');
-            // Reset draw button
+            document.getElementById('tarot-upsell').classList.add('hidden');
             var drawBtn = document.getElementById('tarot-draw-btn');
-            if (drawBtn) { drawBtn.disabled = false; drawBtn.innerText = i18n[currentLang].tarot_draw || 'Draw'; }
-            // Check daily limit
-            var today = new Date().toDateString();
-            var savedDate = localStorage.getItem('sm_tarot_date');
-            _tarotState.dailyCount = savedDate === today ? (parseInt(localStorage.getItem('sm_tarot_draws') || '0')) : 0;
+            if (drawBtn) drawBtn.classList.add('hidden');
+            var shuffleBtn = document.getElementById('tarot-shuffle-btn');
+            if (shuffleBtn) shuffleBtn.classList.remove('hidden');
         }
 
-        function drawTarotCard() {
-            if (_tarotState.dailyCount >= 1) {
-                alert(i18n[currentLang].tarot_daily_used || 'Daily free tarot used.');
-                return;
-            }
-            if (_tarotState.drawn.length >= 3) return;
-            var idx = Math.floor(Math.random() * 22);
-            while (_tarotState.drawn.includes(idx) && _tarotState.drawn.length < 22) {
-                idx = Math.floor(Math.random() * 22);
-            }
-            _tarotState.drawn.push(idx);
-            var slotNum = _tarotState.drawn.length;
-            var slot = document.getElementById('tarot-slot-' + slotNum);
-            if (!slot) return;
-            var inner = slot.querySelector('.tarot-card-inner');
-            var img = slot.querySelector('img');
-            var back = slot.querySelector('.tarot-card-back');
-            if (inner) inner.style.display = 'block';
-            if (img) {
-                var fn = String(idx).padStart(2, '0') + '-' + tarotCards[idx].en.toLowerCase().replace(/^the /, '').replace(/\s+/g, '-') + '.png';
-                img.src = '/static/tarot/' + fn;
-                img.onerror = function() { this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + fn; };
-                img.classList.remove('hidden');
-            }
-            // Animate card sliding into position
-            if (inner) {
-                inner.style.transform = 'scale(0.8) rotateY(180deg)';
-                inner.style.opacity = '0';
-                setTimeout(function() {
-                    inner.style.transition = 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    inner.style.transform = 'scale(1) rotateY(180deg)';
-                    inner.style.opacity = '1';
-                }, 50);
-            }
-            // Show flip button
-            var flipBtn = document.getElementById('tarot-flip-' + slotNum);
-            if (flipBtn) flipBtn.classList.remove('hidden');
-            // Update draw progress
-            if (_tarotState.drawn.length >= 3) {
-                document.getElementById('tarot-draw-area').classList.add('hidden');
-            }
-            var drawBtn = document.getElementById('tarot-draw-btn');
-            if (drawBtn) {
-                if (_tarotState.drawn.length < 3) {
-                    drawBtn.innerText = i18n[currentLang].tarot_draw + ' (' + _tarotState.drawn.length + '/3)';
-                } else {
-                    drawBtn.innerText = i18n[currentLang].tarot_draw_again || 'Draw Again';
-                }
-            }
-            // Show the spread
-            document.getElementById('tarot-spread').classList.remove('hidden');
-        }
-
-        function flipTarotCard(slotNum) {
-            if (slotNum > _tarotState.drawn.length) return;
-            var idx = _tarotState.drawn[slotNum - 1];
-            var inner = document.getElementById('tarot-slot-' + slotNum).querySelector('.tarot-card-inner');
-            if (!inner) return;
-            inner.classList.add('flipped');
-            var flipBtn = document.getElementById('tarot-flip-' + slotNum);
-            if (flipBtn) flipBtn.classList.add('hidden');
-            _tarotState.revealed++;
-            // Show interpretation
-            setTimeout(function() {
-                var isZh = currentLang === 'zh';
-                var positions = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
-                var names = isZh ? [tarotCards[idx].zh, tarotCards[idx].en] : [tarotCards[idx].en, tarotCards[idx].zh];
-                var meaning = isZh ? (_tarotMeanings[idx] || '深刻洞察') : (_tarotMeaningsEn[idx] || 'Deep insight');
-                var readingEl = document.getElementById('tarot-reading-' + slotNum);
-                if (readingEl) {
-                    var positionName = isZh ? positions[slotNum - 1] : positions[slotNum - 1];
-                    readingEl.innerHTML = '<div class="flex items-center gap-2 mb-1"><span class="text-[9px] uppercase tracking-widest text-amber-400/60">' + positionName + '</span></div><div class="text-sm text-gray-200 leading-relaxed"><strong class="text-white/90">' + names[0] + '</strong> — ' + meaning + '</div>';
-                    readingEl.classList.remove('hidden');
-                }
-                // All 3 revealed → show complete reading + upsell
-                if (_tarotState.revealed >= 3) {
-                    // Save daily count
-                    var today = new Date().toDateString();
-                    localStorage.setItem('sm_tarot_date', today);
-                    _tarotState.dailyCount = 1;
-                    localStorage.setItem('sm_tarot_draws', '1');
-                    // Show combined reading
-                    var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
-                    var combined = isZh ? '你的三牌阵讲述了一个完整的故事：' : 'Your three cards tell a complete story: ';
-                    var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
-                    combined += cardNames.join(' → ') + '. ';
-                    combined += isZh ? '这三张牌的流动揭示了你的成长轨迹。想要结合你的梦境做更深入的分析？' : 'The flow of these cards reveals your growth trajectory. Want to connect this to your dreams?';
-                    var completeEl = document.getElementById('tarot-complete-reading');
-                    if (completeEl) {
-                        completeEl.innerHTML = '<div class="mt-6 pt-6 border-t border-white/10"><h4 class="text-sm font-display italic text-amber-300 mb-3">' + (isZh ? '🃏 完整解读' : '🃏 Complete Reading') + '</h4><p class="text-sm text-gray-300 leading-relaxed mb-4">' + combined + '</p></div>';
-                        completeEl.classList.remove('hidden');
-                    }
-                    var upsell = document.getElementById('tarot-upsell');
-                    if (upsell) upsell.classList.remove('hidden');
-                }
-            }, 600);
-        }
+        // init on DOMContentLoaded
+        setTimeout(function() { initTarotSection(); }, 100);
 
         // ═══ Dream Journal (localStorage) ═══
+        function toggleJournalView() {
+            var jv = document.getElementById('journal-view');
+            var cm = document.getElementById('chat-messages');
+            if (jv && !jv.classList.contains('hidden')) {
+                jv.classList.add('hidden');
+                if (cm) cm.classList.remove('hidden');
+            } else {
+                if (cm) cm.classList.add('hidden');
+                if (jv) jv.classList.remove('hidden');
+                renderJournalToApp();
+            }
+        }
+
+        function renderJournalToApp() {
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            var container = document.getElementById('journal-entries-app');
+            var empty = document.getElementById('journal-empty-app');
+            if (!container) return;
+            if (journal.length === 0) {
+                container.innerHTML = '';
+                if (empty) empty.classList.remove('hidden');
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+            container.innerHTML = journal.map(function(entry) {
+                var d = new Date(entry.date);
+                var dateStr = currentLang === 'zh'
+                    ? d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日'
+                    : d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+                var tarotBadge = entry.tarotCard ? '<span class="text-[10px] text-amber-400">' + entry.tarotCard + '</span>' : '';
+                return '<div class="journal-entry glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="openJournalEntryApp(' + entry.id + ')" style="border:1px solid rgba(255,255,255,0.06)">' +
+                    '<div class="flex items-center justify-between mb-2"><span class="text-[9px] uppercase tracking-widest text-gray-500">' + dateStr + '</span>' + tarotBadge + '</div>' +
+                    '<p class="text-sm text-gray-300 truncate">' + (entry.dreamPreview || 'Dream analysis') + '</p></div>';
+            }).join('');
+        }
+
+        function openJournalEntryApp(id) {
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            var entry = journal.find(function(e) { return e.id === id; });
+            if (!entry) return;
+            // Switch to chat area and show report
+            var jv = document.getElementById('journal-view');
+            var cm = document.getElementById('chat-messages');
+            if (jv) jv.classList.add('hidden');
+            if (cm) cm.classList.remove('hidden');
+            document.getElementById('chat-input-area').classList.add('hidden');
+            document.getElementById('report-view-inline').classList.remove('hidden');
+            document.getElementById('res-free').innerHTML = entry.freeHTML || '';
+            if (entry.isPremium && entry.paidHTML) {
+                document.getElementById('locked-preview').classList.add('hidden');
+                document.getElementById('res-paid-wrapper').classList.remove('hidden');
+                document.getElementById('res-paid').innerHTML = entry.paidHTML;
+            } else {
+                document.getElementById('locked-preview').classList.remove('hidden');
+                document.getElementById('res-paid-wrapper').classList.add('hidden');
+            }
+            gsap.fromTo("#report-view-inline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
+        }
+
+        function openJournalFromNav() {
+            enterAppMode();
+            setTimeout(function() {
+                toggleJournalView();
+            }, 400);
+        }
+
         function saveToJournal() {
             var freeHTML = document.getElementById('res-free')?.innerHTML || '';
             var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
@@ -3185,7 +3488,7 @@
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
-    <script src="/static/js/smauth.js?v=6"></script>
+    <script src="/static/js/smauth.js?v=8"></script>
 
     <!-- ═══ Hero Vortex: Elliptical rotating particle swirl (Canvas 2D) ═══ -->
     <script>
