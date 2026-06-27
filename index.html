@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=3">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=4">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=2">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=6"></script>
@@ -130,9 +130,11 @@
     </div>
 
     <!-- Hero Section -->
-    <section id="hero" class="relative h-screen w-full flex items-center justify-center">
+    <section id="hero" class="relative h-screen w-full flex items-center justify-center overflow-hidden">
         <video id="hero-video" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline crossorigin="anonymous" poster="https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg"></video>
         <div class="absolute inset-0 video-overlay z-10"></div>
+        <!-- Three.js 3D Orb Canvas -->
+        <canvas id="hero-3d-orb" class="absolute inset-0 z-15 pointer-events-none"></canvas>
         <div class="relative z-20 text-center px-6 pt-24 max-w-6xl">
             <span class="text-[10px] text-gray-500 uppercase tracking-[0.5em] mb-12 block" id="t-hero-eyebrow">Revealing the Unseen</span>
             <h1 id="t-hero-title" class="text-5xl md:text-7xl lg:text-[9.5rem] font-display italic leading-[0.8] tracking-tighter text-white mb-10">
@@ -3167,5 +3169,209 @@
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
     <script src="/static/js/smauth.js?v=6"></script>
+
+    <!-- ═══ Three.js 3D Rotating Orb (Hero) ═══ -->
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+    </script>
+    <script type="module">
+    import * as THREE from 'three';
+
+    (function initHero3DOrb() {
+        const canvas = document.getElementById('hero-3d-orb');
+        if (!canvas) return;
+
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 6;
+
+        // ── Outer Ring (golden wireframe torus) ──
+        const ringGeo = new THREE.TorusGeometry(2.2, 0.015, 32, 120);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xFFD54F, transparent: true, opacity: 0.35 });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        scene.add(ring);
+
+        // ── Inner Ring 2 (purple, tilted) ──
+        const ring2Geo = new THREE.TorusGeometry(1.7, 0.012, 24, 100);
+        const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x7c5cff, transparent: true, opacity: 0.3 });
+        const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+        ring2.rotation.x = Math.PI * 0.45;
+        ring2.rotation.y = Math.PI * 0.3;
+        scene.add(ring2);
+
+        // ── Inner Ring 3 (thin accent, counter-rotating) ──
+        const ring3Geo = new THREE.TorusGeometry(1.3, 0.01, 20, 80);
+        const ring3Mat = new THREE.MeshBasicMaterial({ color: 0x9b7fff, transparent: true, opacity: 0.25 });
+        const ring3 = new THREE.Mesh(ring3Geo, ring3Mat);
+        ring3.rotation.x = Math.PI * 0.55;
+        ring3.rotation.y = -Math.PI * 0.25;
+        scene.add(ring3);
+
+        // ── Particle Sphere (scattered glowing dots) ──
+        const particleCount = 300;
+        const particleGeo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const radius = 2.6;
+
+        const purpleColor = new THREE.Color(0x7c5cff);
+        const goldColor = new THREE.Color(0xFFD54F);
+        const whiteColor = new THREE.Color(0xffffff);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Fibonacci sphere distribution for uniform coverage
+            const phi = Math.acos(1 - 2 * (i + 0.5) / particleCount);
+            const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+            const r = radius * (0.7 + Math.random() * 0.3);
+
+            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i * 3 + 2] = r * Math.cos(phi);
+
+            // Color mix: 50% purple, 30% gold, 20% white
+            const rand = Math.random();
+            let color;
+            if (rand < 0.5) color = purpleColor.clone().lerp(whiteColor, Math.random() * 0.4);
+            else if (rand < 0.8) color = goldColor.clone().lerp(whiteColor, Math.random() * 0.3);
+            else color = whiteColor.clone();
+
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        // Circular glow texture for particles
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = 32; glowCanvas.height = 32;
+        const gctx = glowCanvas.getContext('2d');
+        const gradient = gctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        gradient.addColorStop(0, 'rgba(255,255,255,1)');
+        gradient.addColorStop(0.15, 'rgba(255,255,255,0.9)');
+        gradient.addColorStop(0.4, 'rgba(200,180,255,0.4)');
+        gradient.addColorStop(0.7, 'rgba(100,80,200,0.05)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        gctx.fillStyle = gradient;
+        gctx.fillRect(0, 0, 32, 32);
+        const glowTexture = new THREE.CanvasTexture(glowCanvas);
+
+        const particleMat = new THREE.PointsMaterial({
+            size: 0.08,
+            map: glowTexture,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            transparent: true,
+            opacity: 0.75,
+        });
+
+        const particleSystem = new THREE.Points(particleGeo, particleMat);
+        scene.add(particleSystem);
+
+        // ── Core glow sphere ──
+        const coreGeo = new THREE.SphereGeometry(0.25, 32, 32);
+        const coreMat = new THREE.MeshBasicMaterial({
+            color: 0x7c5cff,
+            transparent: true,
+            opacity: 0.4,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(core);
+
+        // ── Outer glow halo ──
+        const haloGeo = new THREE.SphereGeometry(0.5, 32, 32);
+        const haloMat = new THREE.MeshBasicMaterial({
+            color: 0x9b7fff,
+            transparent: true,
+            opacity: 0.12,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const halo = new THREE.Mesh(haloGeo, haloMat);
+        scene.add(halo);
+
+        // ── Mouse tracking ──
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            targetX = (e.clientX / window.innerWidth) * 2 - 1;
+            targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // ── Resize ──
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        // ── Animation loop ──
+        const clock = new THREE.Clock();
+        let animId = null;
+
+        function animate() {
+            animId = requestAnimationFrame(animate);
+
+            const elapsed = clock.getElapsedTime();
+
+            // Smooth mouse follow
+            mouseX += (targetX - mouseX) * 0.03;
+            mouseY += (targetY - mouseY) * 0.03;
+
+            // Ring rotations
+            ring.rotation.x += 0.0015;
+            ring.rotation.y += 0.002;
+            ring.rotation.z += 0.0008;
+
+            ring2.rotation.x += 0.002;
+            ring2.rotation.z += 0.0012;
+
+            ring3.rotation.y -= 0.0025;
+            ring3.rotation.x += 0.001;
+
+            // Particle sphere rotation
+            particleSystem.rotation.y += 0.0018;
+            particleSystem.rotation.x += 0.0006;
+
+            // Core pulsation
+            const pulse = 1 + Math.sin(elapsed * 2.5) * 0.3;
+            core.scale.setScalar(pulse);
+            core.material.opacity = 0.3 + Math.sin(elapsed * 2.5) * 0.2;
+
+            halo.scale.setScalar(pulse * 1.3);
+            halo.material.opacity = 0.08 + Math.sin(elapsed * 2.5 + 1) * 0.06;
+
+            // Subtle mouse parallax on the whole group
+            const groupTargetX = mouseX * 0.15;
+            const groupTargetY = mouseY * 0.1;
+            scene.rotation.y += (groupTargetX - scene.rotation.y) * 0.02;
+            scene.rotation.x += (groupTargetY - scene.rotation.x) * 0.02;
+
+            renderer.render(scene, camera);
+        }
+
+        // Visibility-aware: pause when not visible
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                if (!animId) animate();
+            } else {
+                if (animId) { cancelAnimationFrame(animId); animId = null; }
+            }
+        }, { threshold: 0.1 });
+        observer.observe(canvas);
+
+        // Start
+        animate();
+    })();
+    </script>
 </body>
 </html>
