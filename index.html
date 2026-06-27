@@ -870,7 +870,6 @@
 
         // Server-side session (replaces localStorage premium)
         let sessionId = null;
-        let isPremiumUser = false;
         window.isPremiumUser = false;  // exposed for external access (tests, SMAuth)
         let userEmail = null;
 
@@ -930,8 +929,7 @@
                 const res = await fetch(`${API_BASE}${API_PREFIX}/session/init`, { method: 'POST' });
                 const data = await res.json();
                 sessionId = data.sessionId;
-                isPremiumUser = data.premium || false;
-                window.isPremiumUser = isPremiumUser;
+                window.isPremiumUser = data.premium || false;
             } catch (e) {
                 console.error("Session init failed:", e);
             }
@@ -1330,7 +1328,7 @@
 
         async function checkReferralStatus() {
             // Server-side premium check
-            if (isPremiumUser) {
+            if (window.isPremiumUser) {
                 unlockReport();
                 return;
             }
@@ -1431,7 +1429,6 @@
 
         // ═══ Unified Report Unlock (called from verifyLicense + payment callback) ═══
         function unlockReport() {
-            isPremiumUser = true;
             window.isPremiumUser = true;
             document.getElementById('locked-preview').classList.add('hidden');
             document.getElementById('res-paid-wrapper').classList.remove('hidden');
@@ -1645,7 +1642,6 @@
                         }
 
                         if (result.status === 'full') {
-                            isPremiumUser = true;
                             window.isPremiumUser = true;
                             document.getElementById('locked-preview').classList.add('hidden');
                             document.getElementById('res-paid-wrapper').classList.remove('hidden');
