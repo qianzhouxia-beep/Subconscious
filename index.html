@@ -638,39 +638,39 @@
                     </ul>
                     <button onclick="document.getElementById('free-tarot').scrollIntoView({behavior:'smooth'})" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier0-cta">Try Free</button>
                 </div>
-                <!-- Single Report -->
+                <!-- Starter: 3 Credits -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.1s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier1-name">Single Report</span>
-                    <div class="text-4xl font-display mb-6">$1.99</div>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Starter</span>
+                    <div class="text-4xl font-display mb-6">$2.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier1-f1">1 Complete Dream Report</li>
-                        <li id="t-tier1-f2">Tarot Card Included</li>
-                        <li id="t-tier1-f3">No Save / Export</li>
+                        <li>3 Dream Reports</li>
+                        <li>Tarot Card Included</li>
+                        <li>No Save / Export</li>
                     </ul>
-                    <button onclick="SMAuth.showPaymentPrompt('single','Single Report',1.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier1-cta">Buy Now</button>
+                    <button onclick="SMAuth.showPaymentPrompt('credits_3','Starter · 3 Reports',2.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button>
                 </div>
-                <!-- 3 Reports (Best Value) -->
+                <!-- Popular: 10 Credits (Best Value) -->
                 <div class="glass-card p-8 flex flex-col items-center relative card-active reveal-on-scroll overflow-visible" style="transition-delay:0.2s">
-                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap" id="t-pricing-pop">Best Value</div>
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4" id="t-tier2-name">Starter Pack</span>
-                    <div class="text-4xl font-display mb-6">$4.99</div>
+                    <div class="absolute -top-4 bg-accent text-bg text-[10px] font-bold px-6 py-2 rounded-full uppercase tracking-widest whitespace-nowrap">Best Value</div>
+                    <span class="text-[10px] text-gray-400 uppercase tracking-widest mb-4">Popular</span>
+                    <div class="text-4xl font-display mb-6">$6.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier2-f1">3 Complete Reports</li>
-                        <li id="t-tier2-f2">Save &amp; Export</li>
-                        <li id="t-tier2-f3">Dream Journal Access</li>
+                        <li>10 Dream Reports</li>
+                        <li>Save &amp; Export</li>
+                        <li>Dream Journal Access</li>
                     </ul>
-                    <div id="paypal-4-99"><button onclick="SMAuth.showPaymentPrompt('starter','Starter Pack',4.99)" class="px-8 py-3 bg-accent text-bg rounded-lg text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all w-full">Buy Now</button></div>
+                    <div id="paypal-6-99"><button onclick="SMAuth.showPaymentPrompt('credits_10','Popular · 10 Reports',6.99)" class="px-8 py-3 bg-accent text-bg rounded-lg text-[11px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all w-full">Buy Now</button></div>
                 </div>
-                <!-- Monthly Unlimited -->
+                <!-- Pro: 30 Credits -->
                 <div class="glass-card p-8 flex flex-col items-center reveal-on-scroll" style="transition-delay:0.3s">
-                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4" id="t-tier3-name">Unlimited</span>
-                    <div class="text-4xl font-display mb-6">$9.99<span class="text-sm text-gray-500">/mo</span></div>
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-4">Pro</span>
+                    <div class="text-4xl font-display mb-6">$14.99</div>
                     <ul class="text-gray-400 text-sm space-y-3 mb-8 text-center">
-                        <li id="t-tier3-f1">Unlimited Reports</li>
-                        <li id="t-tier3-f2">Priority Processing</li>
-                        <li id="t-tier3-f3">All Features Unlocked</li>
+                        <li>30 Dream Reports</li>
+                        <li>Priority Processing</li>
+                        <li>All Features Unlocked</li>
                     </ul>
-                    <button onclick="SMAuth.showPaymentPrompt('unlimited','Unlimited Monthly',9.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full" id="t-tier3-cta">Subscribe</button>
+                    <button onclick="SMAuth.showPaymentPrompt('credits_30','Pro · 30 Reports',14.99)" class="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white text-[11px] uppercase tracking-widest hover:bg-white/10 transition-all w-full">Buy Now</button>
                 </div>
             </div>
         </div>
@@ -727,7 +727,7 @@
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q2">What is the free tarot reading?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Upgrade for unlimited readings.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a2">Draw three tarot cards and receive an AI interpretation. Free once per day. Buy a credit pack for more readings.</div>
             </div>
             <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
                 <div class="flex justify-between items-center">

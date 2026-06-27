@@ -16,9 +16,10 @@ JWT_ALGO = "HS256"
 JWT_EXPIRY_HOURS = 8760  # 1 year
 
 PLAN_CONFIG = {
-    "spark": {"label": "The Spark", "price": 4.99, "reports": 3},
-    "seeker": {"label": "The Seeker", "price": 12.99, "reports": 10},
-    "oracle": {"label": "The Oracle", "price": 29.99, "reports": -1},  # -1 = unlimited
+    "spark":     {"label": "Free",        "price": 0.0,  "reports": 0},
+    "credits_3":  {"label": "Starter",     "price": 2.99, "reports": 3},
+    "credits_10": {"label": "Popular",     "price": 6.99, "reports": 10},
+    "credits_30": {"label": "Pro",         "price": 14.99,"reports": 30},
 }
 
 
