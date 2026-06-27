@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SMAuth — Subconscious Mirror 用户账户与支付闭环模块 v3
  * 紫色主题 + 社交登录 + 虚拟币支付 (NOWPayments)
  */
