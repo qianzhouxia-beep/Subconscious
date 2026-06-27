@@ -31,12 +31,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=19">
-    <link rel="stylesheet" href="/static/css/sm-icons.css?v=3">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=20">
+    <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=9"></script>
-    <script src="/static/js/tarot.js?v=5"></script>
-    <script src="/static/js/optimizer.js?v=3"></script>
+    <script src="/static/js/i18n.js?v=10"></script>
+    <script src="/static/js/tarot.js?v=6"></script>
+    <script src="/static/js/optimizer.js?v=4"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
 
     <script>
@@ -2787,16 +2787,22 @@
             // Update progress
             var progEl = document.getElementById('tarot-draw-progress');
             if (progEl) progEl.innerText = _tarotState.drawn.length + '/3';
-            // If all 3 drawn, auto-show spread after brief delay
+            // If all 3 drawn, auto-show spread and auto-reveal cards
             if (_tarotState.drawn.length >= 3) {
                 setTimeout(function() {
                     document.getElementById('tarot-step-draw').classList.add('hidden');
                     document.getElementById('tarot-spread').classList.remove('hidden');
+                    // Auto-reveal cards with staggered delay
+                    [1, 2, 3].forEach(function(slot, i) {
+                        setTimeout(function() {
+                            flipTarotCard(slot, true);
+                        }, i * 700);
+                    });
                 }, 800);
             }
         }
 
-        function flipTarotCard(slotNum) {
+        function flipTarotCard(slotNum, auto) {
             if (slotNum > _tarotState.drawn.length) return;
             var idx = _tarotState.drawn[slotNum - 1];
             var slot = document.getElementById('tarot-slot-' + slotNum);
@@ -2805,6 +2811,7 @@
             if (!inner) return;
             // Suspense pause before flip
             if (!inner.classList.contains('flipped')) {
+                var flipDelay = auto ? 100 : 800;
                 // Brief suspense (card glows)
                 var back = slot.querySelector('.tarot-card-back');
                 if (back) back.style.boxShadow = '0 0 30px rgba(255,213,79,0.4)';
@@ -2816,7 +2823,7 @@
                     _tarotState.revealed++;
                     // Show interpretation with delay
                     setTimeout(function() { showTarotReading(slotNum, idx); }, 400);
-                }, 800);
+                }, flipDelay);
             }
         }
 
@@ -2841,11 +2848,41 @@
 
         function showTarotCompleteReading() {
             var isZh = currentLang === 'zh';
-            var posLabels = isZh ? ['过去','现在','未来'] : ['Past','Present','Future'];
-            var combined = isZh ? '你的三牌阵讲述了一个完整的故事：' : 'Your three cards tell a complete story: ';
+            var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
+            var posMeanings = isZh ? [
+                '这张牌代表你过去经历的能量和影响，它奠定了你当前处境的基调。',
+                '这张牌反映了你当下的状态、挑战和机遇，是解读的核心。',
+                '这张牌揭示了可能的未来趋势——是你的潜力和发展方向。'
+            ] : [
+                'This card represents the energies of your past that shaped your present.',
+                'This card reflects your current state — the core of your reading.',
+                'This card reveals the potential future — your direction and growth.'
+            ];
+            var topic = _tarotState.topic || (isZh ? '你的个人成长' : 'your personal growth');
+
+            // Build per-card details
+            var cardHtml = '';
+            for (var i = 0; i < 3; i++) {
+                var di = _tarotState.drawn[i];
+                var name = isZh ? tarotCards[di].zh : tarotCards[di].en;
+                var meaning = isZh ? (_tarotMeanings[di] || '深刻洞察') : (_tarotMeaningsEn[di] || 'Deep insight');
+                cardHtml += '<div class="mb-5 pb-4 border-b border-white/5 last:border-0">' +
+                    '<div class="flex items-center gap-2 mb-2">' +
+                        '<span class="text-[10px] uppercase tracking-widest text-amber-400/70 font-semibold">' + posLabels[i] + '</span>' +
+                        '<span class="w-1 h-1 rounded-full bg-amber-400/30"></span>' +
+                        '<span class="text-xs text-white/80 font-medium">' + name + '</span>' +
+                    '</div>' +
+                    '<p class="text-[10px] text-gray-500 italic mb-1.5">' + posMeanings[i] + '</p>' +
+                    '<p class="text-xs text-gray-300 leading-relaxed">' + meaning + '</p>' +
+                '</div>';
+            }
+
+            // Combined narrative
             var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
-            combined += cardNames.join(' → ') + '. ';
-            combined += isZh ? '这三张牌的流动揭示了你的成长轨迹。' : 'The flow of these cards reveals your growth trajectory.';
+            var narrative = isZh
+                ? '关于「' + topic + '」的三牌阵解读：过去（' + cardNames[0] + '）的能量流动塑造了今天的你；现在（' + cardNames[1] + '）正指引你关注当下的课题；未来（' + cardNames[2] + '）预示着通过觉察与成长可达成的方向。三张牌共同编织了一段关于转化的故事。'
+                : 'Regarding "' + topic + '": The past energy (' + cardNames[0] + ') shaped who you are today; the present (' + cardNames[1] + ') guides your current focus; the future (' + cardNames[2] + ') shows where growth leads. Together, these three cards weave a story of transformation.';
+
             // Save daily count
             var today = new Date().toDateString();
             localStorage.setItem('sm_tarot_date', today);
@@ -2854,7 +2891,13 @@
             // Show result section
             var completeEl = document.getElementById('tarot-complete-reading');
             if (completeEl) {
-                completeEl.innerHTML = '<div><h4 class="text-sm font-display italic text-amber-300 mb-3">' + (isZh ? '🃏 完整解读' : '🃏 Complete Reading') + '</h4><p class="text-sm text-gray-300 leading-relaxed mb-4">' + combined + '</p></div>';
+                completeEl.innerHTML = '<div>' +
+                    '<h4 class="text-sm font-display italic text-amber-300 mb-4">' + (isZh ? '🃏 塔罗完整解读' : '🃏 Complete Tarot Reading') + '</h4>' +
+                    cardHtml +
+                    '<div class="mt-5 pt-4 border-t border-amber-400/20">' +
+                        '<p class="text-xs text-amber-200/80 leading-relaxed font-medium">' + narrative + '</p>' +
+                    '</div>' +
+                '</div>';
                 completeEl.classList.remove('hidden');
             }
             document.getElementById('tarot-spread').classList.add('hidden');
@@ -3488,7 +3531,7 @@
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
-    <script src="/static/js/smauth.js?v=8"></script>
+    <script src="/static/js/smauth.js?v=9"></script>
 
     <!-- ═══ Hero Vortex: Elliptical rotating particle swirl (Canvas 2D) ═══ -->
     <script>
