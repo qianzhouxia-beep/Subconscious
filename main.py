@@ -339,6 +339,32 @@ else:
                                 license_key TEXT,
                                 timestamp REAL)''')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS chat_sessions (
+                                id TEXT PRIMARY KEY,
+                                user_id TEXT,
+                                session_id TEXT NOT NULL,
+                                dream_text TEXT DEFAULT '',
+                                turn_count INTEGER DEFAULT 0,
+                                status TEXT DEFAULT 'active',
+                                created_at TEXT DEFAULT (datetime(\'now\')),
+                                updated_at TEXT DEFAULT (datetime(\'now\')))''')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS chat_messages (
+                                id TEXT PRIMARY KEY,
+                                session_id TEXT NOT NULL,
+                                role TEXT NOT NULL,
+                                content TEXT NOT NULL,
+                                turn INTEGER DEFAULT 0,
+                                created_at TEXT DEFAULT (datetime(\'now\')))''')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id)')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS dream_reports (
+                                id TEXT PRIMARY KEY,
+                                session_id TEXT NOT NULL,
+                                free_content TEXT,
+                                paid_content TEXT,
+                                tarot_index INTEGER DEFAULT -1,
+                                is_paid INTEGER DEFAULT 0,
+                                created_at TEXT DEFAULT (datetime(\'now\')))''')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_dream_reports_session ON dream_reports(session_id)')
         try:
             from backend.account_module import init_account_tables
             init_account_tables()
@@ -383,6 +409,67 @@ def session_init():
             if row and row['status'] == 'paid': is_premium = True
     res = make_response(jsonify({"sessionId": new_sid, "premium": is_premium, "status": "active"}))
     return _cors(res)
+
+# ─── Chat Session Management API ───
+
+@app.route('/api/chat/session', methods=['POST', 'OPTIONS'])
+def chat_session_create():
+    if request.method == 'OPTIONS': return _cors(make_response())
+    import uuid as _uuid
+    sid = _uuid.uuid4().hex
+    sess_id = _uuid.uuid4().hex
+    auth_token = request.cookies.get('sm_auth_token', '')
+    user_id = ''
+    if auth_token:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(auth_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+        except: pass
+    with get_db() as conn:
+        conn.execute("INSERT INTO chat_sessions (id, user_id, session_id) VALUES (?, ?, ?)",
+                     (sid, user_id, sess_id))
+    return _cors(jsonify({"sessionId": sess_id, "id": sid}))
+
+@app.route('/api/chat/sessions', methods=['GET', 'OPTIONS'])
+def chat_sessions_list():
+    if request.method == 'OPTIONS': return _cors(make_response())
+    auth_token = request.cookies.get('sm_auth_token', '')
+    user_id = ''
+    if auth_token:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(auth_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+        except: pass
+    with get_db() as conn:
+        if user_id:
+            rows = conn.execute(
+                "SELECT id, session_id, dream_text, turn_count, status, created_at FROM chat_sessions WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
+                (user_id,)
+            ).fetchall()
+        else:
+            rows = []
+    return _cors(jsonify({"sessions": [dict(r) for r in rows]}))
+
+@app.route('/api/chat/session/<session_id>', methods=['GET', 'DELETE', 'OPTIONS'])
+def chat_session_detail(session_id):
+    if request.method == 'OPTIONS': return _cors(make_response())
+    if request.method == 'DELETE':
+        with get_db() as conn:
+            conn.execute("UPDATE chat_sessions SET status='deleted' WHERE session_id=?", (session_id,))
+        return _cors(jsonify({"status": "deleted"}))
+    with get_db() as conn:
+        session = conn.execute("SELECT * FROM chat_sessions WHERE session_id=?", (session_id,)).fetchone()
+        if not session:
+            return _cors(jsonify({"error": "session not found"}), 404)
+        messages = conn.execute("SELECT role, content, turn, created_at FROM chat_messages WHERE session_id=? ORDER BY turn ASC", (session_id,)).fetchall()
+        report = conn.execute("SELECT * FROM dream_reports WHERE session_id=? ORDER BY created_at DESC LIMIT 1", (session_id,)).fetchone()
+    return _cors(jsonify({
+        "session": dict(session),
+        "messages": [dict(m) for m in messages],
+        "report": dict(report) if report else None
+    }))
 
 @app.errorhandler(500)
 def handle_500(e):
@@ -496,6 +583,7 @@ def chat():
     lang = req_data.get('lang', 'zh')
     user_email = req_data.get('email')
     sm_token = req_data.get('token', '')
+    session_id = req_data.get('session_id', '')
     is_premium = False
 
     # Check SMAuth JWT token for premium status
@@ -525,6 +613,37 @@ def chat():
             row = conn.execute("SELECT status FROM payments WHERE email = ?", (user_email,)).fetchone()
             if row and row['status'] == 'paid': is_premium = True
     user_msg_count = len([m for m in messages if m['role'] == 'user'])
+    
+    # ─── Auto-save messages to DB if session_id provided ───
+    def _save_chat_msg(role, content, turn_num):
+        if not session_id: return
+        try:
+            import uuid as _uuid
+            with get_db() as conn:
+                conn.execute("INSERT INTO chat_messages (id, session_id, role, content, turn) VALUES (?, ?, ?, ?, ?)",
+                             (_uuid.uuid4().hex, session_id, role, content, turn_num))
+                conn.execute("UPDATE chat_sessions SET turn_count=?, updated_at=datetime('now') WHERE session_id=?",
+                             (max(turn_num, 0), session_id))
+        except Exception as e:
+            print(f"[Chat] Save msg failed: {e}")
+    
+    def _save_dream_report(free_part, paid_part, tarot_idx):
+        if not session_id: return
+        try:
+            import uuid as _uuid
+            with get_db() as conn:
+                conn.execute("INSERT INTO dream_reports (id, session_id, free_content, paid_content, tarot_index, is_paid) VALUES (?, ?, ?, ?, ?, ?)",
+                             (_uuid.uuid4().hex, session_id, free_part, paid_part, tarot_idx, 1 if is_premium else 0))
+        except Exception as e:
+            print(f"[Chat] Save report failed: {e}")
+    
+    def _update_session_dream(text):
+        if not session_id or not text: return
+        try:
+            with get_db() as conn:
+                conn.execute("UPDATE chat_sessions SET dream_text=? WHERE session_id=?", (text[:500], session_id))
+        except Exception as e:
+            print(f"[Chat] Update dream_text failed: {e}")
     
     # --- Input validation: reject meaningless / garbage input ---
     if messages and messages[-1]['role'] == 'user':
@@ -713,6 +832,12 @@ def chat():
         
         ai_msg = res_json['choices'][0]['message']
         text = ai_msg.get('content') or ai_msg.get('reasoning_content') or ""
+        # Save messages to DB
+        if messages and messages[-1]['role'] == 'user':
+            _save_chat_msg('user', messages[-1]['content'], user_msg_count - 1)
+            if user_msg_count == 1:
+                _update_session_dream(messages[-1]['content'])
+        _save_chat_msg('ai', text, user_msg_count)
         if mode == 'question': return _cors(jsonify({"mode": "question", "content": text}))
         else:
             # 支持多种分隔符格式（AI 有时会把 --- 理解成 Markdown 语法变体）
@@ -747,6 +872,11 @@ def chat():
                                     break
                 except Exception as e:
                     print(f"[Chat] Entitlement consume failed: {e}")
+
+            # Save report to DB
+            tarot_match = re.search(r'\[TAROT:\s*(\d+)\]', paid)
+            tarot_idx = int(tarot_match.group(1)) if tarot_match else -1
+            _save_dream_report(free, paid, tarot_idx)
 
             return _cors(jsonify({"mode": "report", "status": "full" if is_premium else "partial", "data": {"free_part": free, "paid_part": paid}}))
     except requests.Timeout:
