@@ -295,7 +295,77 @@
                 <div id="chat-messages" class="flex-1 overflow-y-auto px-4 md:px-6">
                     <!-- Messages Thread -->
                     <div id="chat-thread" class="space-y-4 pt-6 pb-4"></div>
-                    <!-- Inline Report View -->
+                    <!-- Report Modal (Full Screen Overlay) -->
+                    <div id="report-modal" class="hidden fixed inset-0 z-[100] bg-bg/95 backdrop-blur-xl overflow-y-auto">
+                        <div class="min-h-screen px-4 py-8">
+                            <!-- Modal Header -->
+                            <div class="max-w-4xl mx-auto flex items-center justify-between mb-6">
+                                <h2 class="text-2xl font-display italic text-white" id="t-report-modal-title">Your Dream Report</h2>
+                                <button onclick="closeReportModal()" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        
+                            <!-- Modal Content -->
+                            <div class="max-w-4xl mx-auto">
+                                <div class="glass-card px-6 py-8 md:px-10 md:py-12 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">
+                                    <!-- Free Preview Section -->
+                                    <div class="space-y-4">
+                                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-psych-modal">
+                                            <span class="sm-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z"/></svg></span> Dream Preview
+                                        </h4>
+                                        <div id="res-free-modal" class="text-base text-gray-300 font-light leading-relaxed space-y-4"></div>
+                                    </div>
+                                
+                                    <!-- Premium Section -->
+                                    <div id="premium-section-modal" class="relative pt-8 border-t border-white/10 mt-8">
+                                        <h4 class="text-base text-white/80 font-semibold flex items-center gap-3 mb-6" id="t-res-destiny-modal">
+                                            <span class="sm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></span> Complete Destiny Report
+                                        </h4>
+                                    
+                                        <!-- Locked Preview (for non-premium) -->
+                                        <div id="locked-preview-modal" class="relative">
+                                            <div id="res-paid-preview-modal" class="text-sm text-gray-500 leading-relaxed space-y-2 line-clamp-6 overflow-hidden"></div>
+                                            <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-bg/90 to-transparent pointer-events-none"></div>
+                                        </div>
+                                    
+                                        <!-- Full Paid Content -->
+                                        <div id="res-paid-wrapper-modal" class="hidden">
+                                            <div id="res-paid-modal" class="text-base text-gray-200 font-light leading-relaxed space-y-6"></div>
+                                            <div id="tarot-section-modal" class="hidden mt-8 pt-6 border-t border-accent/10">
+                                                <h5 class="text-xs uppercase tracking-[0.3em] text-accent/60 font-bold mb-4" id="t-tarot-guidance-label-modal">Tarot Guidance</h5>
+                                                <div class="flex flex-col sm:flex-row items-center gap-5 bg-accent/5 rounded-2xl p-5">
+                                                    <img id="tarot-card-img-modal" src="" alt="Tarot Card" class="w-28 h-40 object-cover rounded-xl shadow-lg shadow-accent/10" style="border:1px solid rgba(255,255,255,0.1);">
+                                                    <div class="flex-1 text-center sm:text-left">
+                                                        <p id="tarot-card-name-modal" class="text-white font-semibold text-base mb-1"></p>
+                                                        <p id="tarot-card-meaning-modal" class="text-sm text-gray-400 leading-relaxed"></p>
+                                                        <button onclick="downloadTarotWallpaper()" class="mt-3 px-4 py-2 text-[9px] uppercase tracking-widest text-accent border border-accent/20 rounded-full hover:bg-accent/10 transition-all" id="t-tarot-wallpaper-modal">Download Card</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    
+                                        <!-- Pay Area (for non-premium) -->
+                                        <div id="pay-area-modal" class="mt-8 flex flex-col items-center gap-4">
+                                            <p class="text-xs text-gray-500 text-center" id="t-unlock-text-modal">Unlock the complete report to reveal your destiny.</p>
+                                            <div id="paypal-button-container-modal" class="w-full max-w-sm"></div>
+                                            <button onclick="SMAuth._startNP()" class="px-6 py-3 text-[10px] uppercase tracking-widest text-gray-300 border border-white/10 rounded-full hover:bg-white/5 transition-all flex items-center gap-2" id="t-pay-usdt-modal">Pay with USDT</button>
+                                            <div id="payment-status-modal" class="text-[9px] text-gray-600 text-center mt-1"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                                <!-- Action Buttons -->
+                                <div class="flex flex-wrap justify-center gap-3 mt-8">
+                                    <button onclick="SMAuth.sendReportEmail()" class="px-6 py-3 text-[10px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-email-modal">Email Report</button>
+                                    <button onclick="downloadReport()" class="px-6 py-3 text-[10px] uppercase tracking-widest text-gray-400 hover:text-white border border-white/10 rounded-full hover:bg-white/5 transition-all" id="t-report-pdf-modal">Save Report</button>
+                                    <button onclick="newJourney(); closeReportModal();" class="px-6 py-3 text-[10px] uppercase tracking-widest text-white/60 hover:text-white bg-accent/20 border border-accent/30 rounded-full hover:bg-accent/30 transition-all" id="t-report-new-modal">New Journey</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inline Report View (hidden - now using modal) -->
                     <div id="report-view-inline" class="hidden pb-8">
                         <div class="glass-card px-6 py-8 md:px-8 md:py-10 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">
                             <div class="space-y-4">
@@ -1409,8 +1479,17 @@
 
         function newJourney() {
             document.getElementById('report-view-inline').classList.add('hidden');
+            document.getElementById('report-modal').classList.add('hidden');
             document.getElementById('chat-input-area').style.display = '';
             resetOracle();
+        }
+
+        function closeReportModal() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        function openReportModal() {
+            document.getElementById('report-modal').classList.remove('hidden');
         }
 
         // ── Sidebar: Account & History ──
@@ -1632,12 +1711,13 @@
                 } else if (result.mode === 'report') {
                     addBubble(i18n[currentLang].report_gen, 'ai');
                     setTimeout(() => {
-                        // Show report inline (full-screen app mode)
+                        // Hide chat input and show report in modal
                         document.getElementById('chat-input-area').classList.add('hidden');
-                        document.getElementById('report-view-inline').classList.remove('hidden');
-                        document.getElementById('res-free').innerHTML = formatReportText(result.data.free_part);
-
-                        // Parse tarot card from paid part, or fall back to free part
+                        
+                        // Populate modal content
+                        document.getElementById('res-free-modal').innerHTML = formatReportText(result.data.free_part);
+                        
+                        // Parse tarot card from paid part
                         var tarotSearchText = result.data.paid_part || result.data.free_part || '';
                         var paidText = result.data.paid_part || '';
                         const tarotMatch = tarotSearchText.match(/\[TAROT:\s*(\d+)\]/);
@@ -1646,64 +1726,73 @@
                             tarotIndex = parseInt(tarotMatch[1]);
                             if (paidText) paidText = paidText.replace(/\[TAROT:\s*\d+\]/, '').trim();
                         }
+                        
                         if (paidText) {
-                            document.getElementById('res-paid').innerHTML = formatReportText(paidText, true);
+                            document.getElementById('res-paid-modal').innerHTML = formatReportText(paidText, true);
                         }
-
-                        // Pre-load tarot card data (section is inside paid wrapper, shown on unlock)
-                        if (tarotIndex >= 0 && tarotIndex <= 21) {
-                            const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
-                            var tarotImg = document.getElementById('tarot-card-img');
-                            var tarotFilename = String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
-                            // Primary: local server (same-origin, required for Canvas wallpaper generation)
-                            // Fallback: GitHub CDN (if local file missing on server)
-                            tarotImg.src = '/static/tarot/' + tarotFilename;
-                            tarotImg.onerror = function() {
-                                // Try GitHub raw URL as fallback
-                                this.onerror = function() {
-                                    // Final fallback: show emoji placeholder
-                                    this.onerror = null;
-                                    this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>';
-                                };
-                                this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotFilename;
-                            };
-                            document.getElementById('tarot-card-name').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
-                            // Extract full tarot meaning from the paid/free text
-                            const meaningEl = document.getElementById('tarot-card-meaning');
-                            const tarotSectionText = tarotSearchText.split('**Tarot Guidance**')[1] || tarotSearchText.split('**塔罗指引**')[1] || tarotSearchText.split('塔罗指引')[1] || tarotSearchText.split('🃏')[1] || '';
-                            if (tarotSectionText) {
-                                var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
-                                if (fullMeaning.length > 20) {
-                                    meaningEl.innerText = fullMeaning;
-                                }
-                            }
-                        }
-
+                        
+                        // Handle premium vs non-premium display
                         if (result.status === 'full') {
                             window.isPremiumUser = true;
-                            document.getElementById('locked-preview').classList.add('hidden');
-                            document.getElementById('res-paid-wrapper').classList.remove('hidden');
-                            // Show tarot section only after image loads successfully
+                            document.getElementById('locked-preview-modal').classList.add('hidden');
+                            document.getElementById('res-paid-wrapper-modal').classList.remove('hidden');
+                            document.getElementById('pay-area-modal').classList.add('hidden');
+                            
+                            // Pre-load tarot card
                             if (tarotIndex >= 0 && tarotIndex <= 21) {
-                                var _tarotImgEl = document.getElementById('tarot-card-img');
-                                var _tsEl = document.getElementById('tarot-section');
-                                if (_tarotImgEl && _tarotImgEl.complete && _tarotImgEl.naturalWidth > 0) {
+                                const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                                var tarotImg = document.getElementById('tarot-card-img-modal');
+                                var tarotFilename = String(tarotIndex).padStart(2, '0') + '-' + tarotSlug + '.png';
+                                tarotImg.src = '/static/tarot/' + tarotFilename;
+                                tarotImg.onerror = function() {
+                                    this.onerror = function() {
+                                        this.onerror = null;
+                                        this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>';
+                                    };
+                                    this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotFilename;
+                                };
+                                document.getElementById('tarot-card-name-modal').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
+                                
+                                const tarotSectionText = tarotSearchText.split('**Tarot Guidance**')[1] || tarotSearchText.split('**塔罗指引**')[1] || tarotSearchText.split('塔罗指引')[1] || tarotSearchText.split('🃏')[1] || '';
+                                if (tarotSectionText) {
+                                    var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
+                                    if (fullMeaning.length > 20) {
+                                        document.getElementById('tarot-card-meaning-modal').innerText = fullMeaning;
+                                    }
+                                }
+                                
+                                // Show tarot section after image loads
+                                var _tsEl = document.getElementById('tarot-section-modal');
+                                if (tarotImg.complete && tarotImg.naturalWidth > 0) {
                                     _tsEl.classList.remove('hidden');
-                                } else if (_tarotImgEl && !_tarotImgEl.complete) {
-                                    _tarotImgEl.onload = function() { _tsEl.classList.remove('hidden'); };
-                                    _tarotImgEl.onerror = function() { console.warn('[Report] Tarot image failed in full-status path'); };
+                                } else {
+                                    tarotImg.onload = function() { _tsEl.classList.remove('hidden'); };
                                 }
                             }
+                        } else {
+                            // Non-premium: show locked preview and pay area
+                            window.isPremiumUser = false;
+                            document.getElementById('locked-preview-modal').classList.remove('hidden');
+                            document.getElementById('res-paid-wrapper-modal').classList.add('hidden');
+                            document.getElementById('pay-area-modal').classList.remove('hidden');
+                            document.getElementById('res-paid-preview-modal').innerHTML = formatReportText(paidText?.substring(0, 500) || '', true);
                         }
-
-                        gsap.fromTo("#report-view-inline", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
-
-                        // Auto-save to Dream Journal after report renders
+                        
+                        // Open modal
+                        openReportModal();
+                        
+                        // Refresh user balance after report generation
+                        if (window.SMAuth && SMAuth.refreshUserData) {
+                            SMAuth.refreshUserData();
+                        }
+                        
+                        // Auto-save to Dream Journal
                         setTimeout(() => {
                             try { saveToJournal(); } catch(e) { console.warn('[Journal] save failed', e); }
                         }, 800);
                     }, 3000);
                 }
+
             } catch (err) {
                 clearTimeout(slowToast);
                 thinking.remove();
