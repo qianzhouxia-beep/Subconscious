@@ -2015,12 +2015,19 @@ def google_callback():
     # Try using account_module's helper if available
     _callback_helper = app.config.get("_handle_google_callback")
     if _callback_helper:
-        token, email, err = _callback_helper(code)
-        if err:
-            return redirect('/?oauth_error=' + err)
-        resp = make_response(redirect('/?oauth_token=' + email))
-        resp.set_cookie('sm_auth_token', token, max_age=31536000, httponly=True, samesite='Lax')
-        return resp
+        try:
+            token, email, err = _callback_helper(code)
+            if err:
+                return redirect('/?oauth_error=' + err)
+            if not token or not email:
+                return redirect('/?oauth_error=token_generation_failed')
+            resp = make_response(redirect('/?oauth_token=' + email))
+            resp.set_cookie('sm_auth_token', token, max_age=31536000, httponly=True, samesite='Lax')
+            return resp
+        except Exception as e:
+            logger.error("account_module_callback_error", extra={"err": str(e)})
+            # Fall through to inline implementation
+            pass
 
     # Fallback: inline implementation with CORRECT env var names
     client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '')
