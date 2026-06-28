@@ -367,63 +367,75 @@ def register_account_routes(app):
     @app.route("/api/user/premium-status", methods=["GET"])
     @token_required
     def user_premium_status():
-        user_id = request.user["id"]
-        with _get_db() as conn:
-            ent = conn.execute("""
-                SELECT e.plan_type, e.total_count, e.remaining, e.is_expired, e.expires_at
-                FROM entitlements e
-                WHERE e.user_id = ? AND e.is_expired = 0
-                ORDER BY e.created_at DESC LIMIT 1
-            """, (user_id,)).fetchone()
+        try:
+            user_id = request.user["id"]
+            with _get_db() as conn:
+                ent = conn.execute("""
+                    SELECT e.plan_type, e.total_count, e.remaining, e.is_expired, e.expires_at
+                    FROM entitlements e
+                    WHERE e.user_id = ? AND e.is_expired = 0
+                    ORDER BY e.created_at DESC LIMIT 1
+                """, (user_id,)).fetchone()
 
-        if not ent:
-            return jsonify({"premium": False})
+            if not ent:
+                return jsonify({"premium": False})
 
-        plan_type = ent["plan_type"]
-        config = PLAN_CONFIG.get(plan_type, {})
-        total = ent["total_count"]
-        remaining = ent["remaining"]
-        is_unlimited = total < 0
+            plan_type = ent["plan_type"]
+            config = PLAN_CONFIG.get(plan_type, {})
+            total = ent["total_count"]
+            remaining = ent["remaining"]
+            is_unlimited = total < 0
 
-        result = {
-            "premium": True,
-            "plan_type": plan_type,
-            "plan_label": config.get("label", plan_type.title()),
-            "total": total,
-            "remaining": remaining if not is_unlimited else -1,
-        }
+            result = {
+                "premium": True,
+                "plan_type": plan_type,
+                "plan_label": config.get("label", plan_type.title()),
+                "total": total,
+                "remaining": remaining if not is_unlimited else -1,
+            }
 
-        # Check expiry
-        if ent.get("expires_at"):
-            import datetime
-            try:
-                exp_dt = datetime.datetime.fromisoformat(ent["expires_at"])
-                if datetime.datetime.now() > exp_dt:
-                    result["premium"] = False
-                    result["is_expired"] = True
-            except Exception:
-                pass
+            # Check expiry
+            if ent.get("expires_at"):
+                import datetime
+                try:
+                    exp_dt = datetime.datetime.fromisoformat(ent["expires_at"])
+                    if datetime.datetime.now() > exp_dt:
+                        result["premium"] = False
+                        result["is_expired"] = True
+                except Exception:
+                    pass
 
-        return jsonify(result)
+            return jsonify(result)
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] premium-status failed: {e}")
+            print(traceback.format_exc())
+            return jsonify({"error": str(e)}), 500
 
     @app.route("/api/user/entitlements", methods=["GET"])
     @token_required
     def user_entitlements():
-        user_id = request.user["id"]
-        with _get_db() as conn:
-            rows = conn.execute("""
-                SELECT id, plan_type, total_count, remaining, is_expired, expires_at, order_id, created_at
-                FROM entitlements WHERE user_id = ? ORDER BY created_at DESC
-            """, (user_id,)).fetchall()
+        try:
+            user_id = request.user["id"]
+            with _get_db() as conn:
+                rows = conn.execute("""
+                    SELECT id, plan_type, total_count, remaining, is_expired, expires_at, order_id, created_at
+                    FROM entitlements WHERE user_id = ? ORDER BY created_at DESC
+                """, (user_id,)).fetchall()
 
-        entitlements = []
-        for r in rows:
-            d = dict(r)
-            d["total_count"] = d["total_count"]
-            d["remaining"] = d["remaining"]
-            entitlements.append(d)
+            entitlements = []
+            for r in rows:
+                d = dict(r)
+                d["total_count"] = d["total_count"]
+                d["remaining"] = d["remaining"]
+                entitlements.append(d)
 
-        return jsonify({"entitlements": entitlements})
+            return jsonify({"entitlements": entitlements})
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] entitlements failed: {e}")
+            print(traceback.format_exc())
+            return jsonify({"error": str(e)}), 500
 
     @app.route("/api/user/orders", methods=["GET"])
     @token_required
