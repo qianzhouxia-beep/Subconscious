@@ -88,18 +88,26 @@ def token_required(f):
         if not auth_header.startswith("Bearer "):
             return jsonify({"detail": "Authentication required"}), 401
         token = auth_header[7:]
+        print(f"[DEBUG] token_received: {token[:20]}...")
         payload = _decode_token(token)
+        print(f"[DEBUG] payload: {payload}")
         if not payload:
             return jsonify({"detail": "Invalid or expired token"}), 401
         # Look up user
-        with _get_db() as conn:
-            row = conn.execute(
-                "SELECT id, email, created_at FROM users WHERE id = ?", (payload["sub"],)
-            ).fetchone()
-            if not row:
-                return jsonify({"detail": "User not found"}), 401
-            request.user = dict(row)
-            request.user_payload = payload
+        try:
+            with _get_db() as conn:
+                row = conn.execute(
+                    "SELECT id, email, created_at FROM users WHERE id = ?", (payload["sub"],)
+                ).fetchone()
+                if not row:
+                    return jsonify({"detail": "User not found"}), 401
+                request.user = dict(row)
+                request.user_payload = payload
+        except Exception as e:
+            import traceback
+            print(f"[ERROR] token_required db error: {e}")
+            print(traceback.format_exc())
+            return jsonify({"detail": f"DB error: {str(e)}"}), 500
         return f(*args, **kwargs)
     return decorated
 
