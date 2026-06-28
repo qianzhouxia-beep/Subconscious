@@ -455,6 +455,21 @@ def health_check():
 # 迁移端点（需管理员 token 保护）
 MIGRATION_TOKEN = os.environ.get("MIGRATION_TOKEN", "migrate-2026-token")
 
+@app.route('/api/admin/init-pg-tables', methods=['POST', 'OPTIONS'])
+def init_pg_tables():
+    """手动初始化 PostgreSQL 表（需要 admin token）"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Invalid token"}), 403)
+    try:
+        from backend.db import init_tables
+        init_tables()
+        return _cors(jsonify({"status": "ok", "message": "PostgreSQL tables initialized"}))
+    except Exception as e:
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
+
 @app.route('/api/admin/migrate-sqlite-to-pg', methods=['POST', 'OPTIONS'])
 def migrate_sqlite_to_pg():
     """一次性迁移：从 SQLite 迁移到 PostgreSQL（需要 admin token）"""
