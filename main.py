@@ -2014,6 +2014,8 @@ def google_callback():
 
     # Try using account_module's helper if available
     _callback_helper = app.config.get("_handle_google_callback")
+    # DEBUG: Force inline OAuth to isolate account_module issues
+    _callback_helper = None
     if _callback_helper:
         try:
             token, email, err = _callback_helper(code)
