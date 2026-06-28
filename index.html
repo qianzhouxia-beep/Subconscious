@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/static/css/aetheris.css?v=20">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=12"></script>
+    <script src="/static/js/i18n.js?v=13"></script>
     <script src="/static/js/tarot.js?v=6"></script>
     <script src="/static/js/optimizer.js?v=4"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
@@ -3137,16 +3137,16 @@
                             var parts = sec.split(/<\/strong>/);
                             var header = parts[0] + '</strong>';
                             var body = parts.slice(1).join('</strong>');
-                            return '<div class="pl-4 border-l-2 border-accent/30 py-1 mb-4">' +
-                                '<div class="text-xs leading-relaxed text-gray-200">' + header + '</div>' +
-                                '<div class="text-sm leading-relaxed text-gray-300 mt-1">' + body + '</div>' +
+                            return '<div class="pl-4 border-l-2 border-accent/30 py-3 mb-5 text-left" style="background: linear-gradient(90deg, rgba(124,92,255,0.06), rgba(124,92,255,0.01));">' +
+                                '<div class="text-xs leading-relaxed text-white/90 font-semibold tracking-wide mb-1">' + header + '</div>' +
+                                '<div class="text-sm leading-relaxed text-gray-200">' + body + '</div>' +
                             '</div>';
                         }
                         // Has bullet points
                         if (sec.match(/^[•·\-*]\s/)) {
-                            return '<div class="text-sm text-gray-300 leading-relaxed mb-4 pl-4 border-l-2 border-accent/30">' + sec.replace(/^[•·\-*]\s*/gm, '').replace(/\n/g, '<br>') + '</div>';
+                            return '<div class="text-sm text-gray-200 leading-relaxed mb-5 pl-4 border-l-2 border-accent/30 text-left" style="background: linear-gradient(90deg, rgba(124,92,255,0.04), transparent); padding-top:8px; padding-bottom:8px;">' + sec.replace(/^[•·\-*]\s*/gm, '').replace(/\n/g, '<br>') + '</div>';
                         }
-                        return '<p class="text-sm text-gray-300 leading-relaxed mb-4">' + sec + '</p>';
+                        return '<p class="text-sm text-gray-200 leading-loose mb-5 text-left" style="letter-spacing: 0.01em;">' + sec + '</p>';
                     }).join('');
                     if (readingEl) {
                         readingEl.innerHTML = readingHtml;
@@ -3202,39 +3202,185 @@
         }
 
         function shareTarotReading() {
-            // Generate a shareable text
             var isZh = currentLang === 'zh';
             var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
-            var text = '🃏 ' + (isZh ? '我的塔罗三牌阵' : 'My Tarot Reading') + '\n' + _tarotState.topic + '\n\n' + cardNames.map(function(n, i) {
-                var pos = isZh ? ['过去','现在','未来'][i] : ['Past','Present','Future'][i];
-                return pos + ': ' + n;
-            }).join('\n') + '\n\n— ' + (isZh ? '来自 Subconscious Mirror' : 'via Subconscious Mirror');
-            if (navigator.share) {
-                navigator.share({ title:'Subconscious Mirror — Tarot Reading', text:text });
-            } else {
-                navigator.clipboard.writeText(text).then(function() {
-                    showToast('Reading copied to clipboard!');
-                });
+            var topic = _tarotState.topic || '';
+            var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
+
+            // Build a rich share text with emoji formatting
+            var lines = [];
+            lines.push((isZh ? '🃏 我的塔罗三牌阵解读' : '🃏 My Tarot Three-Card Reading'));
+            lines.push('');
+            if (topic) {
+                lines.push((isZh ? '💭 问题：' : '💭 Question: ') + topic);
+                lines.push('');
             }
+            cardNames.forEach(function(n, i) {
+                lines.push('▸ ' + posLabels[i] + ' · ' + n);
+            });
+            lines.push('');
+            lines.push('— ' + (isZh ? '来自 Subconscious Mirror' : 'via Subconscious Mirror'));
+            lines.push('https://mirror.api-tokenmaster.com');
+            var text = lines.join('\n');
+
+            // Build share URLs for various social platforms
+            var encoded = encodeURIComponent(text);
+            var url = 'https://mirror.api-tokenmaster.com';
+            var encodedUrl = encodeURIComponent(url);
+            var shareData = {
+                title: isZh ? '塔罗三牌阵解读' : 'Tarot Reading',
+                text: text,
+                url: url
+            };
+
+            // Open a small popup with platform choices
+            var existingModal = document.getElementById('tarot-share-modal');
+            if (existingModal) existingModal.remove();
+
+            var modal = document.createElement('div');
+            modal.id = 'tarot-share-modal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+            modal.innerHTML = '<div style="background:#0a0a12;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;max-width:380px;width:100%;">' +
+                '<h3 style="color:#fff;font-size:16px;font-weight:600;margin-bottom:16px;text-align:center;">' + (isZh ? '分享到社交平台' : 'Share to Social') + '</h3>' +
+                '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">' +
+                    // Weibo
+                    '<a href="https://service.weibo.com/share/share.php?url=' + encodedUrl + '&title=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(229,57,53,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">📱</span><span>微博 Weibo</span>' +
+                    '</a>' +
+                    // WeChat (use clipboard + QR-style hint)
+                    '<button data-platform="wechat" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background=\'rgba(7,193,96,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">💬</span><span>微信 WeChat</span>' +
+                    '</button>' +
+                    // Twitter / X
+                    '<a href="https://twitter.com/intent/tweet?text=' + encoded + '&url=' + encodedUrl + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(255,255,255,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">🐦</span><span>Twitter / X</span>' +
+                    '</a>' +
+                    // Facebook
+                    '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl + '&quote=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(24,119,242,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">📘</span><span>Facebook</span>' +
+                    '</a>' +
+                    // Telegram
+                    '<a href="https://t.me/share/url?url=' + encodedUrl + '&text=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(0,136,204,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">✈️</span><span>Telegram</span>' +
+                    '</a>' +
+                    // WhatsApp
+                    '<a href="https://api.whatsapp.com/send?text=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(37,211,102,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
+                        '<span style="font-size:18px;">💚</span><span>WhatsApp</span>' +
+                    '</a>' +
+                    // Copy link
+                    '<button data-platform="copy" style="grid-column:span 2;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(124,92,255,0.1);border:1px solid rgba(124,92,255,0.3);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background=\'rgba(124,92,255,0.2)\'" onmouseout="this.style.background=\'rgba(124,92,255,0.1)\'">' +
+                        '<span style="font-size:18px;">🔗</span><span>' + (isZh ? '复制分享内容' : 'Copy Share Text') + '</span>' +
+                    '</button>' +
+                '</div>' +
+                '<button data-action="close" style="margin-top:16px;width:100%;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#888;font-size:13px;cursor:pointer;font-family:inherit;">' + (isZh ? '取消' : 'Cancel') + '</button>' +
+            '</div>';
+
+            // Close on backdrop click
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) modal.remove();
+            });
+
+            // Handle button actions
+            modal.querySelectorAll('button').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var platform = btn.getAttribute('data-platform');
+                    if (platform === 'wechat') {
+                        // WeChat doesn't have a web share intent — fall back to clipboard
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(text).then(function() {
+                                showToast(isZh ? '已复制 — 打开微信粘贴分享' : 'Copied — Open WeChat to paste');
+                            });
+                        }
+                    } else if (platform === 'copy') {
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(text).then(function() {
+                                showToast(isZh ? '已复制到剪贴板' : 'Copied to clipboard');
+                            });
+                        } else {
+                            showToast(isZh ? '请手动复制' : 'Please copy manually');
+                        }
+                    } else if (btn.getAttribute('data-action') === 'close') {
+                        modal.remove();
+                    }
+                });
+            });
+
+            document.body.appendChild(modal);
         }
 
         function downloadTarotReading() {
             var isZh = currentLang === 'zh';
             var cardNames = _tarotState.drawn.map(function(di) { return isZh ? tarotCards[di].zh : tarotCards[di].en; });
+            var cardMeanings = _tarotState.drawn.map(function(di) { return isZh ? (_tarotMeanings[di] || '') : (_tarotMeaningsEn[di] || ''); });
             var topic = _tarotState.topic || '';
-            var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + (isZh ? '塔罗解读' : 'Tarot Reading') + '</title><style>body{font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;background:#0a0a12;color:#e0e0e0;}h1{color:#9b7fff;}.card{background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;margin:12px 0;border:1px solid rgba(124,92,255,0.2);}</style></head><body>' +
-                '<h1>🃏 ' + (isZh ? '塔罗三牌阵解读' : 'Tarot Three-Card Reading') + '</h1>' +
-                '<p style="color:#999">' + (isZh ? '问题：' : 'Question: ') + topic + '</p>' +
-                '<div>' + _tarotState.drawn.map(function(di, i) {
-                    var pos = isZh ? ['过去','现在','未来'][i] : ['Past','Present','Future'][i];
-                    return '<div class="card"><div style="color:#9b7fff;font-size:11px;text-transform:uppercase;">' + pos + '</div><div style="font-size:18px;color:#fff;">' + (isZh ? tarotCards[di].zh : tarotCards[di].en) + '</div><div style="color:#aaa;font-size:13px;">' + (isZh ? (_tarotMeanings[di]||'') : (_tarotMeaningsEn[di]||'')) + '</div></div>';
-                }).join('') + '</div>' +
-                '<p style="margin-top:30px;color:#666;font-size:12px;">— Subconscious Mirror | mirror.api-tokenmaster.com</p>' +
+            var posLabels = isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
+
+            // Get AI reading content
+            var aiReadingEl = document.getElementById('tarot-ai-reading');
+            var aiReadingHtml = (aiReadingEl && aiReadingEl.innerHTML) ? aiReadingEl.innerHTML : '';
+
+            // Get card images (if available)
+            var cardsHtml = _tarotState.drawn.map(function(di, i) {
+                var slot = document.getElementById('tarot-slot-' + (i + 1));
+                var img = slot ? slot.querySelector('img') : null;
+                var imgSrc = (img && img.src) ? img.src : '';
+                var pos = posLabels[i];
+                var name = cardNames[i];
+                var meaning = cardMeanings[i];
+                return '<div class="card">' +
+                    (imgSrc ? '<div style="text-align:center;margin-bottom:8px;"><img src="' + imgSrc + '" alt="' + name + '" style="max-width:160px;border-radius:10px;box-shadow:0 4px 16px rgba(124,92,255,0.3);"/></div>' : '') +
+                    '<div style="color:#9b7fff;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;">' + pos + '</div>' +
+                    '<div style="font-size:18px;color:#fff;font-weight:600;margin:4px 0;">' + name + '</div>' +
+                    '<div style="color:#c8bfe8;font-size:13px;line-height:1.7;">' + meaning + '</div>' +
+                '</div>';
+            }).join('');
+
+            // Get reader info
+            var readerSelect = document.getElementById('tarot-reader-selected');
+            var readerName = readerSelect ? readerSelect.innerText.replace(/^.*?:\s*/, '').trim() : '';
+
+            var html = '<!DOCTYPE html><html lang="' + currentLang + '"><head><meta charset="UTF-8"><title>' + (isZh ? '塔罗解读' : 'Tarot Reading') + '</title>' +
+                '<style>' +
+                '* { box-sizing: border-box; margin: 0; padding: 0; }' +
+                'body { font-family: "Inter", system-ui, -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px 16px; background: #0a0a12; color: #e0d9f7; line-height: 1.8; }' +
+                '.header { text-align: center; padding: 32px 0 24px; border-bottom: 1px solid rgba(124,92,255,0.2); margin-bottom: 32px; }' +
+                '.header h1 { font-family: "Instrument Serif", Georgia, serif; color: #9b7fff; font-size: 28px; margin-bottom: 4px; }' +
+                '.header p { color: #888; font-size: 12px; margin-top: 6px; }' +
+                '.meta { background: rgba(255,213,79,0.05); border: 1px solid rgba(255,213,79,0.15); border-radius: 10px; padding: 12px 16px; margin-bottom: 24px; font-size: 13px; }' +
+                '.meta .label { color: #9b7fff; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }' +
+                '.meta .value { color: #e0d9f7; margin-top: 4px; }' +
+                '.card { background: rgba(255,255,255,0.04); padding: 16px; border-radius: 12px; margin: 12px 0; border: 1px solid rgba(124,92,255,0.2); }' +
+                'h2 { color: #9b7fff; font-size: 16px; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(124,92,255,0.15); font-family: "Instrument Serif", Georgia, serif; }' +
+                '.reading { text-align: left; }' +
+                '.reading p { color: #c8bfe8; font-size: 14px; margin-bottom: 16px; line-height: 1.8; }' +
+                '.reading strong { color: #fff; font-weight: 600; }' +
+                '.reading div { color: #c8bfe8; font-size: 14px; margin-bottom: 16px; line-height: 1.8; }' +
+                '.footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); color: #555; font-size: 11px; }' +
+                '@media print { body { background: #fff; color: #1a1a1a; } h2, .header h1 { color: #5a3fd9; } .card { background: #f9f5ff; border-color: #e0d0ff; } .reading p, .reading div { color: #333; } }' +
+                '</style></head><body>' +
+                '<div class="header">' +
+                    '<h1>' + (isZh ? '塔罗三牌阵解读' : 'Tarot Three-Card Reading') + '</h1>' +
+                    '<p>' + (isZh ? '由潜意识之镜 AI 解梦神谕生成' : 'Generated by Subconscious Mirror AI Tarot Oracle') + '</p>' +
+                '</div>' +
+                '<div class="meta">' +
+                    '<div class="label">' + (isZh ? '问题/主题' : 'Question / Topic') + '</div>' +
+                    '<div class="value">' + topic.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>' +
+                '</div>' +
+                (readerName ? '<div class="meta"><div class="label">' + (isZh ? '解牌师' : 'Reader') + '</div><div class="value">' + readerName + '</div></div>' : '') +
+                '<h2>' + (isZh ? '牌阵' : 'The Spread') + '</h2>' +
+                cardsHtml +
+                (aiReadingHtml ? '<h2>' + (isZh ? 'AI 完整解读' : 'AI Complete Reading') + '</h2><div class="reading">' + aiReadingHtml + '</div>' : '') +
+                '<div class="footer">' +
+                    '<p>— Subconscious Mirror | mirror.api-tokenmaster.com</p>' +
+                '</div>' +
                 '</body></html>';
-            var blob = new Blob([html], {type:'text/html'});
+
+            var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
-            a.href = url; a.download = 'tarot-reading.html'; a.click();
+            a.href = url;
+            a.download = 'tarot-reading.html';
+            a.click();
             URL.revokeObjectURL(url);
         }
 
