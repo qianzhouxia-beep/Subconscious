@@ -485,6 +485,140 @@ def check_pg_tables():
         import traceback
         return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
 
+@app.route('/api/admin/force-init-pg', methods=['POST', 'OPTIONS'])
+def force_init_pg():
+    """强制重建 PostgreSQL 所有表（需要 admin token）"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Invalid token"}), 403)
+    
+    try:
+        # Auto-install psycopg2 if missing
+        try:
+            import psycopg2
+        except ImportError:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+        
+        pg_conn = psycopg2.connect(DATABASE_URL)
+        pg_cursor = pg_conn.cursor()
+        
+        # 1. 删除所有现有表（CASCADE）
+        pg_cursor.execute("""
+            DROP TABLE IF EXISTS 
+                users, email_tokens, entitlements, user_orders,
+                license_keys, crypto_payments, referrals, referral_logs,
+                payments, orders, chat_sessions, chat_messages,
+                dream_reports, dream_journal, dream_patterns, tarot_readings
+            CASCADE;
+        """)
+        pg_conn.commit()
+        
+        # 2. 创建所有表
+        tables_sql = [
+            """CREATE TABLE users (
+                id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL, email_verified INTEGER DEFAULT 0,
+                failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE email_tokens (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
+                purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE entitlements (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
+                total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
+                expires_at TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE user_orders (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
+                amount REAL NOT NULL, currency TEXT DEFAULT 'USD', plan_type TEXT NOT NULL,
+                status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE license_keys (
+                id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
+                is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE crypto_payments (
+                id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
+                plan_type TEXT NOT NULL, amount REAL NOT NULL,
+                currency TEXT DEFAULT 'USD', crypto_currency TEXT,
+                crypto_amount REAL, nowpayments_id TEXT,
+                pay_address TEXT, status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE referrals (
+                ref_id TEXT PRIMARY KEY, inviter_email TEXT NOT NULL,
+                count INTEGER DEFAULT 0, unlocked INTEGER DEFAULT 0
+            )""",
+            """CREATE TABLE referral_logs (
+                id SERIAL PRIMARY KEY,
+                ref_id TEXT NOT NULL, visitor_ip TEXT, user_agent TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE payments (
+                email TEXT, status TEXT, license_key TEXT, timestamp REAL
+            )""",
+            """CREATE TABLE chat_sessions (
+                id TEXT PRIMARY KEY, user_id TEXT, session_id TEXT NOT NULL,
+                dream_text TEXT DEFAULT '', turn_count INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE chat_messages (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                role TEXT NOT NULL, content TEXT NOT NULL,
+                turn INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE dream_reports (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                free_content TEXT, paid_content TEXT,
+                tarot_index INTEGER DEFAULT -1, is_paid INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE dream_journal (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                dream_text TEXT NOT NULL, symbols TEXT,
+                interpretation TEXT, rating INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE dream_patterns (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                pattern_type TEXT, pattern_data TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE tarot_readings (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                cards TEXT, topic TEXT, reading TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+        ]
+        
+        for sql in tables_sql:
+            pg_cursor.execute(sql)
+        
+        pg_conn.commit()
+        pg_conn.close()
+        
+        return _cors(jsonify({
+            "status": "ok", 
+            "message": "All PostgreSQL tables force-created",
+            "tables_created": len(tables_sql)
+        }))
+        
+    except Exception as e:
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
+
+
 @app.route('/api/admin/init-pg-tables', methods=['POST', 'OPTIONS'])
 def init_pg_tables():
     """手动初始化 PostgreSQL 表（需要 admin token）"""
