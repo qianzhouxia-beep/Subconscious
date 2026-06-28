@@ -414,6 +414,44 @@ def log_response(response):
     })
     return response
 
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
+def health_check():
+    """Health check endpoint with database status"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    try:
+        import sqlite3
+        db_info = {
+            "status": "ok",
+            "database_type": "postgresql" if DATABASE_URL else "sqlite",
+            "database_url_set": bool(DATABASE_URL),
+            "db_file": DB_FILE if not DATABASE_URL else None,
+        }
+        if not DATABASE_URL:
+            db_info["db_file_exists"] = os.path.exists(DB_FILE)
+        # Try to query database
+        try:
+            with get_db() as conn:
+                if DATABASE_URL:
+                    result = conn.execute("SELECT 1 as ok").fetchone()
+                else:
+                    tables = conn.execute("SELECT COUNT(*) as cnt FROM sqlite_master WHERE type='table'").fetchone()
+                    db_info["sqlite_tables"] = tables['cnt']
+                    # Count key tables
+                    for table in ['users', 'entitlements', 'payments', 'chat_sessions']:
+                        try:
+                            cnt = conn.execute(f"SELECT COUNT(*) as cnt FROM {table}").fetchone()
+                            db_info[f"table_{table}"] = cnt['cnt']
+                        except:
+                            pass
+                db_info["database_accessible"] = True
+        except Exception as e:
+            db_info["database_accessible"] = False
+            db_info["database_error"] = str(e)
+        
+        return _cors(jsonify(db_info))
+    except Exception as e:
+        return _cors(jsonify({"status": "error", "error": str(e)}), 500)
+
 @app.route('/api/session/init', methods=['GET', 'POST', 'OPTIONS'])
 def session_init():
     if request.method == 'OPTIONS': return _cors(make_response())
