@@ -296,11 +296,50 @@ def init_tables():
             CREATE TABLE IF NOT EXISTS payments (
                 email TEXT, status TEXT, license_key TEXT, timestamp REAL
             );
+            CREATE TABLE IF NOT EXISTS chat_sessions (
+                id TEXT PRIMARY KEY, user_id TEXT, session_id TEXT NOT NULL,
+                dream_text TEXT DEFAULT '', turn_count INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                role TEXT NOT NULL, content TEXT NOT NULL,
+                turn INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS dream_reports (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                free_content TEXT, paid_content TEXT,
+                tarot_index INTEGER DEFAULT -1, is_paid INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS dream_journal (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                dream_text TEXT NOT NULL, symbols TEXT,
+                interpretation TEXT, rating INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS dream_patterns (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                pattern_type TEXT, pattern_data TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS tarot_readings (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                cards TEXT, topic TEXT, reading TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token);
             CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
             CREATE INDEX IF NOT EXISTS idx_user_orders_user ON user_orders(user_id);
             CREATE INDEX IF NOT EXISTS idx_license_keys_key ON license_keys(key);
             CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email);
+            CREATE INDEX IF NOT EXISTS idx_chat_sessions_user ON chat_sessions(user_id);
+            CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);
+            CREATE INDEX IF NOT EXISTS idx_dream_reports_session ON dream_reports(session_id);
+            CREATE INDEX IF NOT EXISTS idx_dream_journal_user ON dream_journal(user_id);
         """
         conn.executescript(schema)
         conn.commit()
