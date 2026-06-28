@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/static/css/aetheris.css?v=20">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=10"></script>
+    <script src="/static/js/i18n.js?v=11"></script>
     <script src="/static/js/tarot.js?v=6"></script>
     <script src="/static/js/optimizer.js?v=4"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
@@ -1541,6 +1541,7 @@
                     var sessions = data.sessions || [];
                     if (sessions.length === 0) {
                         list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8" id="t-history-empty">No dreams yet.</p>';
+                        if (typeof renderLanguage === 'function') renderLanguage();
                         return;
                     }
                     var html = '';
