@@ -485,6 +485,67 @@ def check_pg_tables():
         import traceback
         return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
 
+@app.route('/api/admin/fix-pg-tables', methods=['POST', 'OPTIONS'])
+def fix_pg_tables():
+    """修复 PostgreSQL 表结构（添加缺失的列和表）"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Invalid token"}), 403)
+    
+    try:
+        try:
+            import psycopg2
+        except ImportError:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+        
+        pg_conn = psycopg2.connect(DATABASE_URL)
+        pg_cursor = pg_conn.cursor()
+        fixes = []
+        
+        # 1. 给 users 表添加缺失的列
+        missing_columns = [
+            ("google_sub", "TEXT DEFAULT ''"),
+            ("last_login", "TEXT DEFAULT CURRENT_TIMESTAMP"),
+        ]
+        for col_name, col_type in missing_columns:
+            try:
+                pg_cursor.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col_name} {col_type}")
+                fixes.append(f"Added column {col_name} to users")
+            except Exception as e:
+                fixes.append(f"Warning: {col_name} - {str(e)}")
+        
+        # 2. 创建 orders 表（如果不存在）
+        pg_cursor.execute("""
+            CREATE TABLE IF NOT EXISTS orders (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                plan_type TEXT NOT NULL DEFAULT 'spark',
+                amount REAL NOT NULL DEFAULT 0,
+                currency TEXT DEFAULT 'USD',
+                status TEXT DEFAULT 'pending',
+                payment_provider TEXT DEFAULT '',
+                payment_id TEXT DEFAULT '',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        fixes.append("Created orders table (if not exists)")
+        
+        pg_conn.commit()
+        pg_conn.close()
+        
+        return _cors(jsonify({
+            "status": "ok",
+            "fixes": fixes
+        }))
+        
+    except Exception as e:
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
+
+
 @app.route('/api/admin/force-init-pg', methods=['POST', 'OPTIONS'])
 def force_init_pg():
     """强制重建 PostgreSQL 所有表（需要 admin token）"""
