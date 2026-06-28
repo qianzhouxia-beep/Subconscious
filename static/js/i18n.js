@@ -75,12 +75,16 @@
                 pay_usdt: "Pay with USDT",
                 unlock_text_modal: "Unlock the complete report to reveal your destiny.",
                 pay_usdt_modal: "Pay with USDT",
+                report_email_modal: "Email Report",
+                report_pdf_modal: "Save Report",
                 res_psych: "<span class='inline-flex items-center gap-2 text-base text-white/90 font-semibold'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' style='width:20px;height:20px;stroke:#7c5cff'><path d='M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z'/></svg> Dream Preview</span>",
                 destiny_report: "Destiny Report",
                 gen_img: "Generate Dream Image",
                 res_destiny: "<span class='inline-flex items-center gap-2 text-base text-white/90 font-semibold'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' style='width:20px;height:20px;stroke:#7c5cff'><path d='M12 2L2 7l10 5 10-5-10-5z'/><path d='M2 17l10 5 10-5'/><path d='M2 12l10 5 10-5'/></svg> Complete Destiny Report</span>",
                 res_tarot: "<span class='text-accent text-lg'>🃏</span> Tarot Guidance",
                 page_title: "Subconscious Mirror | Premium AI Dream Oracle",
+                sidebar_history: "Dream Log",
+                history_empty: "No dreams yet.",
                 modal_terms: `
                     <div class="space-y-6 text-left">
                         <p><strong>1. Spiritual Nature:</strong> All interpretations are provided for self-discovery and entertainment purposes only. Subconscious Mirror does not provide professional medical, psychological, or legal advice.</p>
@@ -211,12 +215,16 @@
                 pay_usdt: "USDT 支付",
                 unlock_text_modal: "解锁完整报告，揭示你的命运。",
                 pay_usdt_modal: "USDT 支付",
+                report_email_modal: "发送邮件",
+                report_pdf_modal: "保存报告",
                 res_psych: "<span class='inline-flex items-center gap-2 text-base text-white/90 font-semibold'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' style='width:20px;height:20px;stroke:#7c5cff'><path d='M6 4h4v4H6zM14 4h4v4h-4zM6 12h4v4H6zM14 12h4v4h-4z'/></svg> 梦境预览</span>",
                 destiny_report: "解梦报告",
                 gen_img: "生成梦境画像",
                 res_destiny: "<span class='inline-flex items-center gap-2 text-base text-white/90 font-semibold'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5' style='width:20px;height:20px;stroke:#7c5cff'><path d='M12 2L2 7l10 5 10-5-10-5z'/><path d='M2 17l10 5 10-5'/><path d='M2 12l10 5 10-5'/></svg> 完整命运报告</span>",
                 res_tarot: "<span class='text-accent text-lg'>🃏</span> 塔罗指引",
                 page_title: "潜意识之镜 | AI 解梦神谕",
+                sidebar_history: "梦境记录",
+                history_empty: "暂无梦境记录。",
                 modal_terms: `
                     <div class="space-y-6 text-left">
                         <p><strong>1. 精神探索声明:</strong>所有梦境解析仅供自我探索与娱乐之用。潜意识之镜不提供任何专业的医疗、心理学或法律建议。</p>
