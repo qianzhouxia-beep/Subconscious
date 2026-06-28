@@ -477,12 +477,19 @@ def migrate_sqlite_to_pg():
     try:
         import psycopg2
         import psycopg2.extras
-    except ImportError as e:
-        return _cors(jsonify({
-            "error": "psycopg2 not installed", 
-            "details": str(e),
-            "solution": "Add psycopg2-binary==2.9.9 to requirements.txt and redeploy"
-        }), 500)
+    except ImportError:
+        # Auto-install fallback
+        try:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+            import psycopg2.extras
+        except Exception as _e2:
+            return _cors(jsonify({
+                "error": "psycopg2 not installed",
+                "details": str(_e2),
+                "solution": "psycopg2-binary auto-install failed. Check Zeabur build logs."
+            }), 500)
     
     try:
         # 连接 SQLite
