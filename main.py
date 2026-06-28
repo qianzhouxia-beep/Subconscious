@@ -470,118 +470,121 @@ def migrate_sqlite_to_pg():
     if not os.path.exists(DB_FILE):
         return _cors(jsonify({"error": f"SQLite file not found: {DB_FILE}"}), 404)
     
-    # 使用 backend/db.py 的连接（已经兼容 PostgreSQL）
+    # 详细错误捕获
+    import traceback
+    errors = []
+    
     try:
-        pg_conn = get_db_connection()
-        # 检查是否是 PostgreSQL
-        try:
-            pg_conn.execute("SELECT 1")
-        except:
-            return _cors(jsonify({"error": "Not connected to PostgreSQL"}), 500)
-    except Exception as e:
-        return _cors(jsonify({"error": f"PostgreSQL connection failed: {str(e)}"}), 500)
+        import psycopg2
+        import psycopg2.extras
+    except ImportError as e:
+        return _cors(jsonify({
+            "error": "psycopg2 not installed", 
+            "details": str(e),
+            "solution": "Add psycopg2-binary==2.9.9 to requirements.txt and redeploy"
+        }), 500)
     
-    # 连接 SQLite
-    import sqlite3
-    sqlite_conn = sqlite3.connect(DB_FILE)
-    sqlite_conn.row_factory = sqlite3.Row
-    
-    # 需要迁移的表
-    tables = [
-        "users", "email_tokens", "entitlements", "user_orders",
-        "license_keys", "crypto_payments", "referrals", "referral_logs",
-        "payments", "orders", "chat_sessions", "chat_messages",
-        "dream_reports", "dream_journal", "dream_patterns", "tarot_readings",
-    ]
-    
-    results = {}
-    total_inserted = 0
-    
-    for table in tables:
-        # 检查 SQLite 中是否存在
-        s = sqlite_conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table,)
-        ).fetchone()
-        if not s:
-            results[table] = "skipped (not in sqlite)"
-            continue
+    try:
+        # 连接 SQLite
+        import sqlite3
+        sqlite_conn = sqlite3.connect(DB_FILE)
+        sqlite_conn.row_factory = sqlite3.Row
         
-        # 检查 PostgreSQL 中是否存在（用 psycopg2 或直接执行）
-        try:
-            pg_conn.execute("SELECT 1 FROM " + table + " LIMIT 0")
-        except Exception as e:
-            results[table] = f"skipped (not in postgres: {str(e)[:50]})"
-            continue
+        # 连接 PostgreSQL
+        pg_conn = psycopg2.connect(DATABASE_URL)
+        pg_cursor = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
-        # 读取数据
-        try:
-            rows = sqlite_conn.execute(f"SELECT * FROM {table}").fetchall()
-        except Exception as e:
-            results[table] = f"error: {str(e)[:50]}"
-            continue
+        # 需要迁移的表
+        tables = [
+            "users", "email_tokens", "entitlements", "user_orders",
+            "license_keys", "crypto_payments", "referrals", "referral_logs",
+            "payments", "orders", "chat_sessions", "chat_messages",
+            "dream_reports", "dream_journal", "dream_patterns", "tarot_readings",
+        ]
         
-        if not rows:
-            results[table] = "empty"
-            continue
+        results = {}
+        total_inserted = 0
         
-        # 写入 PostgreSQL
-        columns = rows[0].keys()
-        column_names = ", ".join([f'"{c}"' for c in columns])
-        
-        # 获取 PostgreSQL 连接的实际类型
-        is_pg = DATABASE_URL and PSYCOPG2_READY
-        
-        inserted = 0
-        skipped = 0
-        for row in rows:
-            values = tuple(row[c] for c in columns)
+        for table in tables:
             try:
-                if is_pg:
-                    # PostgreSQL: 用 %s 占位符
-                    placeholders = ", ".join(["%s"] * len(columns))
-                    pg_conn.execute(
-                        f"INSERT INTO {table} ({column_names}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
-                        values
-                    )
-                else:
-                    # SQLite 回退（不应该到这里）
-                    placeholders = ", ".join(["?"] * len(columns))
-                    pg_conn.execute(
-                        f"INSERT OR IGNORE INTO {table} ({column_names}) VALUES ({placeholders})",
-                        values
-                    )
-                if hasattr(pg_conn, 'rowcount') and pg_conn.rowcount > 0:
-                    inserted += 1
+                # 检查 SQLite 中是否存在
+                s = sqlite_conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                    (table,)
+                ).fetchone()
+                if not s:
+                    results[table] = "skipped (not in sqlite)"
+                    continue
+                
+                # 检查 PostgreSQL 中是否存在
+                pg_cursor.execute("""
+                    SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)
+                """, (table,))
+                if not pg_cursor.fetchone()['exists']:
+                    results[table] = "skipped (not in postgres)"
+                    continue
+                
+                # 读取数据
+                rows = sqlite_conn.execute(f"SELECT * FROM {table}").fetchall()
+                if not rows:
+                    results[table] = "empty"
+                    continue
+                
+                # 写入 PostgreSQL
+                columns = rows[0].keys()
+                column_names = ", ".join([f'"{c}"' for c in columns])
+                placeholders = ", ".join(["%s"] * len(columns))
+                
+                inserted = 0
+                skipped = 0
+                for row in rows:
+                    values = tuple(row[c] for c in columns)
+                    try:
+                        pg_cursor.execute(
+                            f"INSERT INTO {table} ({column_names}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
+                            values
+                        )
+                        if pg_cursor.rowcount > 0:
+                            inserted += 1
+                    except Exception as e:
+                        skipped += 1
+                        errors.append(f"Table {table}: {str(e)[:100]}")
+                
+                pg_conn.commit()
+                total_inserted += inserted
+                results[table] = f"{inserted} inserted, {skipped} skipped, {len(rows)} total"
+                
             except Exception as e:
-                skipped += 1
-                if skipped <= 3:
-                    print(f"   Warning: skip row in {table}: {str(e)[:80]}")
+                results[table] = f"error: {str(e)[:100]}"
+                errors.append(f"Table {table}: {traceback.format_exc()[:200]}")
         
-        if hasattr(pg_conn, 'commit'):
-            pg_conn.commit()
-        total_inserted += inserted
-        results[table] = f"{inserted} inserted, {skipped} skipped, {len(rows)} total"
-    
-    # 验证关键表
-    summary = {}
-    for t in ["users", "entitlements", "payments", "orders"]:
-        try:
-            result = pg_conn.execute(f"SELECT COUNT(*) as cnt FROM {t}").fetchone()
-            summary[t] = result[0] if result else 0
-        except:
-            pass
-    
-    sqlite_conn.close()
-    if hasattr(pg_conn, 'close'):
+        # 验证关键表
+        summary = {}
+        for t in ["users", "entitlements", "payments", "orders"]:
+            try:
+                pg_cursor.execute(f"SELECT COUNT(*) as cnt FROM {t}")
+                summary[t] = pg_cursor.fetchone()['cnt']
+            except:
+                pass
+        
+        sqlite_conn.close()
         pg_conn.close()
-    
-    return _cors(jsonify({
-        "status": "completed",
-        "total_inserted": total_inserted,
-        "tables": results,
-        "pg_summary": summary
-    }))
+        
+        return _cors(jsonify({
+            "status": "completed",
+            "total_inserted": total_inserted,
+            "tables": results,
+            "pg_summary": summary,
+            "errors": errors if errors else None
+        }))
+        
+    except Exception as e:
+        return _cors(jsonify({
+            "error": "Migration failed",
+            "exception": str(e),
+            "traceback": traceback.format_exc()[:500],
+            "errors": errors
+        }), 500)
 
 @app.route('/api/session/init', methods=['GET', 'POST', 'OPTIONS'])
 def session_init():
