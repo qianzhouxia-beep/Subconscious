@@ -2014,13 +2014,22 @@ def google_callback():
 
     # Try using account_module's helper if available
     _callback_helper = app.config.get("_handle_google_callback")
+    # DEBUG: Force inline OAuth to isolate account_module issues
+    _callback_helper = None
     if _callback_helper:
-        token, email, err = _callback_helper(code)
-        if err:
-            return redirect('/?oauth_error=' + err)
-        resp = make_response(redirect('/?oauth_token=' + email))
-        resp.set_cookie('sm_auth_token', token, max_age=31536000, httponly=True, samesite='Lax')
-        return resp
+        try:
+            token, email, err = _callback_helper(code)
+            if err:
+                return redirect('/?oauth_error=' + err)
+            if not token or not email:
+                return redirect('/?oauth_error=token_generation_failed')
+            resp = make_response(redirect('/?oauth_token=' + email))
+            resp.set_cookie('sm_auth_token', token, max_age=31536000, httponly=True, samesite='Lax')
+            return resp
+        except Exception as e:
+            logger.error("account_module_callback_error", extra={"err": str(e)})
+            # Fall through to inline implementation
+            pass
 
     # Fallback: inline implementation with CORRECT env var names
     client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '')
@@ -2072,13 +2081,23 @@ def google_callback():
                 row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
                 if row:
                     user_id = row["id"]
-                    conn.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user_id,))
+                    # best-effort last_login update; tolerate legacy DBs without this column
+                    try:
+                        conn.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user_id,))
+                    except Exception:
+                        pass
                 else:
                     user_id = _uuid.uuid4().hex
                     pwd_hash = _hashlib.sha256(os.urandom(24).hex().encode()).hexdigest()
                     google_sub = userinfo.get("id", "")
-                    conn.execute("INSERT INTO users (id,email,password_hash,google_sub) VALUES(?,?,?,?)",
-                                 (user_id, email, pwd_hash, google_sub))
+                    # Tolerate legacy DBs without google_sub column
+                    try:
+                        conn.execute("INSERT INTO users (id,email,password_hash,google_sub) VALUES(?,?,?,?)",
+                                     (user_id, email, pwd_hash, google_sub))
+                    except Exception:
+                        # Fallback: insert without google_sub
+                        conn.execute("INSERT INTO users (id,email,password_hash) VALUES(?,?,?)",
+                                     (user_id, email, pwd_hash))
             jwt_token = _jwt.encode({
                 "sub": user_id, "email": email,
                 "iat": int(_time.time()),
