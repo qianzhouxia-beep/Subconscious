@@ -157,6 +157,20 @@ def init_account_tables():
             CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         """)
+        # Backfill columns for legacy DBs (created before schema had these fields).
+        # PRAGMA table_info is idempotent — safe to run every boot.
+        # Note: SQLite ALTER TABLE ADD COLUMN requires a CONSTANT default (no expressions).
+        try:
+            user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+            if "last_login" not in user_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT ''")
+                conn.execute("UPDATE users SET last_login = datetime('now') WHERE last_login IS NULL OR last_login = ''")
+                print("[account_module] Migrated: added users.last_login column")
+            if "google_sub" not in user_cols:
+                conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''")
+                print("[account_module] Migrated: added users.google_sub column")
+        except Exception as e:
+            print(f"[account_module] Migration check failed (non-fatal): {e}")
     print("[account_module] Tables initialized OK")
 
 
@@ -213,8 +227,11 @@ def register_account_routes(app):
             if not row or row["password_hash"] != _hash_password(password):
                 return jsonify({"detail": "Invalid email or password"}), 401
 
-            # Update last login
-            conn.execute("UPDATE users SET last_login = datetime('now') WHERE id = ?", (row["id"],))
+            # Update last login (best-effort: tolerate legacy DBs without this column)
+            try:
+                conn.execute("UPDATE users SET last_login = datetime('now') WHERE id = ?", (row["id"],))
+            except Exception:
+                pass
 
         token = _generate_token(row["id"], row["email"])
         return jsonify({
@@ -310,16 +327,28 @@ def register_account_routes(app):
             row = conn.execute("SELECT id, email FROM users WHERE email = ?", (email,)).fetchone()
             if row:
                 user_id = row["id"]
-                # Update google_sub if missing
-                if not conn.execute("SELECT google_sub FROM users WHERE id = ?", (user_id,)).fetchone()["google_sub"]:
-                    conn.execute("UPDATE users SET google_sub=?, last_login=datetime('now') WHERE id=?", (google_sub, user_id))
+                # Update google_sub if missing (best-effort; tolerate legacy DBs without last_login)
+                try:
+                    cur = conn.execute("SELECT google_sub FROM users WHERE id = ?", (user_id,)).fetchone()
+                    if cur and not cur["google_sub"]:
+                        conn.execute("UPDATE users SET google_sub=?, last_login=datetime('now') WHERE id=?", (google_sub, user_id))
+                except Exception:
+                    pass
             else:
                 user_id = uuid.uuid4().hex
                 pwd_hash = _hash_password(os.urandom(24).hex())  # random password for OAuth-only accounts
-                conn.execute(
-                    "INSERT INTO users (id, email, password_hash, google_sub) VALUES (?, ?, ?, ?)",
-                    (user_id, email, pwd_hash, google_sub or ""),
-                )
+                # Tolerate legacy DBs without google_sub column
+                try:
+                    conn.execute(
+                        "INSERT INTO users (id, email, password_hash, google_sub) VALUES (?, ?, ?, ?)",
+                        (user_id, email, pwd_hash, google_sub or ""),
+                    )
+                except Exception:
+                    # Fallback: insert without google_sub
+                    conn.execute(
+                        "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
+                        (user_id, email, pwd_hash),
+                    )
 
         token = _generate_token(user_id, email)
         return token, email, None
