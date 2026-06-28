@@ -379,6 +379,16 @@ if ACCOUNT_SYSTEM_READY:
     register_account_routes(app)
     print("[INFO] User account system initialized — /api/auth/* /api/user/* /api/license/* registered")
 
+# Debug endpoint to check account module status
+@app.route('/api/debug/account-status')
+def debug_account_status():
+    status = {
+        "account_module_ready": ACCOUNT_SYSTEM_READY,
+        "db_file": DB_FILE,
+        "routes": [str(r) for r in app.url_map.iter_rules() if '/api/' in str(r)]
+    }
+    return jsonify(status)
+
 # --- REQUEST LOGGING MIDDLEWARE ---
 @app.before_request
 def log_request():
