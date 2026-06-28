@@ -555,17 +555,28 @@ def register_account_routes(app):
         config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["spark"])
 
         with _get_db() as conn:
-            # Deactivate previous entitlements of same type
-            conn.execute(
-                "UPDATE entitlements SET is_expired=1 WHERE user_id=? AND plan_type=? AND is_expired=0",
+            # Check if user already has an active entitlement of this type
+            existing = conn.execute(
+                "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
                 (user_id, plan_type),
-            )
+            ).fetchone()
 
-            ent_id = uuid.uuid4().hex
-            conn.execute("""
-                INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (ent_id, user_id, plan_type, config["reports"], config["reports"], order_id))
+            if existing:
+                # Update existing entitlement: add new credits to remaining
+                new_remaining = existing["remaining"] + config["reports"]
+                new_total = existing["total_count"] + config["reports"]
+                conn.execute(
+                    "UPDATE entitlements SET remaining=?, total_count=? WHERE id=?",
+                    (new_remaining, new_total, existing["id"]),
+                )
+                ent_id = existing["id"]
+            else:
+                # Create new entitlement
+                ent_id = uuid.uuid4().hex
+                conn.execute("""
+                    INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (ent_id, user_id, plan_type, config["reports"], config["reports"], order_id))
 
             # Record order as paid
             if order_id:
@@ -632,19 +643,37 @@ def register_account_routes(app):
             plan_type = order["plan_type"] or "spark"
             config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["spark"])
 
-            # Create entitlement
-            ent_id = uuid.uuid4().hex
-            conn.execute("""
-                INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (ent_id, user_id, plan_type, config["reports"], config["reports"], key))
+            # Check if user already has an active entitlement of this type
+            existing = conn.execute(
+                "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
+                (user_id, plan_type),
+            ).fetchone()
+
+            if existing:
+                # Update existing entitlement: add new credits
+                new_remaining = existing["remaining"] + config["reports"]
+                new_total = existing["total_count"] + config["reports"]
+                conn.execute(
+                    "UPDATE entitlements SET remaining=?, total_count=? WHERE id=?",
+                    (new_remaining, new_total, existing["id"]),
+                )
+                ent_id = existing["id"]
+            else:
+                # Create new entitlement
+                ent_id = uuid.uuid4().hex
+                conn.execute("""
+                    INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (ent_id, user_id, plan_type, config["reports"], config["reports"], key))
+
             conn.execute("UPDATE orders SET status='paid' WHERE id=?", (key,))
 
         return jsonify({"status": "redeemed", "plan_type": plan_type, "entitlement_id": ent_id})
 
 
 def activate_entitlement(email, plan_type="spark", order_id="", amount=0.0):
-    """Convenience function: activate an entitlement for an email (used by PayPal/NOWPayments callbacks)."""
+    """Convenience function: activate an entitlement for an email (used by PayPal/NOWPayments callbacks).
+    If user already has an active entitlement of this type, add credits to it (accumulate)."""
     with _get_db() as conn:
         user = conn.execute("SELECT id FROM users WHERE email = ?", (email.lower(),)).fetchone()
         if not user:
@@ -653,15 +682,30 @@ def activate_entitlement(email, plan_type="spark", order_id="", amount=0.0):
         user_id = user["id"]
         config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["spark"])
 
-        # Deactivate previous
-        conn.execute("UPDATE entitlements SET is_expired=1 WHERE user_id=? AND plan_type=? AND is_expired=0", (user_id, plan_type))
+        # Check if user already has an active entitlement of this type
+        existing = conn.execute(
+            "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
+            (user_id, plan_type),
+        ).fetchone()
 
         ord_id = order_id or uuid.uuid4().hex
-        ent_id = uuid.uuid4().hex
-        conn.execute("""
-            INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (ent_id, user_id, plan_type, config["reports"], config["reports"], ord_id))
+
+        if existing:
+            # Update existing entitlement: add new credits
+            new_remaining = existing["remaining"] + config["reports"]
+            new_total = existing["total_count"] + config["reports"]
+            conn.execute(
+                "UPDATE entitlements SET remaining=?, total_count=? WHERE id=?",
+                (new_remaining, new_total, existing["id"]),
+            )
+            ent_id = existing["id"]
+        else:
+            # Create new entitlement
+            ent_id = uuid.uuid4().hex
+            conn.execute("""
+                INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (ent_id, user_id, plan_type, config["reports"], config["reports"], ord_id))
 
         # Record order if not exists
         existing_order = conn.execute("SELECT id FROM orders WHERE id=?", (ord_id,)).fetchone()
