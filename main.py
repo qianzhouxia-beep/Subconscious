@@ -1507,6 +1507,181 @@ def paypal_create_order():
         logger.error("paypal_create_order_error", extra={"error": str(e), "traceback": traceback.format_exc()})
         return _cors(jsonify({"error": "Payment setup failed. Please try again."}), 500)
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# NOWPayments Crypto Payment Routes
+# ═══════════════════════════════════════════════════════════════════════════════
+
+NOWPAYMENTS_API_KEY = os.environ.get("NOWPAYMENTS_API_KEY", "")
+NOWPAYMENTS_API_URL = "https://api.nowpayments.io/v1"
+
+@app.route('/api/nowpayments/create-payment', methods=['POST'])
+def nowpayments_create_payment():
+    """Create a NOWPayments invoice for crypto payment (USDT)"""
+    from flask import g
+    
+    # Get authenticated user
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return _cors(jsonify({"detail": "Authentication required"}), 401)
+    
+    token = auth_header[7:]
+    
+    # Verify token and get user
+    try:
+        import jwt
+        JWT_SECRET = os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("sub")
+        user_email = payload.get("email")
+    except Exception:
+        return _cors(jsonify({"detail": "Invalid or expired token"}), 401)
+    
+    if not user_email:
+        return _cors(jsonify({"detail": "User email not found"}), 400)
+    
+    data = request.get_json() or {}
+    plan_type = data.get("plan_type", "credits_3")
+    
+    # Get plan config
+    config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["credits_3"])
+    amount = config["price"]
+    
+    if not NOWPAYMENTS_API_KEY:
+        return _cors(jsonify({"detail": "Crypto payment not configured"}), 503)
+    
+    try:
+        # Create payment
+        headers = {
+            "x-api-key": NOWPAYMENTS_API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        # Create invoice
+        invoice_data = {
+            "price_amount": amount,
+            "price_currency": "usd",
+            "pay_currency": "usdttrc20",  # USDT on TRC20
+            "ipn_callback_url": f"{BRAND_URL}/api/nowpayments/webhook",
+            "order_id": f"{user_id}-{plan_type}-{int(time.time())}",
+            "order_description": f"Subconscious Mirror - {config['label']} ({plan_type})",
+            "customer_email": user_email,
+            "success_url": f"{BRAND_URL}/payment/success?method=nowpayments",
+            "cancel_url": f"{BRAND_URL}/payment/cancel?method=nowpayments"
+        }
+        
+        res = requests.post(
+            f"{NOWPAYMENTS_API_URL}/invoice",
+            headers=headers,
+            json=invoice_data,
+            timeout=30
+        )
+        
+        if not res.ok:
+            print(f"[NOWPayments] Invoice creation failed: {res.status_code} - {res.text}")
+            return _cors(jsonify({"detail": "Failed to create crypto invoice"}), 500)
+        
+        result = res.json()
+        invoice_url = result.get("invoice_url")
+        invoice_id = result.get("id")
+        
+        if not invoice_url:
+            return _cors(jsonify({"detail": "No invoice URL returned"}), 500)
+        
+        # Store pending order
+        with get_db() as conn:
+            conn.execute(
+                """INSERT INTO orders (id, user_id, plan_type, amount, currency, status, payment_provider, provider_order_id)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (invoice_id, user_id, plan_type, amount, "USD", "pending", "nowpayments", invoice_id)
+            )
+        
+        print(f"[NOWPayments] Invoice created: {invoice_id} for {user_email}, amount: ${amount}")
+        
+        return _cors(jsonify({
+            "invoice_url": invoice_url,
+            "invoice_id": invoice_id,
+            "amount": amount,
+            "currency": "USDT"
+        }))
+        
+    except Exception as e:
+        import traceback
+        print(f"[NOWPayments] Error creating invoice: {e}")
+        print(traceback.format_exc())
+        return _cors(jsonify({"detail": f"Payment error: {str(e)}"}), 500)
+
+
+@app.route('/api/nowpayments/webhook', methods=['POST'])
+def nowpayments_webhook():
+    """Handle NOWPayments payment notifications"""
+    data = request.get_json() or {}
+    
+    # Verify webhook (NOWPayments doesn't sign webhooks in free tier, but we check the data)
+    invoice_id = data.get("invoice_id")
+    payment_status = data.get("payment_status")
+    order_id = data.get("order_id")
+    
+    if not invoice_id or not payment_status:
+        return _cors(jsonify({"error": "Invalid webhook data"}), 400)
+    
+    print(f"[NOWPayments Webhook] Invoice: {invoice_id}, Status: {payment_status}")
+    
+    # Only process confirmed/finished payments
+    if payment_status not in ["confirmed", "finished"]:
+        return _cors(jsonify({"status": "ignored"}), 200)
+    
+    try:
+        # Find the order
+        with get_db() as conn:
+            order = conn.execute(
+                "SELECT * FROM orders WHERE provider_order_id = ?",
+                (invoice_id,)
+            ).fetchone()
+            
+            if not order:
+                print(f"[NOWPayments Webhook] Order not found: {invoice_id}")
+                return _cors(jsonify({"error": "Order not found"}), 404)
+            
+            if order["status"] == "paid":
+                return _cors(jsonify({"status": "already processed"}), 200)
+            
+            # Update order status
+            conn.execute(
+                "UPDATE orders SET status = 'paid' WHERE id = ?",
+                (order["id"],)
+            )
+            
+            # Activate entitlement
+            user_email = None
+            user = conn.execute("SELECT email FROM users WHERE id = ?", (order["user_id"],)).fetchone()
+            if user:
+                user_email = user["email"]
+            
+            if user_email and ACCOUNT_SYSTEM_READY:
+                try:
+                    activate_entitlement(user_email, order["plan_type"], order["id"])
+                    print(f"[NOWPayments Webhook] Entitlement activated for {user_email}")
+                except Exception as e:
+                    print(f"[NOWPayments Webhook] Failed to activate entitlement: {e}")
+        
+        return _cors(jsonify({"status": "success"}), 200)
+        
+    except Exception as e:
+        import traceback
+        print(f"[NOWPayments Webhook] Error: {e}")
+        print(traceback.format_exc())
+        return _cors(jsonify({"error": "Webhook processing failed"}), 500)
+
+
+@app.route('/api/nowpayments/debug', methods=['GET'])
+def nowpayments_debug():
+    """Debug endpoint for NOWPayments configuration"""
+    return _cors(jsonify({
+        "nowpayments_configured": bool(NOWPAYMENTS_API_KEY),
+        "api_url": NOWPAYMENTS_API_URL
+    }))
+
+
 @app.route('/api/paypal/return', methods=['GET'])
 def paypal_return():
     """Handle PayPal redirect after payment (success or cancel)"""
