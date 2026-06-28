@@ -2111,7 +2111,9 @@ def google_callback():
         resp.set_cookie('sm_auth_token', jwt_token, max_age=31536000, httponly=True, samesite='Lax')
         return resp
     except Exception as e:
-        logger.error("google_callback_error", extra={"err": str(e)})
+        logger.error("google_callback_error", extra={"err": str(e), "type": type(e).__name__})
+        import traceback
+        logger.error("google_callback_traceback", extra={"trace": traceback.format_exc()})
         return redirect('/?oauth_error=internal_error')
 
 
