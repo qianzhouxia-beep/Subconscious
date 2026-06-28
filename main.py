@@ -463,7 +463,14 @@ def check_pg_tables():
     if req_token != MIGRATION_TOKEN:
         return _cors(jsonify({"error": "Invalid token"}), 403)
     try:
-        import psycopg2
+        # Auto-install psycopg2 if missing
+        try:
+            import psycopg2
+        except ImportError:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+        
         pg_conn = psycopg2.connect(DATABASE_URL)
         pg_cursor = pg_conn.cursor()
         pg_cursor.execute("""
@@ -475,7 +482,8 @@ def check_pg_tables():
         pg_conn.close()
         return _cors(jsonify({"tables": tables, "count": len(tables)}))
     except Exception as e:
-        return _cors(jsonify({"error": str(e)}), 500)
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
 
 @app.route('/api/admin/init-pg-tables', methods=['POST', 'OPTIONS'])
 def init_pg_tables():
