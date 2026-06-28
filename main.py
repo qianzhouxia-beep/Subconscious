@@ -5,6 +5,13 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 import sys
+
+# Add user site-packages to path for QClaw bundled Python
+import site as _site
+_user_site = _site.getusersitepackages()
+if _user_site not in sys.path:
+    sys.path.insert(0, _user_site)
+
 import sqlite3
 import requests
 import time
