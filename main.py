@@ -452,6 +452,119 @@ def health_check():
     except Exception as e:
         return _cors(jsonify({"status": "error", "error": str(e)}), 500)
 
+# 迁移端点（需管理员 token 保护）
+MIGRATION_TOKEN = os.environ.get("MIGRATION_TOKEN", "migrate-2026-token")
+
+@app.route('/api/admin/migrate-sqlite-to-pg', methods=['POST', 'OPTIONS'])
+def migrate_sqlite_to_pg():
+    """一次性迁移：从 SQLite 迁移到 PostgreSQL（需要 admin token）"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    if not DATABASE_URL:
+        return _cors(jsonify({"error": "DATABASE_URL not set"}), 400)
+    
+    # Token 校验
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Invalid migration token"}), 403)
+    
+    if not os.path.exists(DB_FILE):
+        return _cors(jsonify({"error": f"SQLite file not found: {DB_FILE}"}), 404)
+    
+    try:
+        import psycopg2
+        import psycopg2.extras
+    except ImportError:
+        return _cors(jsonify({"error": "psycopg2 not installed"}), 500)
+    
+    # 连接两个数据库
+    sqlite_conn = sqlite3.connect(DB_FILE)
+    sqlite_conn.row_factory = sqlite3.Row
+    
+    pg_conn = psycopg2.connect(DATABASE_URL)
+    pg_cursor = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    
+    # 需要迁移的表
+    tables = [
+        "users", "email_tokens", "entitlements", "user_orders",
+        "license_keys", "crypto_payments", "referrals", "referral_logs",
+        "payments", "orders", "chat_sessions", "chat_messages",
+        "dream_reports", "dream_journal", "dream_patterns", "tarot_readings",
+    ]
+    
+    results = {}
+    total_inserted = 0
+    
+    for table in tables:
+        # 检查 SQLite 中是否存在
+        s = sqlite_conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+            (table,)
+        ).fetchone()
+        if not s:
+            results[table] = "skipped (not in sqlite)"
+            continue
+        
+        # 检查 PostgreSQL 中是否存在
+        pg_cursor.execute("""
+            SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)
+        """, (table,))
+        if not pg_cursor.fetchone()['exists']:
+            results[table] = "skipped (not in postgres)"
+            continue
+        
+        # 读取数据
+        try:
+            rows = sqlite_conn.execute(f"SELECT * FROM {table}").fetchall()
+        except Exception as e:
+            results[table] = f"error: {str(e)[:50]}"
+            continue
+        
+        if not rows:
+            results[table] = "empty"
+            continue
+        
+        # 写入 PostgreSQL
+        columns = rows[0].keys()
+        column_names = ", ".join([f'"{c}"' for c in columns])
+        placeholders = ", ".join(["%s"] * len(columns))
+        
+        inserted = 0
+        skipped = 0
+        for row in rows:
+            values = tuple(row[c] for c in columns)
+            try:
+                pg_cursor.execute(
+                    f"INSERT INTO {table} ({column_names}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
+                    values
+                )
+                if pg_cursor.rowcount > 0:
+                    inserted += 1
+            except Exception as e:
+                skipped += 1
+        
+        pg_conn.commit()
+        total_inserted += inserted
+        results[table] = f"{inserted} inserted, {skipped} skipped, {len(rows)} total"
+    
+    # 验证关键表
+    summary = {}
+    for t in ["users", "entitlements", "payments", "orders"]:
+        try:
+            pg_cursor.execute(f"SELECT COUNT(*) as cnt FROM {t}")
+            summary[t] = pg_cursor.fetchone()['cnt']
+        except:
+            pass
+    
+    sqlite_conn.close()
+    pg_conn.close()
+    
+    return _cors(jsonify({
+        "status": "completed",
+        "total_inserted": total_inserted,
+        "tables": results,
+        "pg_summary": summary
+    }))
+
 @app.route('/api/session/init', methods=['GET', 'POST', 'OPTIONS'])
 def session_init():
     if request.method == 'OPTIONS': return _cors(make_response())
