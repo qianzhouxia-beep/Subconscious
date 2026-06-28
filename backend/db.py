@@ -19,6 +19,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 DB_FILE = os.environ.get("DB_FILE", "mirror_data.db")
 
 # ── PostgreSQL 模式 ──
+PSYCOPG2_READY = False
 if DATABASE_URL:
     try:
         import psycopg2
@@ -26,11 +27,17 @@ if DATABASE_URL:
         PSYCOPG2_READY = True
         print(f"[DB] PostgreSQL mode: {re.sub(r'://[^@]+@', '://***@', DATABASE_URL)}")
     except ImportError:
-        PSYCOPG2_READY = False
-        print("[DB] WARNING: DATABASE_URL is set but psycopg2 is not installed!")
-        print("[DB] Install: pip install psycopg2-binary")
-else:
-    PSYCOPG2_READY = False
+        print("[DB] WARNING: psycopg2 not found, attempting auto-install...")
+        try:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+            import psycopg2.extras
+            PSYCOPG2_READY = True
+            print("[DB] psycopg2-binary installed successfully via pip")
+        except Exception as _e:
+            print(f"[DB] ERROR: Failed to install psycopg2-binary: {_e}")
+            print("[DB] Falling back to SQLite mode")
 
 
 # ═══════════════════════════════════════════════════════════
