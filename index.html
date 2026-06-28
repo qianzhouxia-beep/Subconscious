@@ -960,19 +960,14 @@
             document.title = t.page_title;
             updateTurnIndicator();
             // Update env pill text based on language
-            const pillMap = {
-                '普通梦': t.pill_ordinary, '清醒梦': t.pill_lucid, '噩梦': t.pill_nightmare, '重复梦': t.pill_repeating,
-                '无': t.pill_none, '轻度': t.pill_mild, '中等': t.pill_moderate, '高压': t.pill_high,
+            const pillTexts = {
+                'ordinary': t.pill_ordinary, 'lucid': t.pill_lucid, 'nightmare': t.pill_nightmare, 'repeating': t.pill_repeating,
+                'none': t.pill_none, 'mild': t.pill_mild, 'moderate': t.pill_moderate, 'high': t.pill_high,
             };
             document.querySelectorAll('.env-pill').forEach(p => {
-                const zhText = p.getAttribute('data-zh');
-                if (zhText && pillMap[zhText]) {
-                    p.innerText = pillMap[zhText];
-                } else {
-                    // First call: store current text as data-zh
-                    p.setAttribute('data-zh', p.innerText);
-                    const enText = pillMap[p.innerText];
-                    if (enText) p.innerText = enText;
+                const value = (p.getAttribute('data-value') || '').toLowerCase();
+                if (value && pillTexts[value]) {
+                    p.innerText = pillTexts[value];
                 }
             });
         }
