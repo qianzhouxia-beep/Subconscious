@@ -1918,12 +1918,12 @@
         // ═══ Report Download & Export Functions ═════════════════
 
         function getReportHTML() {
-            // Collect the full report HTML for export
-            var freeHTML = document.getElementById('res-free')?.innerHTML || '';
-            var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
-            var psycLabel = document.querySelector('#t-res-psych')?.textContent || 'Psychology Analysis';
-            var destinyLabel = document.querySelector('#t-res-destiny')?.textContent || 'Eastern Destiny Path';
-            var isUnlocked = document.getElementById('locked-preview')?.classList.contains('hidden');
+            // Collect the full report HTML for export (from modal)
+            var freeHTML = document.getElementById('res-free-modal')?.innerHTML || '';
+            var paidHTML = document.getElementById('res-paid-modal')?.innerHTML || '';
+            var psycLabel = document.querySelector('#t-res-psych-modal')?.textContent || 'Psychology Analysis';
+            var destinyLabel = document.querySelector('#t-res-destiny-modal')?.textContent || 'Eastern Destiny Path';
+            var isUnlocked = document.getElementById('locked-preview-modal')?.classList.contains('hidden');
             var report = '<h2>' + psycLabel + '</h2>' + freeHTML;
             if (paidHTML && isUnlocked) {
                 report += '<h2>' + destinyLabel + '</h2>' + paidHTML;
@@ -3252,8 +3252,8 @@
         }
 
         function saveToJournal() {
-            var freeHTML = document.getElementById('res-free')?.innerHTML || '';
-            var paidHTML = document.getElementById('res-paid')?.innerHTML || '';
+            var freeHTML = document.getElementById('res-free-modal')?.innerHTML || '';
+            var paidHTML = document.getElementById('res-paid-modal')?.innerHTML || '';
             var dreamText = '';
             // Get first user message from chat thread
             var chatThread = document.getElementById('chat-thread');
@@ -3261,7 +3261,7 @@
                 var userBubbles = chatThread.querySelectorAll('.chat-bubble-wrapper.user .chat-bubble-text');
                 if (userBubbles.length > 0) dreamText = userBubbles[0].innerText || '';
             }
-            var tarotName = document.getElementById('tarot-card-name')?.innerText || '';
+            var tarotName = document.getElementById('tarot-card-name-modal')?.innerText || '';
             var entry = {
                 id: Date.now(),
                 date: new Date().toISOString(),
@@ -3307,17 +3307,22 @@
             if (!entry) return;
             enterAppMode();
             document.getElementById('chat-input-area').classList.add('hidden');
-            document.getElementById('report-view-inline').classList.remove('hidden');
-            document.getElementById('res-free').innerHTML = entry.freeHTML || '';
+            
+            // Populate modal with journal entry
+            document.getElementById('res-free-modal').innerHTML = entry.freeHTML || '';
             if (entry.isPremium && entry.paidHTML) {
-                document.getElementById('locked-preview').classList.add('hidden');
-                document.getElementById('res-paid-wrapper').classList.remove('hidden');
-                document.getElementById('res-paid').innerHTML = entry.paidHTML;
+                document.getElementById('locked-preview-modal').classList.add('hidden');
+                document.getElementById('res-paid-wrapper-modal').classList.remove('hidden');
+                document.getElementById('pay-area-modal').classList.add('hidden');
+                document.getElementById('res-paid-modal').innerHTML = entry.paidHTML;
             } else {
-                document.getElementById('locked-preview').classList.remove('hidden');
-                document.getElementById('res-paid-wrapper').classList.add('hidden');
+                document.getElementById('locked-preview-modal').classList.remove('hidden');
+                document.getElementById('res-paid-wrapper-modal').classList.add('hidden');
+                document.getElementById('pay-area-modal').classList.remove('hidden');
             }
-            gsap.fromTo("#report-view-inline", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
+            
+            // Open modal
+            openReportModal();
         }
 
         // ═══ FAQ Accordion ═══
