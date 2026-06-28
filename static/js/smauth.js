@@ -290,13 +290,21 @@ const SMAuth = (function () {
       if (!userEmail) return;
     }
 
-    // Collect report content
-    var freeEl = document.getElementById('res-free');
-    var paidEl = document.getElementById('res-paid');
-    var isUnlocked = document.getElementById('locked-preview')?.classList.contains('hidden');
+    // Collect report content (from modal)
+    var freeEl = document.getElementById('res-free-modal') || document.getElementById('res-free');
+    var paidEl = document.getElementById('res-paid-modal') || document.getElementById('res-paid');
+    var isUnlocked = document.getElementById('locked-preview-modal')?.classList.contains('hidden') || document.getElementById('locked-preview')?.classList.contains('hidden');
     var reportHTML = '<h2>Psychology Analysis</h2>' + (freeEl?.innerHTML || '');
     if (isUnlocked && paidEl?.innerHTML) {
       reportHTML += '<h2>Eastern Destiny Path</h2>' + paidEl.innerHTML;
+    }
+
+    // Include tarot card info if available
+    var tarotImg = document.getElementById('tarot-card-img-modal') || document.getElementById('tarot-card-img');
+    var tarotName = document.getElementById('tarot-card-name-modal') || document.getElementById('tarot-card-name');
+    if (tarotImg && tarotName) {
+      var tarotSection = '<div class="tarot-section"><img src="' + tarotImg.src + '" alt="' + tarotName.innerText + '"/><div class="card-name">' + tarotName.innerText + '</div></div>';
+      reportHTML = tarotSection + reportHTML;
     }
 
     // Get order info
