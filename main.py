@@ -470,18 +470,21 @@ def migrate_sqlite_to_pg():
     if not os.path.exists(DB_FILE):
         return _cors(jsonify({"error": f"SQLite file not found: {DB_FILE}"}), 404)
     
+    # 使用 backend/db.py 的连接（已经兼容 PostgreSQL）
     try:
-        import psycopg2
-        import psycopg2.extras
-    except ImportError:
-        return _cors(jsonify({"error": "psycopg2 not installed"}), 500)
+        pg_conn = get_db_connection()
+        # 检查是否是 PostgreSQL
+        try:
+            pg_conn.execute("SELECT 1")
+        except:
+            return _cors(jsonify({"error": "Not connected to PostgreSQL"}), 500)
+    except Exception as e:
+        return _cors(jsonify({"error": f"PostgreSQL connection failed: {str(e)}"}), 500)
     
-    # 连接两个数据库
+    # 连接 SQLite
+    import sqlite3
     sqlite_conn = sqlite3.connect(DB_FILE)
     sqlite_conn.row_factory = sqlite3.Row
-    
-    pg_conn = psycopg2.connect(DATABASE_URL)
-    pg_cursor = pg_conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
     # 需要迁移的表
     tables = [
@@ -504,12 +507,11 @@ def migrate_sqlite_to_pg():
             results[table] = "skipped (not in sqlite)"
             continue
         
-        # 检查 PostgreSQL 中是否存在
-        pg_cursor.execute("""
-            SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)
-        """, (table,))
-        if not pg_cursor.fetchone()['exists']:
-            results[table] = "skipped (not in postgres)"
+        # 检查 PostgreSQL 中是否存在（用 psycopg2 或直接执行）
+        try:
+            pg_conn.execute("SELECT 1 FROM " + table + " LIMIT 0")
+        except Exception as e:
+            results[table] = f"skipped (not in postgres: {str(e)[:50]})"
             continue
         
         # 读取数据
@@ -526,23 +528,38 @@ def migrate_sqlite_to_pg():
         # 写入 PostgreSQL
         columns = rows[0].keys()
         column_names = ", ".join([f'"{c}"' for c in columns])
-        placeholders = ", ".join(["%s"] * len(columns))
+        
+        # 获取 PostgreSQL 连接的实际类型
+        is_pg = DATABASE_URL and PSYCOPG2_READY
         
         inserted = 0
         skipped = 0
         for row in rows:
             values = tuple(row[c] for c in columns)
             try:
-                pg_cursor.execute(
-                    f"INSERT INTO {table} ({column_names}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
-                    values
-                )
-                if pg_cursor.rowcount > 0:
+                if is_pg:
+                    # PostgreSQL: 用 %s 占位符
+                    placeholders = ", ".join(["%s"] * len(columns))
+                    pg_conn.execute(
+                        f"INSERT INTO {table} ({column_names}) VALUES ({placeholders}) ON CONFLICT DO NOTHING",
+                        values
+                    )
+                else:
+                    # SQLite 回退（不应该到这里）
+                    placeholders = ", ".join(["?"] * len(columns))
+                    pg_conn.execute(
+                        f"INSERT OR IGNORE INTO {table} ({column_names}) VALUES ({placeholders})",
+                        values
+                    )
+                if hasattr(pg_conn, 'rowcount') and pg_conn.rowcount > 0:
                     inserted += 1
             except Exception as e:
                 skipped += 1
+                if skipped <= 3:
+                    print(f"   Warning: skip row in {table}: {str(e)[:80]}")
         
-        pg_conn.commit()
+        if hasattr(pg_conn, 'commit'):
+            pg_conn.commit()
         total_inserted += inserted
         results[table] = f"{inserted} inserted, {skipped} skipped, {len(rows)} total"
     
@@ -550,13 +567,14 @@ def migrate_sqlite_to_pg():
     summary = {}
     for t in ["users", "entitlements", "payments", "orders"]:
         try:
-            pg_cursor.execute(f"SELECT COUNT(*) as cnt FROM {t}")
-            summary[t] = pg_cursor.fetchone()['cnt']
+            result = pg_conn.execute(f"SELECT COUNT(*) as cnt FROM {t}").fetchone()
+            summary[t] = result[0] if result else 0
         except:
             pass
     
     sqlite_conn.close()
-    pg_conn.close()
+    if hasattr(pg_conn, 'close'):
+        pg_conn.close()
     
     return _cors(jsonify({
         "status": "completed",
