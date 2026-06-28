@@ -165,8 +165,65 @@ def init_account_tables():
             CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         """)
-        # Backfill columns for legacy DBs (created before schema had these fields).
-        # PRAGMA table_info is idempotent — safe to run every boot.
+        
+        # Migration: add missing columns to existing tables
+        try:
+            conn.execute("ALTER TABLE entitlements ADD COLUMN remaining INTEGER NOT NULL DEFAULT 0")
+            print("[MIGRATION] Added 'remaining' column to entitlements table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass  # Column already exists
+            else:
+                raise
+        
+        try:
+            conn.execute("ALTER TABLE entitlements ADD COLUMN is_expired INTEGER NOT NULL DEFAULT 0")
+            print("[MIGRATION] Added 'is_expired' column to entitlements table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+        
+        try:
+            conn.execute("ALTER TABLE entitlements ADD COLUMN expires_at TEXT")
+            print("[MIGRATION] Added 'expires_at' column to entitlements table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+        
+        try:
+            conn.execute("ALTER TABLE entitlements ADD COLUMN order_id TEXT")
+            print("[MIGRATION] Added 'order_id' column to entitlements table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+        
+        # Also check users table for missing columns
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''")
+            print("[MIGRATION] Added 'google_sub' column to users table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+        
+        try:
+            conn.execute("ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT (datetime('now'))")
+            print("[MIGRATION] Added 'last_login' column to users table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
+                pass
+            else:
+                raise
+        
+        conn.commit()
+        print("[INFO] Account tables initialized")
         # Note: SQLite ALTER TABLE ADD COLUMN requires a CONSTANT default (no expressions).
         try:
             user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
