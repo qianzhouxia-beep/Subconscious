@@ -428,7 +428,13 @@ def chat_session_create():
     import uuid as _uuid
     sid = _uuid.uuid4().hex
     sess_id = _uuid.uuid4().hex
-    auth_token = request.cookies.get('sm_auth_token', '')
+    # Try Authorization header first, then cookie
+    auth_token = ''
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        auth_token = auth_header[7:]
+    if not auth_token:
+        auth_token = request.cookies.get('sm_auth_token', '')
     user_id = ''
     if auth_token:
         try:
@@ -441,10 +447,17 @@ def chat_session_create():
                      (sid, user_id, sess_id))
     return _cors(jsonify({"sessionId": sess_id, "id": sid}))
 
+
 @app.route('/api/chat/sessions', methods=['GET', 'OPTIONS'])
 def chat_sessions_list():
     if request.method == 'OPTIONS': return _cors(make_response())
-    auth_token = request.cookies.get('sm_auth_token', '')
+    # Try Authorization header first, then cookie
+    auth_token = ''
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        auth_token = auth_header[7:]
+    if not auth_token:
+        auth_token = request.cookies.get('sm_auth_token', '')
     user_id = ''
     if auth_token:
         try:
@@ -462,21 +475,54 @@ def chat_sessions_list():
             rows = []
     return _cors(jsonify({"sessions": [dict(r) for r in rows]}))
 
+
 @app.route('/api/chat/session/<session_id>', methods=['GET', 'DELETE', 'OPTIONS'])
 def chat_session_detail(session_id):
     if request.method == 'OPTIONS': return _cors(make_response())
+    # Try Authorization header first, then cookie
+    auth_token = ''
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        auth_token = auth_header[7:]
+    if not auth_token:
+        auth_token = request.cookies.get('sm_auth_token', '')
+    user_id = ''
+    if auth_token:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(auth_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+        except: pass
     if request.method == 'DELETE':
         with get_db() as conn:
-            conn.execute("UPDATE chat_sessions SET status='deleted' WHERE session_id=?", (session_id,))
+            if user_id:
+                conn.execute("DELETE FROM chat_sessions WHERE session_id=? AND user_id=?", (session_id, user_id))
+            else:
+                conn.execute("DELETE FROM chat_sessions WHERE session_id=?", (session_id,))
         return _cors(jsonify({"status": "deleted"}))
     with get_db() as conn:
-        session = conn.execute("SELECT * FROM chat_sessions WHERE session_id=?", (session_id,)).fetchone()
+        if user_id:
+            session = conn.execute(
+                "SELECT * FROM chat_sessions WHERE session_id=? AND user_id=?",
+                (session_id, user_id)
+            ).fetchone()
+        else:
+            session = conn.execute(
+                "SELECT * FROM chat_sessions WHERE session_id=?",
+                (session_id,)
+            ).fetchone()
         if not session:
-            return _cors(jsonify({"error": "session not found"}), 404)
-        messages = conn.execute("SELECT role, content, turn, created_at FROM chat_messages WHERE session_id=? ORDER BY turn ASC", (session_id,)).fetchall()
-        report = conn.execute("SELECT * FROM dream_reports WHERE session_id=? ORDER BY created_at DESC LIMIT 1", (session_id,)).fetchone()
+            return _cors(jsonify({"error": "Session not found"}), 404)
+        messages = conn.execute(
+            "SELECT role, content, turn FROM chat_messages WHERE session_id=? ORDER BY turn ASC",
+            (session_id,)
+        ).fetchall()
+        report = conn.execute(
+            "SELECT free_content, paid_content, tarot_index, is_paid FROM dream_reports WHERE session_id=?",
+            (session_id,)
+        ).fetchone()
     return _cors(jsonify({
-        "session": dict(session),
+        "session": dict(session) if session else None,
         "messages": [dict(m) for m in messages],
         "report": dict(report) if report else None
     }))
@@ -696,13 +742,15 @@ def chat():
             if user_id:
                 with get_db() as conn:
                     rows = conn.execute(
-                        "SELECT total_count, used_count, expires_at FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
+                        "SELECT total_count, remaining, expires_at, is_expired FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
                         (user_id,)
                     ).fetchall()
                     for r in rows:
+                        if r["is_expired"]:
+                            continue
                         if r["expires_at"] and datetime.fromisoformat(r["expires_at"]) < datetime.now(timezone.utc):
                             continue
-                        if r["total_count"] < 0 or r["used_count"] < r["total_count"]:
+                        if r["total_count"] < 0 or r["remaining"] > 0:
                             is_premium = True
                             break
         except Exception as e:
@@ -962,14 +1010,18 @@ def chat():
                     uid = payload.get("sub", "")
                     if uid:
                         with get_db() as conn:
+                            # Find the user's active entitlement with remaining > 0
                             rows = conn.execute(
-                                "SELECT id, total_count, used_count FROM entitlements WHERE user_id=? ORDER BY created_at DESC",
+                                "SELECT id, total_count, remaining FROM entitlements WHERE user_id=? AND is_expired=0 ORDER BY created_at DESC",
                                 (uid,)
                             ).fetchall()
                             for r in rows:
-                                if r["total_count"] > 0 and r["used_count"] < r["total_count"]:
-                                    conn.execute("UPDATE entitlements SET used_count=used_count+1 WHERE id=?", (r["id"],))
+                                # Unlimited plan (total_count < 0) or has remaining
+                                if r["total_count"] < 0 or r["remaining"] > 0:
+                                    if r["total_count"] >= 0:
+                                        conn.execute("UPDATE entitlements SET remaining=remaining-1 WHERE id=?", (r["id"],))
                                     conn.commit()
+                                    print(f"[Chat] Entitlement consumed for user {uid}, entitlement {r['id']}, remaining: {r['remaining']-1 if r['total_count'] >= 0 else 'unlimited'}")
                                     break
                 except Exception as e:
                     print(f"[Chat] Entitlement consume failed: {e}")
@@ -1419,11 +1471,26 @@ def paypal_capture_order():
                 except Exception as e:
                     logger.error("email_sdk_order_confirmation_exception", extra={"email": payer_email, "error": str(e)})
         
+        # Generate JWT token for the user so they don't need to re-login
+        import jwt as pyjwt_capture
+        jwt_secret = os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026")
+        with get_db() as conn:
+            user_row = conn.execute("SELECT id, email FROM users WHERE email=?", (payer_email.lower(),)).fetchone()
+            if user_row:
+                jwt_token = pyjwt_capture.encode(
+                    {"sub": user_row["id"], "email": user_row["email"], "iat": int(time.time())},
+                    jwt_secret,
+                    algorithm="HS256"
+                )
+            else:
+                jwt_token = ""
+
         return _cors(jsonify({
             "status": "captured",
             "email": payer_email,
             "amount": amount,
-            "captureId": capture_id
+            "captureId": capture_id,
+            "token": jwt_token
         }))
     
     except requests.Timeout:

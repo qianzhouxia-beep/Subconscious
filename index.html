@@ -1106,7 +1106,16 @@
                         const result = await res.json();
                         if (result.status === 'captured' && result.email) {
                             // Set auth cookie so future visits know user is premium
-                            document.cookie = `sm_auth_token=${encodeURIComponent(result.email)};path=/;max-age=31536000;SameSite=Lax`;
+                            // Use the JWT token from response or localStorage
+                            var jwtToken = result.token || localStorage.getItem('sm_token') || '';
+                            if (jwtToken) {
+                                localStorage.setItem('sm_token', jwtToken);
+                                // Also store user info
+                                try {
+                                    localStorage.setItem('sm_user', JSON.stringify({ email: result.email }));
+                                } catch(e) {}
+                            }
+                            document.cookie = `sm_auth_token=${encodeURIComponent(jwtToken || result.email)};path=/;max-age=31536000;SameSite=Lax`;
                             // ⚠️ DO NOT reload — that loses the report!
                             // Instead: update premium state and show unlocked content
                             if (typeof unlockReport === 'function') {
@@ -1535,7 +1544,10 @@
         function refreshHistory() {
             var list = document.getElementById('history-list');
             if (!list) return;
-            fetch('/api/chat/sessions', { credentials: 'include' })
+            var token = localStorage.getItem('sm_token') || '';
+            var headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            fetch('/api/chat/sessions', { credentials: 'include', headers: headers })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var sessions = data.sessions || [];
