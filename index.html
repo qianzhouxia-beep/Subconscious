@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/static/css/aetheris.css?v=20">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
-    <script src="/static/js/i18n.js?v=11"></script>
+    <script src="/static/js/i18n.js?v=12"></script>
     <script src="/static/js/tarot.js?v=6"></script>
     <script src="/static/js/optimizer.js?v=4"></script>
     <!-- PayPal JS SDK: loaded dynamically after page init -->
@@ -547,7 +547,7 @@
                     </div>
                     <div class="flex flex-wrap gap-3 justify-center">
                         <button id="tarot-shuffle-btn" onclick="shuffleTarotDeck()" class="px-6 py-2 bg-amber-400/10 border border-amber-400/30 text-amber-300 rounded-full text-[10px] uppercase tracking-widest font-semibold hover:bg-amber-400/20 transition-all">Shuffle</button>
-                        <button id="tarot-draw-btn" onclick="drawTarotCard()" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all hidden">Draw Card (<span id="tarot-draw-progress">0/3</span>)</button>
+                        <button id="tarot-draw-btn" onclick="drawTarotCard()" class="px-6 py-2 bg-accent text-bg rounded-full text-[10px] uppercase tracking-widest font-bold hover:bg-accent/80 transition-all hidden"><span id="tarot-draw-btn-label">Draw Card</span> (<span id="tarot-draw-progress">0/3</span>)</button>
                     </div>
                 </div>
                 <!-- Step 3: Card Spread -->
@@ -954,6 +954,33 @@
                     else el.innerHTML = t[key];
                 }
             });
+            // Update tarot-specific elements (not all use t- prefix)
+            const tarotMap = {
+                'tarot-step-label-2': 'tarot_step_label_2',
+                'tarot-focus-msg': 'tarot_step_focus',
+                'tarot-shuffle-btn': 'tarot_shuffle_btn',
+                'tarot-draw-btn-label': 'tarot_draw_btn',
+                'tarot-topic-draw-btn': 'tarot_topic_draw',
+                'tarot-custom-q': 'tarot_custom_q',
+                'tarot-reader-confirm': 'tarot_reader_confirm'
+            };
+            Object.entries(tarotMap).forEach(([id, key]) => {
+                const el = document.getElementById(id);
+                if (el && t[key]) {
+                    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') el.placeholder = t[key];
+                    else el.innerHTML = t[key];
+                }
+            });
+            // Update choose different reader text
+            const chooseReaderBtn = document.querySelector('button[onclick="resetTarotFlow()"]');
+            if (chooseReaderBtn && t.tarot_choose_reader) {
+                chooseReaderBtn.innerHTML = t.tarot_choose_reader;
+            }
+            // Update Use This button
+            const useThisBtn = document.querySelector('button[onclick="startTarotWithCustomQuestion()"]');
+            if (useThisBtn && t.tarot_use_this) {
+                useThisBtn.innerHTML = t.tarot_use_this;
+            }
             document.getElementById('lang-btn').innerText = currentLang === 'en' ? 'ZH' : 'EN';
             // Update SEO-critical elements
             document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
@@ -2779,6 +2806,16 @@
             "What is the universe trying to show you through repetition?",
             "Which inner voice have you been ignoring lately?"
         ];
+        var DAILY_TOPICS_ZH = [
+            "此刻你的心真正在回避什么？",
+            "你生活中哪里正在悄然发生转变？",
+            "你害怕大声说出什么真相？",
+            "你的过去中哪一部分仍在等待你的关注？",
+            "你梦中的自己今天会告诉你什么？",
+            "你在哪里紧抓着需要放手的控制？",
+            "宇宙正通过重复想向你展示什么？",
+            "你最近忽略了哪个内在声音？"
+        ];
         var _tarotState = { drawn:[], revealed:0, dailyCount:0, readerId:null, step:'reader', topic:'', dailyTopicIndex:0 };
 
         function initTarotSection() {
@@ -2807,8 +2844,8 @@
             var today = new Date().getDate();
             var topicIdx = today % DAILY_TOPICS.length;
             _tarotState.dailyTopicIndex = topicIdx;
-            var topicEl = document.getElementById('tarot-daily-topic');
-            if (topicEl) topicEl.innerText = DAILY_TOPICS[topicIdx];
+            var topics = currentLang === 'zh' ? DAILY_TOPICS_ZH : DAILY_TOPICS;
+            if (topicEl) topicEl.innerText = topics[topicIdx];
             // Update free count display
             updateTarotFreeCount();
         }
@@ -2838,7 +2875,8 @@
         }
 
         function startTarotWithTopic() {
-            _tarotState.topic = DAILY_TOPICS[_tarotState.dailyTopicIndex] || '';
+            var topics = currentLang === 'zh' ? DAILY_TOPICS_ZH : DAILY_TOPICS;
+            _tarotState.topic = topics[_tarotState.dailyTopicIndex] || '';
             _tarotState.step = 'draw';
             document.getElementById('tarot-step-topic').classList.add('hidden');
             document.getElementById('tarot-step-draw').classList.remove('hidden');
@@ -2848,7 +2886,10 @@
         function startTarotWithCustomQuestion() {
             var input = document.getElementById('tarot-custom-q');
             var q = input ? input.value.trim() : '';
-            if (!q) q = DAILY_TOPICS[_tarotState.dailyTopicIndex] || '';
+            if (!q) {
+                var topics = currentLang === 'zh' ? DAILY_TOPICS_ZH : DAILY_TOPICS;
+                q = topics[_tarotState.dailyTopicIndex] || '';
+            }
             _tarotState.topic = q;
             _tarotState.step = 'draw';
             document.getElementById('tarot-step-topic').classList.add('hidden');
