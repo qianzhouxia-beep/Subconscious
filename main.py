@@ -2072,7 +2072,11 @@ def google_callback():
                 row = conn.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone()
                 if row:
                     user_id = row["id"]
-                    conn.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user_id,))
+                    # best-effort last_login update; tolerate legacy DBs without this column
+                    try:
+                        conn.execute("UPDATE users SET last_login=datetime('now') WHERE id=?", (user_id,))
+                    except Exception:
+                        pass
                 else:
                     user_id = _uuid.uuid4().hex
                     pwd_hash = _hashlib.sha256(os.urandom(24).hex().encode()).hexdigest()
