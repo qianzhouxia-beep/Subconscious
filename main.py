@@ -577,14 +577,15 @@ def force_init_pg():
         """)
         pg_conn.commit()
         
-        # 2. 创建所有表
+        # 2. 创建所有表（按 account_module.py 的实际结构）
         tables_sql = [
             """CREATE TABLE users (
                 id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL, email_verified INTEGER DEFAULT 0,
+                password_hash TEXT NOT NULL, google_sub TEXT DEFAULT '',
+                email_verified INTEGER DEFAULT 0,
                 failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE email_tokens (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
@@ -592,9 +593,11 @@ def force_init_pg():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE entitlements (
-                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
-                total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
-                expires_at TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL DEFAULT 'spark',
+                total_count INTEGER NOT NULL DEFAULT 0, used_count INTEGER DEFAULT 0,
+                remaining INTEGER DEFAULT 0, is_expired INTEGER DEFAULT 0,
+                expires_at TEXT, order_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE user_orders (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
@@ -604,6 +607,14 @@ def force_init_pg():
             """CREATE TABLE license_keys (
                 id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
                 is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE orders (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
+                plan_type TEXT NOT NULL DEFAULT 'spark',
+                amount REAL NOT NULL DEFAULT 0, currency TEXT DEFAULT 'USD',
+                status TEXT DEFAULT 'pending',
+                payment_provider TEXT DEFAULT '', payment_id TEXT DEFAULT '',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE crypto_payments (
