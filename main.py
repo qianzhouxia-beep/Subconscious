@@ -523,9 +523,12 @@ def migrate_sqlite_to_pg():
                     results[table] = "skipped (not in sqlite)"
                     continue
                 
-                # 检查 PostgreSQL 中是否存在
+                # 检查 PostgreSQL 中是否存在（指定 schema）
                 pg_cursor.execute("""
-                    SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = %s)
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_schema = 'public' AND table_name = %s
+                    )
                 """, (table,))
                 if not pg_cursor.fetchone()['exists']:
                     results[table] = "skipped (not in postgres)"
