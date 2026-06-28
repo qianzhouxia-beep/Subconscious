@@ -455,6 +455,28 @@ def health_check():
 # 迁移端点（需管理员 token 保护）
 MIGRATION_TOKEN = os.environ.get("MIGRATION_TOKEN", "migrate-2026-token")
 
+@app.route('/api/admin/check-pg-tables', methods=['GET', 'OPTIONS'])
+def check_pg_tables():
+    """查看 PostgreSQL 中的所有表（需要 admin token）"""
+    if request.method == 'OPTIONS': return _cors(make_response())
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Invalid token"}), 403)
+    try:
+        import psycopg2
+        pg_conn = psycopg2.connect(DATABASE_URL)
+        pg_cursor = pg_conn.cursor()
+        pg_cursor.execute("""
+            SELECT table_name FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            ORDER BY table_name
+        """)
+        tables = [row[0] for row in pg_cursor.fetchall()]
+        pg_conn.close()
+        return _cors(jsonify({"tables": tables, "count": len(tables)}))
+    except Exception as e:
+        return _cors(jsonify({"error": str(e)}), 500)
+
 @app.route('/api/admin/init-pg-tables', methods=['POST', 'OPTIONS'])
 def init_pg_tables():
     """手动初始化 PostgreSQL 表（需要 admin token）"""
