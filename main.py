@@ -10,7 +10,7 @@ import requests
 import time
 import uuid
 import zhconv
-from flask import Flask, request, jsonify, make_response, send_file
+from flask import Flask, request, jsonify, make_response, send_file, redirect, url_for
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
