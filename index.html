@@ -937,6 +937,10 @@
                 const data = await res.json();
                 sessionId = data.sessionId;
                 window.isPremiumUser = data.premium || false;
+                // Re-render tarot section with updated premium status
+                if (typeof initTarotSection === 'function') {
+                    try { initTarotSection(); } catch (e) { console.warn('[Tarot] re-render failed:', e); }
+                }
             } catch (e) {
                 console.error("Session init failed:", e);
             }
@@ -1483,6 +1487,10 @@
             window.isPremiumUser = true;
             document.getElementById('locked-preview').classList.add('hidden');
             document.getElementById('res-paid-wrapper').classList.remove('hidden');
+            // Re-render tarot section to unlock premium readers
+            if (typeof initTarotSection === 'function') {
+                initTarotSection();
+            }
             // Show tarot section — check if image actually loaded successfully
             const tarotImg = document.getElementById('tarot-card-img');
             const tarotSection = document.getElementById('tarot-section');
@@ -2823,24 +2831,27 @@
             var grid = document.getElementById('tarot-reader-grid');
             if (!grid) return;
             grid.innerHTML = '';
+            var isUserPremium = !!window.isPremiumUser;
             READER_CONFIG.forEach(function(r) {
                 var isZh = currentLang === 'zh';
                 var name = isZh ? i18n.zh['tarot_reader_' + r.id] || r.nameEn : r.nameEn;
                 var desc = isZh ? i18n.zh['tarot_reader_' + r.id + '_desc'] || r.descEn : r.descEn;
-                var isPremium = !r.free;
+                // Reader is locked only if (not free by config) AND (user is not premium)
+                var isLocked = !r.free && !isUserPremium;
                 var card = document.createElement('div');
-                card.className = 'glass-card p-4 rounded-xl cursor-pointer transition-all hover:border-accent/30 ' + (isPremium ? 'opacity-60' : '');
+                card.className = 'glass-card p-4 rounded-xl cursor-pointer transition-all hover:border-accent/30 ' + (isLocked ? 'opacity-60' : '');
                 card.style.border = '1px solid rgba(255,255,255,0.06)';
                 card.setAttribute('data-reader', r.id);
                 card.innerHTML = '<div class="text-sm font-semibold text-white mb-1">' + name + '</div>' +
                     '<div class="text-[9px] text-gray-400 leading-relaxed">' + desc + '</div>' +
-                    (isPremium ? '<div class="mt-2 text-[8px] uppercase tracking-widest text-amber-400/60">🔒 ' + (i18n[currentLang].tarot_reader_premium || 'Unlock with any plan') + '</div>' : '');
-                if (!isPremium) {
+                    (isLocked ? '<div class="mt-2 text-[8px] uppercase tracking-widest text-amber-400/60">🔒 ' + (i18n[currentLang].tarot_reader_premium || 'Unlock with any plan') + '</div>' : '');
+                if (!isLocked) {
                     card.onclick = function() { selectTarotReader(r.id); };
                 }
                 grid.appendChild(card);
             });
             // Load daily topic
+            var topicEl = document.getElementById('tarot-daily-topic');
             var today = new Date().getDate();
             var topicIdx = today % DAILY_TOPICS.length;
             _tarotState.dailyTopicIndex = topicIdx;

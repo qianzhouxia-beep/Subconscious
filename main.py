@@ -419,10 +419,50 @@ def session_init():
     if request.method == 'OPTIONS': return _cors(make_response())
     new_sid = uuid.uuid4().hex
     is_premium = False
-    auth_token = request.cookies.get('sm_auth_token')
+    # Try Authorization header first, then cookie
+    auth_token = ''
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        auth_token = auth_header[7:]
+    if not auth_token:
+        auth_token = request.cookies.get('sm_auth_token')
+    user_email = ''
+    user_id = ''
     if auth_token:
+        # Try JWT decode first
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(auth_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+            user_email = payload.get("email", "")
+        except Exception:
+            # Fallback: token might be the email itself
+            user_email = auth_token
+    # Check entitlements table (for paid users with remaining reports)
+    if user_id or user_email:
         with get_db() as conn:
-            row = conn.execute("SELECT status FROM payments WHERE email = ?", (auth_token,)).fetchone()
+            if user_id:
+                rows = conn.execute(
+                    "SELECT remaining, total_count, is_expired, expires_at FROM entitlements WHERE user_id=?",
+                    (user_id,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT remaining, total_count, is_expired, expires_at FROM entitlements WHERE user_email=?",
+                    (user_email,)
+                ).fetchall()
+            for r in rows:
+                if r["is_expired"]:
+                    continue
+                if r["expires_at"] and datetime.fromisoformat(r["expires_at"]) < datetime.now(timezone.utc):
+                    continue
+                if r["total_count"] < 0 or r["remaining"] > 0:
+                    is_premium = True
+                    break
+    # Fallback: check old payments table by email
+    if not is_premium and user_email:
+        with get_db() as conn:
+            row = conn.execute("SELECT status FROM payments WHERE email = ?", (user_email,)).fetchone()
             if row and row['status'] == 'paid': is_premium = True
     res = make_response(jsonify({"sessionId": new_sid, "premium": is_premium, "status": "active"}))
     return _cors(res)
