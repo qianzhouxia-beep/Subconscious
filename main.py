@@ -2081,8 +2081,14 @@ def google_callback():
                     user_id = _uuid.uuid4().hex
                     pwd_hash = _hashlib.sha256(os.urandom(24).hex().encode()).hexdigest()
                     google_sub = userinfo.get("id", "")
-                    conn.execute("INSERT INTO users (id,email,password_hash,google_sub) VALUES(?,?,?,?)",
-                                 (user_id, email, pwd_hash, google_sub))
+                    # Tolerate legacy DBs without google_sub column
+                    try:
+                        conn.execute("INSERT INTO users (id,email,password_hash,google_sub) VALUES(?,?,?,?)",
+                                     (user_id, email, pwd_hash, google_sub))
+                    except Exception:
+                        # Fallback: insert without google_sub
+                        conn.execute("INSERT INTO users (id,email,password_hash) VALUES(?,?,?)",
+                                     (user_id, email, pwd_hash))
             jwt_token = _jwt.encode({
                 "sub": user_id, "email": email,
                 "iat": int(_time.time()),

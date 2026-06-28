@@ -337,10 +337,18 @@ def register_account_routes(app):
             else:
                 user_id = uuid.uuid4().hex
                 pwd_hash = _hash_password(os.urandom(24).hex())  # random password for OAuth-only accounts
-                conn.execute(
-                    "INSERT INTO users (id, email, password_hash, google_sub) VALUES (?, ?, ?, ?)",
-                    (user_id, email, pwd_hash, google_sub or ""),
-                )
+                # Tolerate legacy DBs without google_sub column
+                try:
+                    conn.execute(
+                        "INSERT INTO users (id, email, password_hash, google_sub) VALUES (?, ?, ?, ?)",
+                        (user_id, email, pwd_hash, google_sub or ""),
+                    )
+                except Exception:
+                    # Fallback: insert without google_sub
+                    conn.execute(
+                        "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
+                        (user_id, email, pwd_hash),
+                    )
 
         token = _generate_token(user_id, email)
         return token, email, None
