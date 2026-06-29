@@ -2993,25 +2993,16 @@ def fix_tarot_entitlements():
 
     try:
         conn = get_db_connection()
-        cursor = conn.cursor()
 
         # Find all users who have credits_* entitlements
-        if os.environ.get("DATABASE_URL"):
-            cursor.execute("""
-                SELECT e.user_id, e.plan_type, e.remaining, e.total_count
-                FROM entitlements e
-                WHERE e.plan_type LIKE 'credits_%%' AND e.is_expired = 0
-                ORDER BY e.user_id, e.plan_type
-            """)
-        else:
-            cursor.execute("""
-                SELECT e.user_id, e.plan_type, e.remaining, e.total_count
-                FROM entitlements e
-                WHERE e.plan_type LIKE 'credits_%' AND e.is_expired = 0
-                ORDER BY e.user_id, e.plan_type
-            """)
+        # Use LIKE 'credits_%' — the DbConnection proxy handles ?/%s translation
+        rows = conn.execute("""
+            SELECT e.user_id, e.plan_type, e.remaining, e.total_count
+            FROM entitlements e
+            WHERE e.plan_type LIKE 'credits_%' AND e.is_expired = 0
+            ORDER BY e.user_id, e.plan_type
+        """).fetchall()
 
-        rows = cursor.fetchall()
         for row in rows:
             uid = row["user_id"]
             credit_plan = row["plan_type"]
@@ -3023,12 +3014,10 @@ def fix_tarot_entitlements():
             tarot_plan = f"tarot_{suffix}"
 
             # Check if tarot_* entitlement already exists for this user
-            if os.environ.get("DATABASE_URL"):
-                cursor.execute("SELECT id FROM entitlements WHERE user_id=%s AND plan_type=%s AND is_expired=0", (uid, tarot_plan))
-            else:
-                cursor.execute("SELECT id FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0", (uid, tarot_plan))
-
-            existing_tarot = cursor.fetchone()
+            existing_tarot = conn.execute(
+                "SELECT id FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
+                (uid, tarot_plan)
+            ).fetchone()
 
             if not existing_tarot:
                 fix_info = {
@@ -3040,16 +3029,10 @@ def fix_tarot_entitlements():
                 }
                 if not dry_run:
                     ent_id = uuid.uuid4().hex
-                    if os.environ.get("DATABASE_URL"):
-                        cursor.execute(
-                            "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (%s, %s, %s, %s, %s, '')",
-                            (ent_id, uid, tarot_plan, total, total)
-                        )
-                    else:
-                        cursor.execute(
-                            "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (?, ?, ?, ?, ?, '')",
-                            (ent_id, uid, tarot_plan, total, total)
-                        )
+                    conn.execute(
+                        "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (?, ?, ?, ?, ?, '')",
+                        (ent_id, uid, tarot_plan, total, total)
+                    )
                     print(f"[FixTarot] Created {tarot_plan} entitlement for user {uid} with {total} credits")
                     fix_info["created_entitlement_id"] = ent_id
                 fixes.append(fix_info)
