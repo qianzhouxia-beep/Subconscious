@@ -394,25 +394,29 @@ canvas#hero-vortex {
     text-shadow: 0 0 40px rgba(124,92,255,0.3);
 }
 
+/* ── Nebula Background (CSS fallback before JS renders particles) ── */
+#nebula-bg {
+    /* Immediate dark gradient so page never shows empty */
+    background: radial-gradient(ellipse at 50% 30%, rgba(124,92,255,0.08) 0%, rgba(10,10,18,0) 60%),
+                radial-gradient(ellipse at 80% 70%, rgba(255,213,79,0.04) 0%, rgba(10,10,18,0) 50%),
+                linear-gradient(180deg, #0a0a12 0%, #0f0a1e 50%, #0a0a12 100%);
+}
+
 /* ── Reveal Animation ── */
 .reveal {
-    opacity: 0;
-    transform: translateY(30px);
+    /* Start visible — no more FOUC flash */
+    opacity: 1;
+    transform: translateY(10px);
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-    /* Fallback: auto-reveal after 1.5s if JS fails to add .visible */
-    animation: revealFallback 1.2s ease-out 1.5s forwards;
 }
 
 @keyframes revealFallback {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* When JS adds .visible, cancel the fallback animation (JS wins) */
+/* When JS adds .visible, animate to final position */
 .reveal.visible {
     animation: none;
-}
-
-.reveal.visible {
     opacity: 1;
     transform: translateY(0);
 }
