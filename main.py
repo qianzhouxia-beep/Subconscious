@@ -508,8 +508,8 @@ def fix_pg_tables():
         # 1. 给 users 表添加缺失的列
         missing_columns = [
             ("google_sub", "TEXT DEFAULT ''"),
-            ("last_login", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
-            ("updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
+            ("last_login", "TEXT DEFAULT ''"),
+            ("updated_at", "TEXT DEFAULT ''"),
         ]
         for col_name, col_type in missing_columns:
             try:
@@ -529,10 +529,17 @@ def fix_pg_tables():
                 status TEXT DEFAULT 'pending',
                 payment_provider TEXT DEFAULT '',
                 payment_id TEXT DEFAULT '',
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )
         """)
         fixes.append("Created orders table (if not exists)")
+        
+        # 3. 给 orders 表添加 provider_order_id 列（如果缺失）
+        try:
+            pg_cursor.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS provider_order_id TEXT DEFAULT ''")
+            fixes.append("Added provider_order_id to orders table")
+        except Exception as e:
+            fixes.append(f"Warning: provider_order_id - {str(e)}")
         
         pg_conn.commit()
         pg_conn.close()
@@ -585,39 +592,40 @@ def force_init_pg():
                 password_hash TEXT NOT NULL, google_sub TEXT DEFAULT '',
                 email_verified INTEGER DEFAULT 0,
                 failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT '',
+                last_login TEXT DEFAULT '',
+                updated_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE email_tokens (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
                 purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE entitlements (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL DEFAULT 'spark',
                 total_count INTEGER NOT NULL DEFAULT 0, used_count INTEGER DEFAULT 0,
                 remaining INTEGER DEFAULT 0, is_expired INTEGER DEFAULT 0,
                 expires_at TEXT, order_id TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE user_orders (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
                 amount REAL NOT NULL, currency TEXT DEFAULT 'USD', plan_type TEXT NOT NULL,
-                status TEXT DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status TEXT DEFAULT 'pending', created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE license_keys (
                 id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
                 is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE orders (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
                 plan_type TEXT NOT NULL DEFAULT 'spark',
                 amount REAL NOT NULL DEFAULT 0, currency TEXT DEFAULT 'USD',
                 status TEXT DEFAULT 'pending',
-                payment_provider TEXT DEFAULT '', payment_id TEXT DEFAULT '',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                payment_provider TEXT DEFAULT '',
+                provider_order_id TEXT DEFAULT '', payment_id TEXT DEFAULT '',
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE crypto_payments (
                 id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
@@ -625,7 +633,7 @@ def force_init_pg():
                 currency TEXT DEFAULT 'USD', crypto_currency TEXT,
                 crypto_amount REAL, nowpayments_id TEXT,
                 pay_address TEXT, status TEXT DEFAULT 'pending',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE referrals (
                 ref_id TEXT PRIMARY KEY, inviter_email TEXT NOT NULL,
@@ -634,7 +642,7 @@ def force_init_pg():
             """CREATE TABLE referral_logs (
                 id SERIAL PRIMARY KEY,
                 ref_id TEXT NOT NULL, visitor_ip TEXT, user_agent TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE payments (
                 email TEXT, status TEXT, license_key TEXT, timestamp REAL
@@ -643,36 +651,36 @@ def force_init_pg():
                 id TEXT PRIMARY KEY, user_id TEXT, session_id TEXT NOT NULL,
                 dream_text TEXT DEFAULT '', turn_count INTEGER DEFAULT 0,
                 status TEXT DEFAULT 'active',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT '',
+                updated_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE chat_messages (
                 id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
                 role TEXT NOT NULL, content TEXT NOT NULL,
                 turn INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE dream_reports (
                 id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
                 free_content TEXT, paid_content TEXT,
                 tarot_index INTEGER DEFAULT -1, is_paid INTEGER DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE dream_journal (
                 id TEXT PRIMARY KEY, user_id TEXT,
                 dream_text TEXT NOT NULL, symbols TEXT,
                 interpretation TEXT, rating INTEGER,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE dream_patterns (
                 id TEXT PRIMARY KEY, user_id TEXT,
                 pattern_type TEXT, pattern_data TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
             """CREATE TABLE tarot_readings (
                 id TEXT PRIMARY KEY, user_id TEXT,
                 cards TEXT, topic TEXT, reading TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT DEFAULT ''
             )""",
         ]
         
