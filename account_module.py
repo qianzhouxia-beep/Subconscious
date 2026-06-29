@@ -635,14 +635,13 @@ def register_account_routes(app):
         config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["spark"])
 
         with _get_db() as conn:
-            # Check if user already has an active entitlement of this type
+            # ── Dream / base entitlement ──
             existing = conn.execute(
                 "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
                 (user_id, plan_type),
             ).fetchone()
 
             if existing:
-                # Update existing entitlement: add new credits to remaining
                 new_remaining = existing["remaining"] + config["reports"]
                 new_total = existing["total_count"] + config["reports"]
                 conn.execute(
@@ -651,12 +650,35 @@ def register_account_routes(app):
                 )
                 ent_id = existing["id"]
             else:
-                # Create new entitlement
                 ent_id = uuid.uuid4().hex
                 conn.execute("""
                     INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, (ent_id, user_id, plan_type, config["reports"], config["reports"], order_id))
+
+            # ── Tarot entitlement (same credits as dream for credits_* plans) ──
+            if plan_type.startswith("credits_"):
+                tarot_plan = "tarot_" + plan_type.split("_")[-1]
+                tarot_config = PLAN_CONFIG.get(tarot_plan)
+                if tarot_config:
+                    tarot_existing = conn.execute(
+                        "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
+                        (user_id, tarot_plan),
+                    ).fetchone()
+
+                    if tarot_existing:
+                        new_tarot_remaining = tarot_existing["remaining"] + tarot_config["reports"]
+                        new_tarot_total = tarot_existing["total_count"] + tarot_config["reports"]
+                        conn.execute(
+                            "UPDATE entitlements SET remaining=?, total_count=? WHERE id=?",
+                            (new_tarot_remaining, new_tarot_total, tarot_existing["id"]),
+                        )
+                    else:
+                        tarot_ent_id = uuid.uuid4().hex
+                        conn.execute("""
+                            INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (tarot_ent_id, user_id, tarot_plan, tarot_config["reports"], tarot_config["reports"], order_id))
 
             # Record order as paid
             if order_id:

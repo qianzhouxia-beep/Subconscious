@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=21">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=22">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=13"></script>
@@ -2926,10 +2926,24 @@
                     el.classList.remove('text-red-400/60');
                 } else {
                     // Free quota exhausted → check tarot credits (not dream credits)
-                    var paidRem = (window.SMAuth && SMAuth.premium && SMAuth.premium.tarot_remaining) || 0;
+                    var pm = (typeof SMAuth !== 'undefined' && SMAuth && SMAuth.premium) ? SMAuth.premium : null;
+                    var paidRem = 0;
+                    var isDreamFallback = false;
+                    if (pm) {
+                        paidRem = (typeof pm.tarot_remaining === 'number' ? pm.tarot_remaining : 0);
+                        // Fallback: if no tarot credits but dream credits exist, show dream credits
+                        if (paidRem <= 0 && pm.remaining > 0 && pm.plan_type && pm.plan_type.startsWith('credits_')) {
+                            paidRem = pm.remaining;
+                            isDreamFallback = true;
+                        }
+                    }
                     if (paidRem > 0) {
-                        el.innerText = (isZh ? '免费已用完 · 塔罗余额：' : 'Free used · Tarot: ') + paidRem;
+                        var label = isZh ? (isDreamFallback ? '免费已用完 · 梦境余额：' : '免费已用完 · 塔罗余额：') : (isDreamFallback ? 'Free used · Dream Credits: ' : 'Free used · Tarot: ');
+                        el.innerText = label + paidRem;
                         el.className = 'mt-3 text-[10px] text-green-400/70 font-semibold';
+                        if (isDreamFallback) {
+                            el.style.opacity = '0.6'; // slightly dim to indicate fallback
+                        }
                     } else {
                         el.innerText = (isZh ? '今日免费已用完，余额不足' : 'No credits remaining');
                         el.classList.add('text-red-400/60');
@@ -2970,31 +2984,29 @@
             if (!isFree) {
                 // Free quota exhausted → check tarot credits (not dream credits)
                 var tarotCredits = 0;
-                if (window.SMAuth && SMAuth.premium) {
-                    // Check if user has tarot_* entitlements
+                var useDreamAsFallback = false;
+                if (typeof SMAuth !== 'undefined' && SMAuth && SMAuth.premium) {
                     var pm = SMAuth.premium;
-                    if (pm.plan_type && pm.plan_type.startsWith('tarot_')) {
-                        tarotCredits = pm.remaining || 0;
-                    } else if (pm.tarot_remaining !== undefined) {
-                        tarotCredits = pm.tarot_remaining;
-                    }
-                    // Fallback: check all entitlements via API
-                    if (tarotCredits === 0) {
-                        // Will be checked server-side in deduct-credit endpoint
-                        tarotCredits = 1; // assume has credits, let server validate
+                    // Use tarot_remaining directly (safe number: 0 or positive)
+                    tarotCredits = (typeof pm.tarot_remaining === 'number' ? pm.tarot_remaining : 0);
+                    // If tarot credits are 0, check if user has dream credits as fallback
+                    if (tarotCredits <= 0 && pm.remaining > 0 && pm.plan_type && pm.plan_type.startsWith('credits_')) {
+                        tarotCredits = pm.remaining; // use dream credits for tarot
+                        useDreamAsFallback = true;
                     }
                 }
                 if (tarotCredits <= 0) {
                     // No credits left → prompt to buy
                     var isZh = currentLang === 'zh';
                     alert(isZh ? '今日免费次数已用完，塔罗牌余额也不足。请充值后继续使用。' : 'Daily free quota used and no tarot credits remaining. Please purchase credits.');
-                    if (window.SMAuth && typeof SMAuth.showPaymentPrompt === 'function') {
+                    if (typeof SMAuth !== 'undefined' && SMAuth && typeof SMAuth.showPaymentPrompt === 'function') {
                         SMAuth.showPaymentPrompt('tarot_10', 'Tarot ×10', 4.99);
                     }
                     return;
                 }
                 // Has credits → mark as paid usage (will deduct on report generation)
                 _tarotState.isPaidReading = true;
+                _tarotState.useDreamCreditFallback = useDreamAsFallback;
             } else {
                 _tarotState.isPaidReading = false;
             }
@@ -3134,7 +3146,7 @@
                         var match = document.cookie.match(/sm_auth_token=([^;]+)/);
                         if (match) token = decodeURIComponent(match[1]);
                     }
-                    var creditType = _tarotState.isPaidReading ? 'tarot' : 'dream';
+                    var creditType = (_tarotState.isPaidReading && !_tarotState.useDreamCreditFallback) ? 'tarot' : 'dream';
                     fetch(API_BASE + '/api/user/deduct-credit', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -4092,7 +4104,7 @@
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
-    <script src="/static/js/smauth.js?v=9"></script>
+    <script src="/static/js/smauth.js?v=10"></script>
 
     <!-- ═══ Hero Vortex: Elliptical rotating particle swirl (Canvas 2D) ═══ -->
     <script>

@@ -2978,6 +2978,98 @@ def view_table():
         return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
 
 
+# ── Admin: Fix missing tarot entitlements for existing users ──
+@app.route('/api/admin/fix-tarot-entitlements', methods=['POST', 'OPTIONS'])
+def fix_tarot_entitlements():
+    """For existing `credits_*` users who lack `tarot_*` entitlements, create matching tarot entitlements."""
+    if request.method == 'OPTIONS':
+        return _cors(jsonify({}), 200)
+    token = request.headers.get('X-Migration-Token', '')
+    if token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Unauthorized"}), 401)
+
+    dry_run = request.args.get('dry_run', '1') == '1'
+    fixes = []
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # Find all users who have credits_* entitlements
+        if os.environ.get("DATABASE_URL"):
+            cursor.execute("""
+                SELECT e.user_id, e.plan_type, e.remaining, e.total_count
+                FROM entitlements e
+                WHERE e.plan_type LIKE 'credits_%%' AND e.is_expired = 0
+                ORDER BY e.user_id, e.plan_type
+            """)
+        else:
+            cursor.execute("""
+                SELECT e.user_id, e.plan_type, e.remaining, e.total_count
+                FROM entitlements e
+                WHERE e.plan_type LIKE 'credits_%' AND e.is_expired = 0
+                ORDER BY e.user_id, e.plan_type
+            """)
+
+        rows = cursor.fetchall()
+        for row in rows:
+            uid = row["user_id"]
+            credit_plan = row["plan_type"]
+            remaining = row["remaining"]
+            total = row["total_count"]
+
+            # Derive the matching tarot plan
+            suffix = credit_plan.split("_")[-1]
+            tarot_plan = f"tarot_{suffix}"
+
+            # Check if tarot_* entitlement already exists for this user
+            if os.environ.get("DATABASE_URL"):
+                cursor.execute("SELECT id FROM entitlements WHERE user_id=%s AND plan_type=%s AND is_expired=0", (uid, tarot_plan))
+            else:
+                cursor.execute("SELECT id FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0", (uid, tarot_plan))
+
+            existing_tarot = cursor.fetchone()
+
+            if not existing_tarot:
+                fix_info = {
+                    "user_id": uid,
+                    "credit_plan": credit_plan,
+                    "credit_remaining": remaining,
+                    "tarot_plan_to_create": tarot_plan,
+                    "tarot_credits_to_add": total
+                }
+                if not dry_run:
+                    ent_id = uuid.uuid4().hex
+                    if os.environ.get("DATABASE_URL"):
+                        cursor.execute(
+                            "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (%s, %s, %s, %s, %s, '')",
+                            (ent_id, uid, tarot_plan, total, total)
+                        )
+                    else:
+                        cursor.execute(
+                            "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (?, ?, ?, ?, ?, '')",
+                            (ent_id, uid, tarot_plan, total, total)
+                        )
+                    print(f"[FixTarot] Created {tarot_plan} entitlement for user {uid} with {total} credits")
+                    fix_info["created_entitlement_id"] = ent_id
+                fixes.append(fix_info)
+
+        if not dry_run:
+            conn.commit()
+
+        return _cors(jsonify({
+            "status": "ok",
+            "dry_run": dry_run,
+            "missing_tarot_count": len(fixes),
+            "fixes": fixes,
+            "message": f"Found {len(fixes)} users missing tarot entitlements. {'Would create on next run (set dry_run=0).' if dry_run else 'All fixed.'}"
+        }), 200)
+
+    except Exception as e:
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
     # 生产环境严禁开启 debug=True（会导致内存泄漏和任意代码执行风险）
