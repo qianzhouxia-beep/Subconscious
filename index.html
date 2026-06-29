@@ -2987,7 +2987,7 @@
                 if (tarotCredits <= 0) {
                     // No credits left → prompt to buy
                     var isZh = currentLang === 'zh';
-                    alert(isZh ? '今日免费次数已用完，塔罗牌余额也不足。请充值后继续使用。' : 'Daily free quota used and no tarot credits remaining. Please purchase credits.';
+                    alert(isZh ? '今日免费次数已用完，塔罗牌余额也不足。请充值后继续使用。' : 'Daily free quota used and no tarot credits remaining. Please purchase credits.');
                     if (window.SMAuth && typeof SMAuth.showPaymentPrompt === 'function') {
                         SMAuth.showPaymentPrompt('tarot_10', 'Tarot ×10', 4.99);
                     }
