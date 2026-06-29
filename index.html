@@ -1585,6 +1585,11 @@
         function refreshHistory() {
             var list = document.getElementById('history-list');
             if (!list) return;
+            // Only show history for logged-in users
+            if (!token) {
+                list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8">' + (isZh ? '登录后查看解读记录' : 'Sign in to view your readings') + '</p>';
+                return;
+            }
             var isZh = currentLang === 'zh';
             // Fetch from both APIs to get dream sessions and tarot readings
             var token = localStorage.getItem('sm_token') || '';
@@ -1655,7 +1660,7 @@
                         var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
                         html += '<div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);">';
-                        html += '<div class="text-xs text-white/70 truncate leading-tight">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div>';
+                        html += '<div class="text-sm text-white/80 truncate leading-snug">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div>';
                         html += '<div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div>';
                     }
                     html += '</div></div>';
@@ -1678,7 +1683,7 @@
                         var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
                         html += '<div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);">';
-                        html += '<div class="text-xs text-white/70 truncate leading-tight">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div>';
+                        html += '<div class="text-sm text-white/80 truncate leading-snug">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div>';
                         html += '<div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div>';
                     }
                     html += '</div></div>';
@@ -1706,7 +1711,7 @@
                     for (var ft = 0; ft < fallbackTarot.length; ft++) {
                         var fte = fallbackTarot[ft];
                         var ftDate = fte.date ? new Date(fte.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                        fhtml += '<div onclick="loadJournalEntryByRef(' + fte.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-xs text-white/70 truncate leading-tight">' + (fte.dreamPreview || fte.tarotCard || 'Tarot reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + ftDate + '</div></div>';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fte.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fte.dreamPreview || fte.tarotCard || 'Tarot reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + ftDate + '</div></div>';
                     }
                     fhtml += '</div></div>';
                 }
@@ -1715,7 +1720,7 @@
                     for (var fd = 0; fd < fallbackDream.length; fd++) {
                         var fde = fallbackDream[fd];
                         var fdDate = fde.date ? new Date(fde.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                        fhtml += '<div onclick="loadJournalEntryByRef(' + fde.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-xs text-white/70 truncate leading-tight">' + (fde.dreamPreview || 'Dream reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + fdDate + '</div></div>';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fde.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fde.dreamPreview || 'Dream reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + fdDate + '</div></div>';
                     }
                     fhtml += '</div></div>';
                 }
