@@ -358,11 +358,19 @@ def init_tables():
                     conn.execute(sql)
             except Exception as e:
                 print(f"[DB] Warning: {e}")
+                # In PostgreSQL, a failed statement aborts the entire transaction.
+                # We must rollback before the next statement can execute.
+                if is_pg:
+                    conn.rollback()
+                    cursor = conn.cursor()
                 continue
-        
+
         if is_pg:
-            conn.commit()
-        
+            try:
+                conn.commit()
+            except Exception:
+                pass
+
         mode = "PostgreSQL" if is_pg else "SQLite"
         print(f"[DB] Tables initialized ({mode})")
     finally:
