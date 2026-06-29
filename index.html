@@ -2925,10 +2925,10 @@
                     el.innerText = (isZh ? '今日免费解读剩余：' : 'Free readings today: ') + freeRemaining + '/3';
                     el.classList.remove('text-red-400/60');
                 } else {
-                    // Free quota exhausted — check paid credits
-                    var paidRem = (window.SMAuth && SMAuth.premium && SMAuth.premium.remaining) || 0;
+                    // Free quota exhausted → check tarot credits (not dream credits)
+                    var paidRem = (window.SMAuth && SMAuth.premium && SMAuth.premium.tarot_remaining) || 0;
                     if (paidRem > 0) {
-                        el.innerText = (isZh ? '免费已用完 · 充值余额：' : 'Free used · Credits: ') + paidRem;
+                        el.innerText = (isZh ? '免费已用完 · 塔罗余额：' : 'Free used · Tarot: ') + paidRem;
                         el.className = 'mt-3 text-[10px] text-green-400/70 font-semibold';
                     } else {
                         el.innerText = (isZh ? '今日免费已用完，余额不足' : 'No credits remaining');
