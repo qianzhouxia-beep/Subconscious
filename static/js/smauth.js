@@ -278,7 +278,21 @@ const SMAuth = (function () {
       var dreamEnt = ent.entitlements.find(function (e) { return e.plan_type && e.plan_type.startsWith('credits_') && !e.is_expired && (e.total_count < 0 || e.remaining > 0); });
       // Find tarot credits entitlement (tarot_*)
       var tarotEnt = ent.entitlements.find(function (e) { return e.plan_type && e.plan_type.startsWith('tarot_') && !e.is_expired && (e.total_count < 0 || e.remaining > 0); });
-      var labels = { spark: _t("火花计划", "The Spark"), seeker: _t("探索者", "The Seeker"), oracle: _t("先知计划", "The Oracle") };
+      var labels = {
+        spark: _t("火花计划", "The Spark"),
+        seeker: _t("探索者", "The Seeker"),
+        oracle: _t("先知计划", "The Oracle"),
+        credits_3: _t("梦境分析 ×3", "Dream Analysis ×3"),
+        credits_10: _t("梦境分析 ×10", "Dream Analysis ×10"),
+        credits_30: _t("梦境分析 ×30", "Dream Analysis ×30"),
+        tarot_3: _t("塔罗牌 ×3", "Tarot ×3"),
+        tarot_10: _t("塔罗牌 ×10", "Tarot ×10"),
+        tarot_30: _t("塔罗牌 ×30", "Tarot ×30")
+      };
+      // Fallback: strip prefix for unknown plan types
+      function planLabel(pt) {
+        return labels[pt] || pt;
+      }
       var ehtml = '<p style="color:#888;font-size:13px;">' + _t('暂无活跃套餐', 'No active plan.') + '</p>';
       var parts = [];
       if (dreamEnt) {
@@ -290,7 +304,7 @@ const SMAuth = (function () {
         parts.push('<div style="background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.25);border-radius:12px;padding:14px;"><div style="color:#fbbf24;font-weight:600;margin-bottom:6px;">' + _t('塔罗牌', 'Tarot') + '</div><div style="color:#4ade80;">' + _t('剩余次数：', 'Remaining: ') + trt + "</div></div>");
       }
       if (parts.length) ehtml = parts.join('');
-      var ohtml = ord.orders.length ? ord.orders.map(function (o) { return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;display:flex;justify-content:space-between;"><span style="color:#666;">' + (labels[o.plan_type] || o.plan_type) + '</span><span style="color:#999;">$' + o.amount.toFixed(2) + "</span></div>"; }).join("") : '<p style="color:#555;font-size:12px;">' + _t('暂无订单', 'No orders') + '</p>';
+      var ohtml = ord.orders.length ? ord.orders.map(function (o) { return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;display:flex;justify-content:space-between;"><span style="color:#666;">' + planLabel(o.plan_type) + '</span><span style="color:#999;">$' + o.amount.toFixed(2) + "</span></div>"; }).join("") : '<p style="color:#555;font-size:12px;">' + _t('暂无订单', 'No orders') + '</p>';
       document.getElementById("sm-acct").innerHTML = '<div><div style="margin-bottom:16px;"><div style="font-size:11px;color:#555;">' + _t('邮箱地址', 'EMAIL') + '</div><div style="color:#ccc;">' + me.email + "</div></div><div style='margin-bottom:16px'><div style='font-size:11px;color:#555;margin-bottom:6px;'>" + _t('积分余额', 'Credits Balance') + "</div>" + ehtml + "</div><div><div style='font-size:11px;color:#555;margin-bottom:6px;'>" + _t('购买记录', 'Purchase History') + "</div>" + ohtml + "</div></div>";
     } catch (e) { document.getElementById("sm-acct").innerHTML = '<p style="color:#ff6b6b;">' + e.message + "</p>"; }
   }
