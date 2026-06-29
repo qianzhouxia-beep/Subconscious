@@ -16,10 +16,14 @@ JWT_ALGO = "HS256"
 JWT_EXPIRY_HOURS = 8760  # 1 year
 
 PLAN_CONFIG = {
-    "spark":     {"label": "Free",        "price": 0.0,  "reports": 0},
-    "credits_3":  {"label": "Starter",     "price": 2.99, "reports": 3},
-    "credits_10": {"label": "Popular",     "price": 6.99, "reports": 10},
-    "credits_30": {"label": "Pro",         "price": 14.99,"reports": 30},
+    "spark":      {"label": "Free",         "price": 0.0,  "reports": 0},
+    "credits_3":  {"label": "Starter",      "price": 2.99, "reports": 3},
+    "credits_10": {"label": "Popular",      "price": 6.99, "reports": 10},
+    "credits_30": {"label": "Pro",          "price": 14.99,"reports": 30},
+    # Tarot-only plans (purchased separately)
+    "tarot_3":   {"label": "Tarot ×3",    "price": 1.99, "reports": 3},
+    "tarot_10":  {"label": "Tarot ×10",   "price": 4.99, "reports": 10},
+    "tarot_30":  {"label": "Tarot ×30",   "price": 9.99, "reports": 30},
 }
 
 
@@ -435,40 +439,61 @@ def register_account_routes(app):
         try:
             user_id = request.user["id"]
             with _get_db() as conn:
-                ent = conn.execute("""
+                # 1. Dream credits (credits_* plans)
+                dream_ent = conn.execute("""
                     SELECT e.plan_type, e.total_count, e.remaining, e.is_expired, e.expires_at
                     FROM entitlements e
-                    WHERE e.user_id = ? AND e.is_expired = 0
+                    WHERE e.user_id = ? AND e.plan_type LIKE 'credits_%' AND e.is_expired = 0
                     ORDER BY e.created_at DESC LIMIT 1
                 """, (user_id,)).fetchone()
 
-            if not ent:
-                return jsonify({"premium": False})
+                # 2. Tarot credits (tarot_* plans)
+                tarot_ent = conn.execute("""
+                    SELECT e.plan_type, e.total_count, e.remaining, e.is_expired, e.expires_at
+                    FROM entitlements e
+                    WHERE e.user_id = ? AND e.plan_type LIKE 'tarot_%' AND e.is_expired = 0
+                    ORDER BY e.created_at DESC LIMIT 1
+                """, (user_id,)).fetchone()
 
-            plan_type = ent["plan_type"]
-            config = PLAN_CONFIG.get(plan_type, {})
-            total = ent["total_count"]
-            remaining = ent["remaining"]
-            is_unlimited = total < 0
+            result = {"premium": False}
 
-            result = {
-                "premium": True,
-                "plan_type": plan_type,
-                "plan_label": config.get("label", plan_type.title()),
-                "total": total,
-                "remaining": remaining if not is_unlimited else -1,
-            }
+            # Dream credits
+            if dream_ent:
+                plan_type = dream_ent["plan_type"]
+                config = PLAN_CONFIG.get(plan_type, {})
+                total = dream_ent["total_count"]
+                remaining = dream_ent["remaining"]
+                is_unlimited = total < 0
 
-            # Check expiry
-            if ent.get("expires_at"):
-                import datetime
-                try:
-                    exp_dt = datetime.datetime.fromisoformat(ent["expires_at"])
-                    if datetime.datetime.now() > exp_dt:
-                        result["premium"] = False
-                        result["is_expired"] = True
-                except Exception:
-                    pass
+                result["premium"] = True
+                result["plan_type"] = plan_type
+                result["plan_label"] = config.get("label", plan_type.title())
+                result["total"] = total
+                result["remaining"] = remaining if not is_unlimited else -1
+
+                # Check expiry
+                if dream_ent.get("expires_at"):
+                    import datetime
+                    try:
+                        exp_dt = datetime.datetime.fromisoformat(dream_ent["expires_at"])
+                        if datetime.datetime.now() > exp_dt:
+                            result["premium"] = False
+                            result["is_expired"] = True
+                    except Exception:
+                        pass
+
+            # Tarot credits
+            if tarot_ent:
+                t_total = tarot_ent["total_count"]
+                t_remaining = tarot_ent["remaining"]
+                result["tarot_premium"] = True
+                result["tarot_plan_type"] = tarot_ent["plan_type"]
+                result["tarot_total"] = t_total
+                result["tarot_remaining"] = t_remaining if t_total >= 0 else -1
+            else:
+                result["tarot_premium"] = False
+                result["tarot_remaining"] = 0
+                result["tarot_total"] = 0
 
             return jsonify(result)
         except Exception as e:
@@ -673,25 +698,27 @@ def register_account_routes(app):
 
 def activate_entitlement(email, plan_type="spark", order_id="", amount=0.0):
     """Convenience function: activate an entitlement for an email (used by PayPal/NOWPayments callbacks).
-    If user already has an active entitlement of this type, add credits to it (accumulate)."""
+    If user already has an active entitlement of this type, add credits to it (accumulate).
+    Also activates a tarot entitlement with the same credit count."""
     with _get_db() as conn:
         user = conn.execute("SELECT id FROM users WHERE email = ?", (email.lower(),)).fetchone()
         if not user:
             return None
-
+        
         user_id = user["id"]
         config = PLAN_CONFIG.get(plan_type, PLAN_CONFIG["spark"])
-
-        # Check if user already has an active entitlement of this type
+        tarot_plan = "tarot_" + plan_type.split("_")[-1]  # e.g. "credits_10" → "tarot_10"
+        tarot_config = PLAN_CONFIG.get(tarot_plan, PLAN_CONFIG["spark"])
+        
+        ord_id = order_id or uuid.uuid4().hex
+        
+        # --- Dream entitlement ---
         existing = conn.execute(
             "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
             (user_id, plan_type),
         ).fetchone()
-
-        ord_id = order_id or uuid.uuid4().hex
-
+        
         if existing:
-            # Update existing entitlement: add new credits
             new_remaining = existing["remaining"] + config["reports"]
             new_total = existing["total_count"] + config["reports"]
             conn.execute(
@@ -700,13 +727,32 @@ def activate_entitlement(email, plan_type="spark", order_id="", amount=0.0):
             )
             ent_id = existing["id"]
         else:
-            # Create new entitlement
             ent_id = uuid.uuid4().hex
             conn.execute("""
                 INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (ent_id, user_id, plan_type, config["reports"], config["reports"], ord_id))
-
+        
+        # --- Tarot entitlement (same credit count) ---
+        tarot_existing = conn.execute(
+            "SELECT id, remaining, total_count FROM entitlements WHERE user_id=? AND plan_type=? AND is_expired=0",
+            (user_id, tarot_plan),
+        ).fetchone()
+        
+        if tarot_existing:
+            new_tarot_remaining = tarot_existing["remaining"] + tarot_config["reports"]
+            new_tarot_total = tarot_existing["total_count"] + tarot_config["reports"]
+            conn.execute(
+                "UPDATE entitlements SET remaining=?, total_count=? WHERE id=?",
+                (new_tarot_remaining, new_tarot_total, tarot_existing["id"]),
+            )
+        else:
+            tarot_ent_id = uuid.uuid4().hex
+            conn.execute("""
+                INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (tarot_ent_id, user_id, tarot_plan, tarot_config["reports"], tarot_config["reports"], ord_id))
+        
         # Record order if not exists
         existing_order = conn.execute("SELECT id FROM orders WHERE id=?", (ord_id,)).fetchone()
         if not existing_order:
@@ -714,5 +760,5 @@ def activate_entitlement(email, plan_type="spark", order_id="", amount=0.0):
                 INSERT INTO orders (id, user_id, plan_type, amount, currency, status, payment_provider)
                 VALUES (?, ?, ?, ?, 'USD', 'paid', '')
             """, (ord_id, user_id, plan_type, amount))
-
+        
         return ent_id
