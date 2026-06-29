@@ -1283,6 +1283,14 @@ def tarot_readings_list():
         ).fetchall()
     return _cors(jsonify({"readings": [dict(r) for r in rows]}))
 
+    if request.method == 'DELETE':
+        reading_id = request.args.get('id', '') or (request.json or {}).get('id', '')
+        if not reading_id:
+            return _cors(jsonify({"error": "Missing id"}), 400)
+        with get_db() as conn:
+            conn.execute("DELETE FROM tarot_readings WHERE id=? AND user_id=?", (reading_id, user_id))
+        return _cors(jsonify({"status": "deleted"}))
+
 
 # ── Deduct Credit (for tarot paid readings) ───────────────────
 @app.route('/api/user/deduct-credit', methods=['POST', 'OPTIONS'])
