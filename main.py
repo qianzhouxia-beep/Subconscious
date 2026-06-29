@@ -42,6 +42,7 @@ except ImportError as e:
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB
 CORS(app, supports_credentials=True)
 
 # ── Persistent Storage: Sync tarot images to /data/tarot/ on startup ──
@@ -1022,6 +1023,14 @@ def chat_session_detail(session_id):
 def handle_500(e):
     return jsonify({"error": str(e), "type": type(e).__name__}), 500, {"Access-Control-Allow-Origin": "*"}
 
+@app.errorhandler(400)
+def handle_400(e):
+    return jsonify({"error": "Bad request", "detail": str(e)}), 400, {"Access-Control-Allow-Origin": "*"}
+
+@app.errorhandler(413)
+def handle_413(e):
+    return jsonify({"error": "Request too large", "detail": str(e)}), 413, {"Access-Control-Allow-Origin": "*"}
+
 # --- CORS CONFIGURATION ---
 ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", "").split(",") if os.environ.get("CORS_ORIGINS") else None
 
@@ -1144,6 +1153,12 @@ def tarot_reading():
         return _cors(jsonify({"error": "Need exactly 3 card indices"}), 400)
     if any(i < 0 or i > 21 for i in card_indices):
         return _cors(jsonify({"error": "Card indices must be 0-21"}), 400)
+    # Validate topic length to prevent "input length too long" from AI API
+    if len(topic) > 500:
+        if lang == 'zh':
+            return _cors(jsonify({"error": "问题/主题内容过长，请控制在 500 字以内"}), 400)
+        else:
+            return _cors(jsonify({"error": "Topic too long, please keep it under 500 characters"}), 400)
     
     card_names_en = [TAROT_CARDS[i] for i in card_indices]
     
@@ -1211,8 +1226,16 @@ def tarot_reading():
         return _cors(jsonify({"reading": text, "cards": card_names_en}))
     except Exception as e:
         app.logger.error(f"[Tarot] AI call failed: {e}")
-        # Fallback to template-based reading
-        return _cors(jsonify({"error": str(e)}), 500)
+        err_str = str(e)
+        if "input length too long" in err_str or "too many tokens" in err_str or "context length" in err_str:
+            if lang == 'zh':
+                return _cors(jsonify({"reading": "您输入的内容过长，AI 无法处理。请尝试缩短问题/主题描述，控制在 200 字以内。"}), 200)
+            else:
+                return _cors(jsonify({"reading": "Your input is too long for AI processing. Please try shortening your question/topic to under 200 characters."}), 200)
+        if lang == 'zh':
+            return _cors(jsonify({"reading": "AI 解读暂时不可用，请稍后再试。"}), 200)
+        else:
+            return _cors(jsonify({"reading": "AI reading is temporarily unavailable. Please try again later."}), 200)
 
 
 # ── Tarot Readings (Save/List for History) ────────────────────

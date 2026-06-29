@@ -29,6 +29,7 @@ proc_name = "subconscious-mirror"
 limit_request_line = 4094
 limit_request_fields = 100
 limit_request_field_size = 8190
+limit_request_body = 10485760  # 10MB
 
 # 优雅重启
 max_requests = 10000
