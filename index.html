@@ -1585,14 +1585,14 @@
         function refreshHistory() {
             var list = document.getElementById('history-list');
             if (!list) return;
+            var isZh = currentLang === 'zh';
+            var token = localStorage.getItem('sm_token') || '';
             // Only show history for logged-in users
             if (!token) {
                 list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8">' + (isZh ? '登录后查看解读记录' : 'Sign in to view your readings') + '</p>';
                 return;
             }
-            var isZh = currentLang === 'zh';
             // Fetch from both APIs to get dream sessions and tarot readings
-            var token = localStorage.getItem('sm_token') || '';
             var headers = { 'Content-Type': 'application/json' };
             if (token) headers['Authorization'] = 'Bearer ' + token;
             Promise.all([
