@@ -508,7 +508,8 @@ def fix_pg_tables():
         # 1. 给 users 表添加缺失的列
         missing_columns = [
             ("google_sub", "TEXT DEFAULT ''"),
-            ("last_login", "TEXT DEFAULT CURRENT_TIMESTAMP"),
+            ("last_login", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
+            ("updated_at", "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"),
         ]
         for col_name, col_type in missing_columns:
             try:
@@ -585,7 +586,8 @@ def force_init_pg():
                 email_verified INTEGER DEFAULT 0,
                 failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE email_tokens (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
