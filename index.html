@@ -2946,9 +2946,15 @@
                             el.style.opacity = '0.6';
                         }
                     } else if (pm === null) {
-                        // Premium status not loaded yet — show neutral message
-                        el.innerText = isZh ? '登录后可查看余额' : 'Check balance after login';
-                        el.className = 'mt-3 text-[10px] text-gray-400/60 font-semibold';
+                        if (typeof SMAuth !== 'undefined' && SMAuth && SMAuth.isLoggedIn) {
+                            // Logged in but premium data not loaded yet
+                            el.innerText = isZh ? '加载中…' : 'Loading…';
+                            el.className = 'mt-3 text-[10px] text-gray-400/60 font-semibold';
+                        } else {
+                            // Not logged in
+                            el.innerText = isZh ? '登录后可查看余额' : 'Check balance after login';
+                            el.className = 'mt-3 text-[10px] text-gray-400/60 font-semibold';
+                        }
                     } else {
                         el.innerText = (isZh ? '今日免费已用完，余额不足' : 'No credits remaining');
                         el.classList.add('text-red-400/60');
