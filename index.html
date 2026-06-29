@@ -795,9 +795,9 @@
 
     <!-- History Detail Modal -->
     <div id="history-modal" class="modal" role="dialog" aria-modal="true" onclick="if(event.target === this) closeHistoryModal()">
-        <div class="modal-content custom-scrollbar max-w-3xl">
-            <button onclick="closeHistoryModal()" class="absolute top-6 right-6 text-gray-400 hover:text-red-400 text-xl transition-colors" aria-label="Close">✕</button>
-            <div id="history-modal-body" class="pt-8"></div>
+        <div class="modal-content custom-scrollbar max-w-3xl" style="max-height:85vh;overflow-y:auto;">
+            <button onclick="closeHistoryModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-400 text-xl transition-colors z-10" aria-label="Close">✕</button>
+            <div id="history-modal-body" class="pt-8 pb-4"></div>
         </div>
     </div>
 
@@ -1667,7 +1667,7 @@
                         var te = allTarot[t];
                         var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
-                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ',\'tarot\')" class="opacity-40 hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
+                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ',\'tarot\')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ',\'tarot\')" class="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
                     }
                     html += '</div></div>';
                 }
@@ -1688,7 +1688,7 @@
                         var de = allDreams[d];
                         var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
-                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ',\'dream\')" class="opacity-40 hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
+                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ',\'dream\')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ',\'dream\')" class="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
                     }
                     html += '</div></div>';
                 }
@@ -1732,7 +1732,7 @@
             });
         }
 
-        function loadJournalEntryByRef(ref) {
+        function loadJournalEntryByRef(ref, entryType) {
             // Try localStorage first (it's the local cache)
             var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
             var entry = null;
@@ -1746,6 +1746,31 @@
             // If entry is a server dream session, load via API
             if (typeof ref === 'string' && ref.length > 20) {
                 loadSession(ref);
+                return;
+            }
+            // Tarot reading from server: fetch full data including AI reading
+            if (entryType === 'tarot' && typeof ref === 'string') {
+                var token = localStorage.getItem('sm_token') || '';
+                var _isZh = currentLang === 'zh';
+                fetch('/api/tarot/readings', { headers: { 'Authorization': 'Bearer ' + token } })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var readings = data.readings || [];
+                        for (var ri = 0; ri < readings.length; ri++) {
+                            if (readings[ri].id == ref) {
+                                var rd = readings[ri];
+                                var html = rd.free_html || '';
+                                if (rd.reading) {
+                                    html += '<div class="mt-6 pt-4 border-t border-white/10"><h4 class="text-sm font-semibold text-amber-300/80 mb-3">' + (_isZh ? '🔮 AI 解读' : '🔮 AI Reading') + '</h4><div class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">' + rd.reading + '</div></div>';
+                                }
+                                showHistoryModal(html, '', false);
+                                return;
+                            }
+                        }
+                        showHistoryModal('', '', false);
+                    })
+                    .catch(function() { showHistoryModal('', '', false); });
+                return;
             }
         }
 
@@ -1757,13 +1782,14 @@
             var modal = document.getElementById('history-modal');
             var body = document.getElementById('history-modal-body');
             if (!modal || !body) return;
+            var _isZh = currentLang === 'zh';
             var html = '<div class="text-sm text-white/80 leading-relaxed space-y-4">';
             if (freeHTML) html += freeHTML;
             if (paidHTML) {
                 html += '<div class="mt-4 pt-4 border-t border-white/10">' + paidHTML + '</div>';
             }
             if (!freeHTML && !paidHTML) {
-                html = '<p class="text-gray-500 text-center py-12">' + (isZh ? '暂无内容' : 'No content available') + '</p>';
+                html = '<p class="text-gray-500 text-center py-12">' + (_isZh ? '暂无内容' : 'No content available') + '</p>';
             }
             html += '</div>';
             body.innerHTML = html;
@@ -1776,16 +1802,26 @@
         }
 
         function deleteHistoryEntry(id, entryType) {
-            if (!confirm(isZh ? '确定要删除这条记录吗？' : 'Delete this record?')) return;
+            var _isZh = currentLang === 'zh';
+            if (!confirm(_isZh ? '确定要删除这条记录吗？' : 'Delete this record?')) return;
             var token = localStorage.getItem('sm_token') || '';
             // Delete from server
             var url = entryType === 'tarot' ? '/api/tarot/readings?id=' + encodeURIComponent(id) : '/api/chat/session/' + encodeURIComponent(id);
-            fetch(url, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } }).catch(function() {});
-            // Delete from localStorage
-            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
-            journal = journal.filter(function(e) { return e.id !== id && e.session_id !== id; });
-            localStorage.setItem('sm_journal', JSON.stringify(journal));
-            refreshHistory();
+            fetch(url, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } })
+                .then(function() {
+                    // Delete from localStorage
+                    var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+                    journal = journal.filter(function(e) { return e.id !== id && e.session_id !== id; });
+                    localStorage.setItem('sm_journal', JSON.stringify(journal));
+                    refreshHistory();
+                })
+                .catch(function() {
+                    // Even if server fails, clean localStorage and refresh
+                    var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+                    journal = journal.filter(function(e) { return e.id !== id && e.session_id !== id; });
+                    localStorage.setItem('sm_journal', JSON.stringify(journal));
+                    refreshHistory();
+                });
         }
 
         function initHistory() {
