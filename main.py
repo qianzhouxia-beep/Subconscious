@@ -1232,26 +1232,31 @@ def deduct_credit():
         uid = payload.get("sub", "")
         
         with get_db() as conn:
+            # Determine which entitlement type to deduct from
+            credit_type = req_data.get('type', 'dream')  # 'dream' or 'tarot'
+            plan_prefix = 'tarot_' if credit_type == 'tarot' else 'credits_'
+            
             # Find user's active entitlement with remaining credits
             cursor = conn.execute(
-                "SELECT id, remaining, total_count, plan_type FROM entitlements WHERE user_id=? AND remaining>0 ORDER BY created_at ASC LIMIT 1",
-                (uid,)
+                "SELECT id, remaining, total_count, plan_type FROM entitlements WHERE user_id=? AND plan_type LIKE ? AND remaining>0 ORDER BY created_at ASC LIMIT 1",
+                (uid, plan_prefix + '%')
             )
             row = cursor.fetchone()
             
             if not row:
-                return _cors(jsonify({"error": "No credits remaining", "remaining": 0}), 402)
+                return _cors(jsonify({"error": "No credits remaining", "remaining": 0}), 402
             
             ent_id = row["id"]
             new_remaining = row["remaining"] - 1
             conn.execute("UPDATE entitlements SET remaining=? WHERE id=?", (new_remaining, ent_id))
             conn.commit()
             
-            app.logger.info(f"[DeductCredit] User {uid}, reason={reason}, entitlement {ent_id}, remaining: {new_remaining}")
+            app.logger.info(f"[DeductCredit] User {uid}, type={credit_type}, reason={reason}, entitlement {ent_id}, remaining: {new_remaining}")
             
             return _cors(jsonify({
                 "success": True,
                 "reason": reason,
+                "type": credit_type,
                 "remaining": new_remaining,
                 "plan_type": row["plan_type"]
             }))

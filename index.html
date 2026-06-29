@@ -1543,7 +1543,12 @@
                 if (SMAuth.premium) {
                     var rem = SMAuth.premium.remaining;
                     var tot = SMAuth.premium.total;
-                    bal.innerText = rem !== undefined ? rem + ' / ' + tot : 'Unlimited';
+                    var tarotRem = SMAuth.premium.tarot_remaining || 0;
+                    var tarotTot = SMAuth.premium.tarot_total || 0;
+                    var parts = [];
+                    if (rem !== undefined) parts.push((isZh ? '梦境: ' : 'Dream: ') + rem + '/' + tot);
+                    if (tarotRem > 0) parts.push((isZh ? ' | 塔罗: ' : ' | Tarot: ') + tarotRem + '/' + tarotTot);
+                    bal.innerText = parts.length > 0 ? parts.join('') : (isZh ? '无余额' : 'No credits');
                 } else {
                     bal.innerText = '0';
                 }
@@ -2963,14 +2968,28 @@
             // Check: free quota or paid credits
             var isFree = _tarotState.dailyCount < 3;
             if (!isFree) {
-                // Free quota exhausted → check paid credits
-                var hasCredits = window.SMAuth && SMAuth.premium && SMAuth.premium.remaining > 0;
-                if (!hasCredits) {
+                // Free quota exhausted → check tarot credits (not dream credits)
+                var tarotCredits = 0;
+                if (window.SMAuth && SMAuth.premium) {
+                    // Check if user has tarot_* entitlements
+                    var pm = SMAuth.premium;
+                    if (pm.plan_type && pm.plan_type.startsWith('tarot_')) {
+                        tarotCredits = pm.remaining || 0;
+                    } else if (pm.tarot_remaining !== undefined) {
+                        tarotCredits = pm.tarot_remaining;
+                    }
+                    // Fallback: check all entitlements via API
+                    if (tarotCredits === 0) {
+                        // Will be checked server-side in deduct-credit endpoint
+                        tarotCredits = 1; // assume has credits, let server validate
+                    }
+                }
+                if (tarotCredits <= 0) {
                     // No credits left → prompt to buy
                     var isZh = currentLang === 'zh';
-                    alert(isZh ? '今日免费次数已用完，充值余额也不足。请充值后继续使用。' : 'Daily free quota used and no credits remaining. Please purchase credits.');
+                    alert(isZh ? '今日免费次数已用完，塔罗牌余额也不足。请充值后继续使用。' : 'Daily free quota used and no tarot credits remaining. Please purchase credits.';
                     if (window.SMAuth && typeof SMAuth.showPaymentPrompt === 'function') {
-                        SMAuth.showPaymentPrompt('credits_10', 'Popular · 10 Reports', 6.99);
+                        SMAuth.showPaymentPrompt('tarot_10', 'Tarot ×10', 4.99);
                     }
                     return;
                 }
@@ -3108,17 +3127,18 @@
                 _tarotState.dailyCount++;
                 localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
             } else {
-                // Paid reading: deduct one credit via backend
+                    // Paid reading: deduct one credit via backend
                 (function() {
                     var token = '';
                     if (document.cookie) {
                         var match = document.cookie.match(/sm_auth_token=([^;]+)/);
                         if (match) token = decodeURIComponent(match[1]);
                     }
+                    var creditType = _tarotState.isPaidReading ? 'tarot' : 'dream';
                     fetch(API_BASE + '/api/user/deduct-credit', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: token, reason: 'tarot_reading' })
+                        body: JSON.stringify({ token: token, reason: 'tarot_reading', type: creditType })
                     }).then(function(r) { return r.json(); }).then(function(data) {
                         console.log('[Tarot] Credit deducted:', data);
                         // Refresh premium status to show updated balance
