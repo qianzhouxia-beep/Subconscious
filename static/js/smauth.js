@@ -267,27 +267,29 @@ const SMAuth = (function () {
 
   async function showAccountModal() {
     _toggleMenu();
-    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button><h2 style="margin:0 0 6px;font-size:22px;color:' + ACCENT_TEXT + ';">My Account</h2><div id="sm-acct"><div style="text-align:center;padding:40px;"><div class="sm-loader"></div></div></div>');
+    var isZh = (document.documentElement.lang === 'zh');
+    var t = function(zh, en) { return isZh ? zh : en; };
+    showModal('<button onclick="SMAuth.closeModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:20px;cursor:pointer;">\u2715</button><h2 style="margin:0 0 6px;font-size:22px;color:' + ACCENT_TEXT + ';">' + t('我的账户', 'My Account') + '</h2><div id="sm-acct"><div style="text-align:center;padding:40px;"><div class="sm-loader"></div></div></div>');
     try {
       var me = await api("/api/user/me"), ent = await api("/api/user/entitlements"), ord = await api("/api/user/orders");
       // Find dream credits entitlement (credits_*)
       var dreamEnt = ent.entitlements.find(function (e) { return e.plan_type && e.plan_type.startsWith('credits_') && !e.is_expired && (e.total_count < 0 || e.remaining > 0); });
       // Find tarot credits entitlement (tarot_*)
       var tarotEnt = ent.entitlements.find(function (e) { return e.plan_type && e.plan_type.startsWith('tarot_') && !e.is_expired && (e.total_count < 0 || e.remaining > 0); });
-      var labels = { spark: "The Spark", seeker: "The Seeker", oracle: "The Oracle" };
-      var ehtml = '<p style="color:#888;font-size:13px;">No active plan.</p>';
+      var labels = isZh ? { spark: "火花计划", seeker: "探索者", oracle: "先知计划" } : { spark: "The Spark", seeker: "The Seeker", oracle: "The Oracle" };
+      var ehtml = '<p style="color:#888;font-size:13px;">' + t('暂无活跃套餐', 'No active plan.') + '</p>';
       var parts = [];
       if (dreamEnt) {
         var rt = dreamEnt.total_count < 0 ? "∞" : dreamEnt.remaining + "/" + dreamEnt.total_count;
-        parts.push('<div style="margin-bottom:8px;background:rgba(124,92,255,0.1);border:1px solid rgba(124,92,255,0.25);border-radius:12px;padding:14px;"><div style="color:' + ACCENT_TEXT + ';font-weight:600;margin-bottom:6px;">梦境分析</div><div style="color:#4ade80;">剩余次数：' + rt + "</div></div>");
+        parts.push('<div style="margin-bottom:8px;background:rgba(124,92,255,0.1);border:1px solid rgba(124,92,255,0.25);border-radius:12px;padding:14px;"><div style="color:' + ACCENT_TEXT + ';font-weight:600;margin-bottom:6px;">' + t('梦境分析', 'Dream Analysis') + '</div><div style="color:#4ade80;">' + t('剩余次数：', 'Remaining: ') + rt + "</div></div>");
       }
       if (tarotEnt) {
         var trt = tarotEnt.total_count < 0 ? "∞" : tarotEnt.remaining + "/" + tarotEnt.total_count;
-        parts.push('<div style="background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.25);border-radius:12px;padding:14px;"><div style="color:#fbbf24;font-weight:600;margin-bottom:6px;">塔罗牌</div><div style="color:#4ade80;">剩余次数：' + trt + "</div></div>");
+        parts.push('<div style="background:rgba(255,213,79,0.1);border:1px solid rgba(255,213,79,0.25);border-radius:12px;padding:14px;"><div style="color:#fbbf24;font-weight:600;margin-bottom:6px;">' + t('塔罗牌', 'Tarot') + '</div><div style="color:#4ade80;">' + t('剩余次数：', 'Remaining: ') + trt + "</div></div>");
       }
       if (parts.length) ehtml = parts.join('');
-      var ohtml = ord.orders.length ? ord.orders.map(function (o) { return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;display:flex;justify-content:space-between;"><span style="color:#666;">' + (labels[o.plan_type] || o.plan_type) + '</span><span style="color:#999;">$' + o.amount.toFixed(2) + "</span></div>"; }).join("") : '<p style="color:#555;font-size:12px;">No orders</p>';
-      document.getElementById("sm-acct").innerHTML = '<div><div style="margin-bottom:16px;"><div style="font-size:11px;color:#555;">EMAIL</div><div style="color:#ccc;">' + me.email + "</div></div><div style='margin-bottom:16px'><div style='font-size:11px;color:#555;margin-bottom:6px;'>积分余额</div>" + ehtml + "</div><div><div style='font-size:11px;color:#555;margin-bottom:6px;'>购买记录</div>" + ohtml + "</div></div>";
+      var ohtml = ord.orders.length ? ord.orders.map(function (o) { return '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;display:flex;justify-content:space-between;"><span style="color:#666;">' + (labels[o.plan_type] || o.plan_type) + '</span><span style="color:#999;">$' + o.amount.toFixed(2) + "</span></div>"; }).join("") : '<p style="color:#555;font-size:12px;">' + t('暂无订单', 'No orders') + '</p>';
+      document.getElementById("sm-acct").innerHTML = '<div><div style="margin-bottom:16px;"><div style="font-size:11px;color:#555;">' + t('邮箱地址', 'EMAIL') + '</div><div style="color:#ccc;">' + me.email + "</div></div><div style='margin-bottom:16px'><div style='font-size:11px;color:#555;margin-bottom:6px;'>" + t('积分余额', 'Credits Balance') + "</div>" + ehtml + "</div><div><div style='font-size:11px;color:#555;margin-bottom:6px;'>" + t('购买记录', 'Purchase History') + "</div>" + ohtml + "</div></div>";
     } catch (e) { document.getElementById("sm-acct").innerHTML = '<p style="color:#ff6b6b;">' + e.message + "</p>"; }
   }
 
