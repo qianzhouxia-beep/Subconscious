@@ -1244,7 +1244,7 @@ def deduct_credit():
             row = cursor.fetchone()
             
             if not row:
-                return _cors(jsonify({"error": "No credits remaining", "remaining": 0}), 402
+                return _cors(jsonify({"error": "No credits remaining", "remaining": 0}), 402)
             
             ent_id = row["id"]
             new_remaining = row["remaining"] - 1
