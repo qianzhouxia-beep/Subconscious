@@ -1585,80 +1585,174 @@
         function refreshHistory() {
             var list = document.getElementById('history-list');
             if (!list) return;
-            // Read from localStorage sm_journal — this is where ALL records are actually stored
-            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
-            if (journal.length === 0) {
-                list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8" id="t-history-empty">' + (currentLang === 'zh' ? '暂无解读记录。开始一次解读吧！' : 'No readings yet. Start one!') + '</p>';
-                return;
-            }
-            // Categorize: tarot vs dream
-            var tarotEntries = [];
-            var dreamEntries = [];
-            for (var i = 0; i < journal.length; i++) {
-                var e = journal[i];
-                if (e.tarotCard && e.tarotCard.trim()) {
-                    tarotEntries.push(e);
-                } else {
-                    dreamEntries.push(e);
-                }
-            }
             var isZh = currentLang === 'zh';
-            var html = '';
-            // Tarot section
-            if (tarotEntries.length > 0) {
-                html += '<div class="mb-2">';
-                html += '<div class="text-[9px] uppercase tracking-widest text-amber-400/60 font-semibold mb-1 flex items-center gap-1"><span>🃏</span> <span>' + (isZh ? '塔罗牌记录' : 'Tarot Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + tarotEntries.length + '</span></div>';
-                html += '<div class="space-y-0.5">';
-                for (var t = 0; t < tarotEntries.length; t++) {
-                    var te = tarotEntries[t];
-                    var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                    var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
-                    html += '<div onclick="loadJournalEntry(' + te.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);">';
-                    html += '<div class="text-xs text-white/70 truncate leading-tight">' + tPreview.substring(0, 35) + (tPreview.length > 35 ? '…' : '') + '</div>';
-                    html += '<div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div>';
+            // Fetch from both APIs to get dream sessions and tarot readings
+            var token = localStorage.getItem('sm_token') || '';
+            var headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            Promise.all([
+                fetch('/api/chat/sessions', { credentials: 'include', headers: headers }).then(function(r) { return r.json(); }).catch(function() { return {}; }),
+                fetch('/api/tarot/readings', { credentials: 'include', headers: headers }).then(function(r) { return r.json(); }).catch(function() { return {}; })
+            ]).then(function(results) {
+                var sessions = results[0].sessions || [];
+                var tarotApi = results[1].readings || [];
+                // Parse and merge: dream entries from sessions, tarot from tarotApi
+                var dreamEntries = sessions.map(function(s) {
+                    return {
+                        id: s.id || s.session_id,
+                        date: s.created_at || '',
+                        dreamPreview: (s.dream_text || '').substring(0, 60),
+                        tarotCard: '',
+                        freeHTML: '',
+                        paidHTML: '',
+                        isPremium: false,
+                        session_id: s.session_id || ''
+                    };
+                });
+                var tarotEntries = tarotApi.map(function(t) {
+                    return {
+                        id: t.id,
+                        date: t.created_at || '',
+                        dreamPreview: (t.topic ? (isZh ? '塔罗解读：' : 'Tarot: ') + t.topic : (isZh ? '塔罗解读' : 'Tarot reading')),
+                        tarotCard: t.cards || '',
+                        freeHTML: t.free_html || '',
+                        paidHTML: '',
+                        isPremium: false,
+                        reading: t.reading || '',
+                        topic: t.topic || ''
+                    };
+                });
+                // Also merge from localStorage sm_journal (for entries not yet synced to server)
+                var localJournal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+                var localDreamIds = {};
+                var localTarotIds = {};
+                for (var li = 0; li < localJournal.length; li++) {
+                    var le = localJournal[li];
+                    if (le.tarotCard && le.tarotCard.trim()) {
+                        localTarotIds[le.id] = le;
+                    } else {
+                        localDreamIds[le.id] = le;
+                    }
                 }
-                html += '</div></div>';
-            }
-            // Dream section
-            if (dreamEntries.length > 0) {
-                html += '<div>';
-                html += '<div class="text-[9px] uppercase tracking-widest text-purple-400/60 font-semibold mb-1 flex items-center gap-1"><span>💭</span> <span>' + (isZh ? '梦境解读记录' : 'Dream Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + dreamEntries.length + '</span></div>';
-                html += '<div class="space-y-0.5">';
-                for (var d = 0; d < dreamEntries.length; d++) {
-                    var de = dreamEntries[d];
-                    var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                    var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
-                    html += '<div onclick="loadJournalEntry(' + de.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);">';
-                    html += '<div class="text-xs text-white/70 truncate leading-tight">' + dPreview.substring(0, 35) + (dPreview.length > 35 ? '…' : '') + '</div>';
-                    html += '<div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div>';
+                // Render
+                var html = '';
+                // Tarot section
+                var allTarot = tarotEntries.slice();
+                // Add local-only tarot entries
+                for (var tid in localTarotIds) {
+                    var already = false;
+                    for (var at = 0; at < allTarot.length; at++) {
+                        if (allTarot[at].id == tid) { already = true; break; }
+                    }
+                    if (!already) allTarot.push(localTarotIds[tid]);
                 }
-                html += '</div></div>';
-            }
-            list.innerHTML = html;
+                if (allTarot.length > 0) {
+                    html += '<div class="mb-2">';
+                    html += '<div class="text-[9px] uppercase tracking-widest text-amber-400/60 font-semibold mb-1 flex items-center gap-1"><span>\uD83C\uDF83</span> <span>' + (isZh ? '塔罗牌记录' : 'Tarot Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + allTarot.length + '</span></div>';
+                    html += '<div class="space-y-0.5">';
+                    for (var t = 0; t < allTarot.length; t++) {
+                        var te = allTarot[t];
+                        var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
+                        html += '<div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);">';
+                        html += '<div class="text-xs text-white/70 truncate leading-tight">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div>';
+                        html += '<div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div>';
+                    }
+                    html += '</div></div>';
+                }
+                // Dream section
+                var allDreams = dreamEntries.slice();
+                for (var did in localDreamIds) {
+                    var already2 = false;
+                    for (var ad = 0; ad < allDreams.length; ad++) {
+                        if (allDreams[ad].id == did) { already2 = true; break; }
+                    }
+                    if (!already2) allDreams.push(localDreamIds[did]);
+                }
+                if (allDreams.length > 0) {
+                    html += '<div>';
+                    html += '<div class="text-[9px] uppercase tracking-widest text-purple-400/60 font-semibold mb-1 flex items-center gap-1"><span>\uD83D\uDCAD</span> <span>' + (isZh ? '梦境解读记录' : 'Dream Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + allDreams.length + '</span></div>';
+                    html += '<div class="space-y-0.5">';
+                    for (var d = 0; d < allDreams.length; d++) {
+                        var de = allDreams[d];
+                        var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
+                        html += '<div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);">';
+                        html += '<div class="text-xs text-white/70 truncate leading-tight">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div>';
+                        html += '<div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div>';
+                    }
+                    html += '</div></div>';
+                }
+                if (!html) {
+                    html = '<p class="text-[11px] text-gray-600 text-center py-8">' + (isZh ? '暂无解读记录。开始一次解读吧！' : 'No readings yet. Start one!') + '</p>';
+                }
+                list.innerHTML = html;
+            }).catch(function() {
+                // Fallback: read from localStorage
+                var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+                if (journal.length === 0) {
+                    list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8">' + (isZh ? '暂无解读记录。开始一次解读吧！' : 'No readings yet. Start one!') + '</p>';
+                    return;
+                }
+                var fallbackTarot = [], fallbackDream = [];
+                for (var fi = 0; fi < journal.length; fi++) {
+                    var fe = journal[fi];
+                    if (fe.tarotCard && fe.tarotCard.trim()) fallbackTarot.push(fe);
+                    else fallbackDream.push(fe);
+                }
+                var fhtml = '';
+                if (fallbackTarot.length > 0) {
+                    fhtml += '<div class="mb-2"><div class="text-[9px] uppercase tracking-widest text-amber-400/60 font-semibold mb-1 flex items-center gap-1"><span>\uD83C\uDF83</span> <span>' + (isZh ? '塔罗牌记录' : 'Tarot Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + fallbackTarot.length + '</span></div><div class="space-y-0.5">';
+                    for (var ft = 0; ft < fallbackTarot.length; ft++) {
+                        var fte = fallbackTarot[ft];
+                        var ftDate = fte.date ? new Date(fte.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fte.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-xs text-white/70 truncate leading-tight">' + (fte.dreamPreview || fte.tarotCard || 'Tarot reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + ftDate + '</div></div>';
+                    }
+                    fhtml += '</div></div>';
+                }
+                if (fallbackDream.length > 0) {
+                    fhtml += '<div><div class="text-[9px] uppercase tracking-widest text-purple-400/60 font-semibold mb-1 flex items-center gap-1"><span>\uD83D\uDCAD</span> <span>' + (isZh ? '梦境解读记录' : 'Dream Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + fallbackDream.length + '</span></div><div class="space-y-0.5">';
+                    for (var fd = 0; fd < fallbackDream.length; fd++) {
+                        var fde = fallbackDream[fd];
+                        var fdDate = fde.date ? new Date(fde.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fde.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-xs text-white/70 truncate leading-tight">' + (fde.dreamPreview || 'Dream reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + fdDate + '</div></div>';
+                    }
+                    fhtml += '</div></div>';
+                }
+                list.innerHTML = fhtml || '<p class="text-[11px] text-gray-600 text-center py-8">' + (isZh ? '暂无解读记录。开始一次解读吧！' : 'No readings yet. Start one!') + '</p>';
+            });
         }
 
-        function loadJournalEntry(entryId) {
+        function loadJournalEntryByRef(ref) {
+            // Try localStorage first (it's the local cache)
             var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
             var entry = null;
             for (var i = 0; i < journal.length; i++) {
-                if (journal[i].id === entryId) { entry = journal[i]; break; }
+                if (journal[i].id == ref || journal[i].session_id == ref) { entry = journal[i]; break; }
             }
-            if (!entry) return;
-            // Switch to chat view if in journal view
+            if (entry) {
+                loadJournalContent(entry.freeHTML, entry.paidHTML, !!entry.isPremium);
+                return;
+            }
+            // If entry is a server dream session, load via API
+            if (typeof ref === 'string' && ref.length > 20) {
+                loadSession(ref);
+            }
+        }
+
+        function loadJournalContent(freeHTML, paidHTML, isPremium) {
             var jv = document.getElementById('journal-view');
             var cm = document.getElementById('chat-messages');
             if (jv && !jv.classList.contains('hidden')) {
                 jv.classList.add('hidden');
                 if (cm) cm.classList.remove('hidden');
             }
-            // Load into inline report view
-            document.getElementById('res-free').innerHTML = entry.freeHTML || '';
-            if (entry.paidHTML) {
-                document.getElementById('res-paid').innerHTML = entry.paidHTML;
+            document.getElementById('res-free').innerHTML = freeHTML || '';
+            if (paidHTML) {
+                document.getElementById('res-paid').innerHTML = paidHTML;
                 document.getElementById('res-paid-wrapper')?.classList.remove('hidden');
                 document.getElementById('locked-preview')?.classList.add('hidden');
-            } else if (!entry.isPremium && entry.freeHTML) {
-                // Free-only entry: hide locked preview
+            } else if (freeHTML) {
                 document.getElementById('locked-preview')?.classList.add('hidden');
                 document.getElementById('res-paid-wrapper')?.classList.add('hidden');
             }
@@ -3362,6 +3456,23 @@
                 tarotCard: cardNames.join(', ')
             });
             localStorage.setItem('sm_journal', JSON.stringify(journal.slice(0, 50)));
+            // Also save to server
+            var readingText = '';
+            var readingEl2 = document.getElementById('tarot-ai-reading');
+            if (readingEl2) readingText = readingEl2.innerText || readingEl2.textContent || '';
+            var token2 = localStorage.getItem('sm_token') || '';
+            if (token2) {
+                fetch('/api/tarot/readings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token2 },
+                    body: JSON.stringify({
+                        cards: cardNames.join(', '),
+                        topic: topic,
+                        reading: readingText,
+                        free_html: freeHTML
+                    })
+                }).catch(function() {});
+            }
             showToast(i18n[currentLang].journal_saved || 'Saved to Dream Journal');
             refreshHistory();
         }

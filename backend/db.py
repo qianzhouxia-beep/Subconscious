@@ -19,6 +19,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 DB_FILE = os.environ.get("DB_FILE", "mirror_data.db")
 
 # ── PostgreSQL 模式 ──
+PSYCOPG2_READY = False
 if DATABASE_URL:
     try:
         import psycopg2
@@ -26,11 +27,17 @@ if DATABASE_URL:
         PSYCOPG2_READY = True
         print(f"[DB] PostgreSQL mode: {re.sub(r'://[^@]+@', '://***@', DATABASE_URL)}")
     except ImportError:
-        PSYCOPG2_READY = False
-        print("[DB] WARNING: DATABASE_URL is set but psycopg2 is not installed!")
-        print("[DB] Install: pip install psycopg2-binary")
-else:
-    PSYCOPG2_READY = False
+        print("[DB] WARNING: psycopg2 not found, attempting auto-install...")
+        try:
+            import subprocess, sys
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"])
+            import psycopg2
+            import psycopg2.extras
+            PSYCOPG2_READY = True
+            print("[DB] psycopg2-binary installed successfully via pip")
+        except Exception as _e:
+            print(f"[DB] ERROR: Failed to install psycopg2-binary: {_e}")
+            print("[DB] Falling back to SQLite mode")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -238,66 +245,125 @@ def get_db():
 
 
 def init_tables():
-    """初始化所有数据库表"""
+    """初始化所有数据库表（兼容 SQLite 和 PostgreSQL）"""
     conn = get_db_conn()
+    is_pg = PSYCOPG2_READY and DATABASE_URL
     try:
-        schema = """
-            CREATE TABLE IF NOT EXISTS users (
+        # 统一使用 PostgreSQL 语法（CURRENT_TIMESTAMP）
+        # SQLite 也支持 CURRENT_TIMESTAMP
+        tables = [
+            """CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL, email_verified INTEGER DEFAULT 0,
                 failed_attempts INTEGER DEFAULT 0, locked_until TEXT,
-                created_at TEXT DEFAULT (datetime('now')),
-                updated_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS email_tokens (
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS email_tokens (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token TEXT UNIQUE NOT NULL,
                 purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS entitlements (
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS entitlements (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
                 total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
-                expires_at TEXT, created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS user_orders (
+                expires_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS user_orders (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,
                 amount REAL NOT NULL, currency TEXT DEFAULT 'USD', plan_type TEXT NOT NULL,
-                status TEXT DEFAULT 'pending', created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS license_keys (
+                status TEXT DEFAULT 'pending', created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS license_keys (
                 id TEXT PRIMARY KEY, key TEXT UNIQUE NOT NULL, plan_type TEXT NOT NULL,
                 is_used INTEGER DEFAULT 0, used_by_user_id TEXT, used_at TEXT,
-                created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS crypto_payments (
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS crypto_payments (
                 id TEXT PRIMARY KEY, user_id TEXT, paypal_email TEXT,
                 plan_type TEXT NOT NULL, amount REAL NOT NULL,
                 currency TEXT DEFAULT 'USD', crypto_currency TEXT,
                 crypto_amount REAL, nowpayments_id TEXT,
                 pay_address TEXT, status TEXT DEFAULT 'pending',
-                created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS referrals (
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS referrals (
                 ref_id TEXT PRIMARY KEY, inviter_email TEXT NOT NULL,
                 count INTEGER DEFAULT 0, unlocked INTEGER DEFAULT 0
-            );
-            CREATE TABLE IF NOT EXISTS referral_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+            )""",
+            """CREATE TABLE IF NOT EXISTS referral_logs (
+                id SERIAL PRIMARY KEY,
                 ref_id TEXT NOT NULL, visitor_ip TEXT, user_agent TEXT,
-                created_at TEXT DEFAULT (datetime('now'))
-            );
-            CREATE TABLE IF NOT EXISTS payments (
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS payments (
                 email TEXT, status TEXT, license_key TEXT, timestamp REAL
-            );
-            CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token);
-            CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
-            CREATE INDEX IF NOT EXISTS idx_user_orders_user ON user_orders(user_id);
-            CREATE INDEX IF NOT EXISTS idx_license_keys_key ON license_keys(key);
-            CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email);
-        """
-        conn.executescript(schema)
-        conn.commit()
-        mode = "PostgreSQL" if PSYCOPG2_READY and DATABASE_URL else "SQLite"
+            )""",
+            """CREATE TABLE IF NOT EXISTS chat_sessions (
+                id TEXT PRIMARY KEY, user_id TEXT, session_id TEXT NOT NULL,
+                dream_text TEXT DEFAULT '', turn_count INTEGER DEFAULT 0,
+                status TEXT DEFAULT 'active',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS chat_messages (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                role TEXT NOT NULL, content TEXT NOT NULL,
+                turn INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS dream_reports (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
+                free_content TEXT, paid_content TEXT,
+                tarot_index INTEGER DEFAULT -1, is_paid INTEGER DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS dream_journal (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                dream_text TEXT NOT NULL, symbols TEXT,
+                interpretation TEXT, rating INTEGER,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS dream_patterns (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                pattern_type TEXT, pattern_data TEXT,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+            """CREATE TABLE IF NOT EXISTS tarot_readings (
+                id TEXT PRIMARY KEY, user_id TEXT,
+                cards TEXT, topic TEXT, reading TEXT,
+                free_html TEXT DEFAULT '',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
+        ]
+        
+        indexes = [
+            "CREATE INDEX IF NOT EXISTS idx_email_tokens_token ON email_tokens(token)",
+            "CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_user_orders_user ON user_orders(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_license_keys_key ON license_keys(key)",
+            "CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)",
+            "CREATE INDEX IF NOT EXISTS idx_chat_sessions_user ON chat_sessions(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id)",
+            "CREATE INDEX IF NOT EXISTS idx_dream_reports_session ON dream_reports(session_id)",
+            "CREATE INDEX IF NOT EXISTS idx_dream_journal_user ON dream_journal(user_id)",
+        ]
+        
+        cursor = conn.cursor() if is_pg else conn
+        for sql in tables + indexes:
+            try:
+                if is_pg:
+                    cursor.execute(sql)
+                else:
+                    conn.execute(sql)
+            except Exception as e:
+                print(f"[DB] Warning: {e}")
+                continue
+        
+        if is_pg:
+            conn.commit()
+        
+        mode = "PostgreSQL" if is_pg else "SQLite"
         print(f"[DB] Tables initialized ({mode})")
     finally:
         conn.close()
