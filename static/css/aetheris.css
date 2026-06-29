@@ -399,6 +399,17 @@ canvas#hero-vortex {
     opacity: 0;
     transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    /* Fallback: auto-reveal after 1.5s if JS fails to add .visible */
+    animation: revealFallback 1.2s ease-out 1.5s forwards;
+}
+
+@keyframes revealFallback {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* When JS adds .visible, cancel the fallback animation (JS wins) */
+.reveal.visible {
+    animation: none;
 }
 
 .reveal.visible {
@@ -765,8 +776,15 @@ input[type="range"]::-moz-range-thumb {
     opacity: 0; transform: translateY(30px);
     transition: opacity 1s cubic-bezier(0.23, 1, 0.32, 1),
                 transform 1s cubic-bezier(0.23, 1, 0.32, 1);
+    /* Fallback: auto-reveal after 2s if IntersectionObserver fails */
+    animation: revealScrollFallback 1.2s ease-out 2s forwards;
 }
-.reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+@keyframes revealScrollFallback {
+    to { opacity: 1; transform: translateY(0); }
+}
+.reveal-on-scroll.is-visible {
+    animation: none;
+    opacity: 1; transform: translateY(0); }
 .reveal-on-load {
     opacity: 0;
     animation: fadeInSlideUp 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
