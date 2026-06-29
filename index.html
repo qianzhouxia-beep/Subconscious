@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js" defer></script>
     <!-- Aetheris Design System Styles -->
-    <link rel="stylesheet" href="/static/css/aetheris.css?v=22">
+    <link rel="stylesheet" href="/static/css/aetheris.css?v=23">
     <link rel="stylesheet" href="/static/css/sm-icons.css?v=4">
     <!-- External JS modules (defer so they don't block canvas init) -->
     <script src="/static/js/i18n.js?v=13"></script>
@@ -1369,13 +1369,15 @@
         }
 
         async function checkReferralStatus() {
-            // Server-side premium check
-            if (window.isPremiumUser) {
-                unlockReport();
-                return;
-            }
-            if (!refId) return;
+            // Guard: prevent recursive calls
+            if (window._checkingReferral) return;
+            window._checkingReferral = true;
             try {
+                // Server-side premium check
+                if (window.isPremiumUser) {
+                    return; // already unlocked, no need to call unlockReport again
+                }
+                if (!refId) return;
                 const res = await apiFetch(`/referral/status?refId=${refId}`);
                 if (!res) return;
                 const data = await res.json();
@@ -1388,7 +1390,7 @@
                     }
                     closeReferralModal();
                 }
-            } catch (e) {}
+            } catch (e) {} finally { window._checkingReferral = false; }
         }
 
         // ===== Tarot Cards Data =====
@@ -1511,7 +1513,6 @@
                 }
                 // If image loaded but has 0 naturalWidth, it means error fallback was triggered — don't show
             }
-            checkReferralStatus();
             console.log('[Report] Unlocked successfully');
         }
         window.unlockReport = unlockReport;  // expose to SMAuth.js
@@ -2942,8 +2943,12 @@
                         el.innerText = label + paidRem;
                         el.className = 'mt-3 text-[10px] text-green-400/70 font-semibold';
                         if (isDreamFallback) {
-                            el.style.opacity = '0.6'; // slightly dim to indicate fallback
+                            el.style.opacity = '0.6';
                         }
+                    } else if (pm === null) {
+                        // Premium status not loaded yet — show neutral message
+                        el.innerText = isZh ? '登录后可查看余额' : 'Check balance after login';
+                        el.className = 'mt-3 text-[10px] text-gray-400/60 font-semibold';
                     } else {
                         el.innerText = (isZh ? '今日免费已用完，余额不足' : 'No credits remaining');
                         el.classList.add('text-red-400/60');
@@ -4104,7 +4109,7 @@
     </script>
 
     <!-- ═══ User Account & Payment (SMAuth) ═══ -->
-    <script src="/static/js/smauth.js?v=10"></script>
+    <script src="/static/js/smauth.js?v=11"></script>
 
     <!-- ═══ Hero Vortex: Elliptical rotating particle swirl (Canvas 2D) ═══ -->
     <script>
