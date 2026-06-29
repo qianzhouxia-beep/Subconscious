@@ -2862,6 +2862,71 @@ def google_callback():
         return redirect('/?oauth_error=internal_error')
 
 
+# ── Admin: View Table Data ─────────────────────────────────────
+@app.route('/api/admin/view-table', methods=['GET', 'OPTIONS'])
+def view_table():
+    """查看任意表的数据（需要 admin token）"""
+    if request.method == 'OPTIONS':
+        return _cors(jsonify({}), 200)
+    token = request.headers.get('X-Migration-Token', '')
+    if token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "Unauthorized"}), 401)
+
+    table_name = request.args.get('name', '').strip()
+    limit = int(request.args.get('limit', 100))
+
+    if not table_name:
+        return _cors(jsonify({"error": "Missing 'name' parameter. Usage: ?name=users"}), 400)
+
+    # 基础安全防护：只允许字母数字和下划线
+    if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+        return _cors(jsonify({"error": "Invalid table name"}), 400)
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 先检查表是否存在
+        if os.environ.get("DATABASE_URL"):
+            cursor.execute("""
+                SELECT COUNT(*) FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_name = %s
+            """, (table_name,))
+            exists = cursor.fetchone()[0] > 0
+        else:
+            cursor.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            exists = cursor.fetchone()[0] > 0
+
+        if not exists:
+            return _cors(jsonify({"error": f"Table '{table_name}' not found"}), 404)
+
+        # 查询数据
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT ?", (limit,))
+        rows = cursor.fetchall()
+
+        # 转换为字典列表
+        columns = [desc[0] for desc in cursor.description]
+        data = [dict(zip(columns, row)) for row in rows]
+
+        # 敏感字段脱敏
+        sensitive_fields = ['password_hash', 'google_sub', 'password']
+        for row in data:
+            for field in sensitive_fields:
+                if field in row:
+                    row[field] = '***'
+
+        return _cors(jsonify({
+            "table": table_name,
+            "count": len(data),
+            "limit": limit,
+            "data": data
+        }), 200)
+
+    except Exception as e:
+        import traceback
+        return _cors(jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500)
+
+
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 3000))
     # 生产环境严禁开启 debug=True（会导致内存泄漏和任意代码执行风险）
