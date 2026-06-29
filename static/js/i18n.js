@@ -84,6 +84,8 @@
                 res_tarot: "<span class='text-accent text-lg'>🃏</span> Tarot Guidance",
                 page_title: "Subconscious Mirror | Premium AI Dream Oracle",
                 sidebar_history: "Dream Log",
+                sidebar_account: "Account",
+                sidebar_balance: "Balance:",
                 history_empty: "No dreams yet.",
                 modal_terms: `
                     <div class="space-y-6 text-left">
@@ -233,6 +235,8 @@
                 res_tarot: "<span class='text-accent text-lg'>🃏</span> 塔罗指引",
                 page_title: "潜意识之镜 | AI 解梦神谕",
                 sidebar_history: "梦境记录",
+                sidebar_account: "账户",
+                sidebar_balance: "余额：",
                 history_empty: "暂无梦境记录。",
                 modal_terms: `
                     <div class="space-y-6 text-left">
