@@ -2992,7 +2992,7 @@ def fix_tarot_entitlements():
     fixes = []
 
     try:
-        conn = get_db()
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         # Find all users who have credits_* entitlements
