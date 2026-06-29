@@ -490,7 +490,6 @@ def register_account_routes(app):
             with _get_db() as conn:
                 # Check if entitlements table has 'remaining' column (auto-migrate if missing)
                 try:
-                    # Test query to check if 'remaining' column exists
                     conn.execute("SELECT remaining FROM entitlements LIMIT 1")
                 except Exception as col_err:
                     print(f"[DEBUG] 'remaining' column missing, attempting migration: {col_err}")
@@ -499,6 +498,9 @@ def register_account_routes(app):
                         print("[DEBUG] Added 'remaining' column")
                     except Exception as mig_err:
                         print(f"[DEBUG] Migration failed (may already exist): {mig_err}")
+                        # Rollback on PG to avoid InFailedSqlTransaction
+                        try: conn.rollback()
+                        except Exception: pass
 
                 # 1. Dream credits (credits_* plans)
                 dream_ent = conn.execute("""
@@ -567,12 +569,44 @@ def register_account_routes(app):
     @token_required
     def user_entitlements():
         try:
+            import uuid as _uuid
             user_id = request.user["id"]
             with _get_db() as conn:
                 rows = conn.execute("""
                     SELECT id, plan_type, total_count, remaining, is_expired, expires_at, order_id, created_at
                     FROM entitlements WHERE user_id = ? ORDER BY created_at DESC
                 """, (user_id,)).fetchall()
+
+                # Auto-fix: ensure users with credits_* also have matching tarot_*
+                plan_types = [dict(r)["plan_type"] for r in rows]
+                has_tarot_any = any(pt.startswith("tarot_") for pt in plan_types)
+                if not has_tarot_any:
+                    for r in rows:
+                        d = dict(r)
+                        pt = d["plan_type"]
+                        if pt.startswith("credits_") and not d.get("is_expired") and (d["total_count"] < 0 or d.get("remaining", 0) > 0):
+                            suffix = pt.split("_")[-1] if "_" in pt else "10"
+                            tarot_pt = f"tarot_{suffix}"
+                            # Check again inside loop to avoid duplicates
+                            if tarot_pt not in plan_types:
+                                existing_check = conn.execute(
+                                    "SELECT id FROM entitlements WHERE user_id=? AND plan_type=?",
+                                    (user_id, tarot_pt)
+                                ).fetchone()
+                                if not existing_check:
+                                    new_id = _uuid.uuid4().hex
+                                    total_credits = d["total_count"] if d["total_count"] >= 0 else d.get("remaining", 3)
+                                    conn.execute(
+                                        "INSERT INTO entitlements (id, user_id, plan_type, total_count, remaining, order_id) VALUES (?, ?, ?, ?, ?, '')",
+                                        (new_id, user_id, tarot_pt, total_credits, total_credits)
+                                    )
+                                    print(f"[AutoFix] Created {tarot_pt} entitlement ({total_credits}) for user {user_id}")
+                                    # Re-query to include new row
+                                    rows = conn.execute("""
+                                        SELECT id, plan_type, total_count, remaining, is_expired, expires_at, order_id, created_at
+                                        FROM entitlements WHERE user_id = ? ORDER BY created_at DESC
+                                    """, (user_id,)).fetchall()
+                                    break  # Only create one matching tarot entitlement
 
             entitlements = []
             for r in rows:
