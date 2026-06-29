@@ -11,7 +11,7 @@ const SMAuth = (function () {
 
   // ── i18n helper ──
   function _t(zh, en) {
-    return (document.documentElement.lang === 'zh') ? zh : en;
+    return (document.documentElement.lang.startsWith('zh')) ? zh : en;
   }
 
   let token = localStorage.getItem("sm_token");
