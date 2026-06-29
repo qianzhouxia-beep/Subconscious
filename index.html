@@ -3256,27 +3256,27 @@
                 '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">' +
                     // Instagram
                     '<a href="https://www.instagram.com/" target="_blank" rel="noopener" onclick="navigator.clipboard.writeText(text);setTimeout(function(){showToast(\'' + (isZh ? '已复制 — 打开Instagram粘贴分享' : 'Copied — Open Instagram to paste') + '\');},100);return false;" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(225,48,108,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">📷</span><span>Instagram</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/instagram.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>Instagram</span>' : '<span>Instagram</span>') +
                     '</a>' +
                     // WeChat (use clipboard + QR-style hint)
                     '<button data-platform="wechat" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background=\'rgba(7,193,96,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">💬</span><span>微信 WeChat</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/wechat.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>微信 WeChat</span>' : '<span>WeChat</span>') +
                     '</button>' +
                     // Twitter / X
                     '<a href="https://twitter.com/intent/tweet?text=' + encoded + '&url=' + encodedUrl + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(29,161,242,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">✖️</span><span>Twitter / X</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/x.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>Twitter / X</span>' : '<span>Twitter / X</span>') +
                     '</a>' +
                     // Facebook
                     '<a href="https://www.facebook.com/sharer/sharer.php?u=' + encodedUrl + '&quote=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(24,119,242,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">🔵</span><span>Facebook</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/facebook.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>Facebook</span>' : '<span>Facebook</span>') +
                     '</a>' +
                     // Telegram
                     '<a href="https://t.me/share/url?url=' + encodedUrl + '&text=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(0,136,204,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">📨</span><span>Telegram</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/telegram.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>Telegram</span>' : '<span>Telegram</span>') +
                     '</a>' +
                     // WhatsApp
                     '<a href="https://api.whatsapp.com/send?text=' + encoded + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;text-decoration:none;font-size:13px;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(37,211,102,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.05)\'">' +
-                        '<span style="font-size:18px;">📱</span><span>WhatsApp</span>' +
+                        '<img src="https://cdn.jsdelivr.net/simple-icons@v14/icons/whatsapp.svg" style="width:20px;height:20px;filter:brightness(0) invert(1);">' + (isZh ? '<span>WhatsApp</span>' : '<span>WhatsApp</span>') +
                     '</a>' +
                     // Copy link
                     '<button data-platform="copy" style="grid-column:span 2;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(124,92,255,0.1);border:1px solid rgba(124,92,255,0.3);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;transition:all 0.2s;font-family:inherit;" onmouseover="this.style.background=\'rgba(124,92,255,0.2)\'" onmouseout="this.style.background=\'rgba(124,92,255,0.1)\'">' +
