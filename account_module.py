@@ -180,7 +180,11 @@ def init_account_tables():
                 )""",
             ]
             for sql in _pg_tables:
-                conn.execute(sql)
+                try:
+                    conn.execute(sql)
+                except Exception as e:
+                    print(f"[account_module] Warning creating table: {e}")
+                    conn.rollback()
             # Indexes
             for idx_sql in [
                 "CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id)",
@@ -190,7 +194,7 @@ def init_account_tables():
                 try:
                     conn.execute(idx_sql)
                 except Exception:
-                    pass
+                    conn.rollback()
         else:
             # ── SQLite path (original) ──
             conn.executescript("""
@@ -251,7 +255,8 @@ def init_account_tables():
                 if "duplicate" in _err or "already exists" in _err or "column" in _err:
                     pass  # Column already exists
                 else:
-                    raise
+                    print(f"[MIGRATION] Error: {e}")
+                conn.rollback()
 
         # Check users table for missing columns
         if not _is_pg:
@@ -279,6 +284,7 @@ def init_account_tables():
                         print(f"[account_module] PG migrated: added users.{col_name} column")
             except Exception as e:
                 print(f"[account_module] PG migration check failed (non-fatal): {e}")
+                conn.rollback()
 
     print("[account_module] Tables initialized OK")
 
