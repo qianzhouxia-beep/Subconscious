@@ -480,7 +480,20 @@ def register_account_routes(app):
     def user_premium_status():
         try:
             user_id = request.user["id"]
+            print(f"[DEBUG] premium-status called, user_id={user_id}")
             with _get_db() as conn:
+                # Check if entitlements table has 'remaining' column (auto-migrate if missing)
+                try:
+                    # Test query to check if 'remaining' column exists
+                    conn.execute("SELECT remaining FROM entitlements LIMIT 1")
+                except Exception as col_err:
+                    print(f"[DEBUG] 'remaining' column missing, attempting migration: {col_err}")
+                    try:
+                        conn.execute("ALTER TABLE entitlements ADD COLUMN remaining INTEGER NOT NULL DEFAULT 0")
+                        print("[DEBUG] Added 'remaining' column")
+                    except Exception as mig_err:
+                        print(f"[DEBUG] Migration failed (may already exist): {mig_err}")
+
                 # 1. Dream credits (credits_* plans)
                 dream_ent = conn.execute("""
                     SELECT e.plan_type, e.total_count, e.remaining, e.is_expired, e.expires_at
