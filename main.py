@@ -1214,6 +1214,52 @@ def tarot_reading():
         return _cors(jsonify({"error": str(e)}), 500)
 
 
+# ── Deduct Credit (for tarot paid readings) ───────────────────
+@app.route('/api/user/deduct-credit', methods=['POST', 'OPTIONS'])
+def deduct_credit():
+    if request.method == 'OPTIONS':
+        return _cors(make_response())
+    req_data = request.json or {}
+    token = req_data.get('token', '')
+    reason = req_data.get('reason', 'tarot_reading')
+    
+    if not token:
+        return _cors(jsonify({"error": "No auth token"}), 401)
+    
+    try:
+        import jwt as pyjwt
+        payload = pyjwt.decode(token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+        uid = payload.get("sub", "")
+        
+        with get_db() as conn:
+            # Find user's active entitlement with remaining credits
+            cursor = conn.execute(
+                "SELECT id, remaining, total_count, plan_type FROM entitlements WHERE user_id=? AND remaining>0 ORDER BY created_at ASC LIMIT 1",
+                (uid,)
+            )
+            row = cursor.fetchone()
+            
+            if not row:
+                return _cors(jsonify({"error": "No credits remaining", "remaining": 0}), 402)
+            
+            ent_id = row["id"]
+            new_remaining = row["remaining"] - 1
+            conn.execute("UPDATE entitlements SET remaining=? WHERE id=?", (new_remaining, ent_id))
+            conn.commit()
+            
+            app.logger.info(f"[DeductCredit] User {uid}, reason={reason}, entitlement {ent_id}, remaining: {new_remaining}")
+            
+            return _cors(jsonify({
+                "success": True,
+                "reason": reason,
+                "remaining": new_remaining,
+                "plan_type": row["plan_type"]
+            }))
+    except Exception as e:
+        app.logger.error(f"[DeductCredit] Error: {e}")
+        return _cors(jsonify({"error": str(e)}), 500)
+
+
 @app.route('/api/chat', methods=['POST', 'OPTIONS'])
 @limiter.limit("10 per minute")
 def chat():
