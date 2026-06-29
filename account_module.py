@@ -5,10 +5,12 @@ import re
 import hashlib
 import time
 import uuid
-import sqlite3
 from functools import wraps
 from contextlib import contextmanager
 from flask import request, jsonify, make_response
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+_DB_FILE = os.environ.get("DB_FILE", os.path.join(os.environ.get("DATA_DIR", "/data"), "mirror_data.db"))
 
 DB_FILE = None  # set by init_account_tables via main.py's DB_FILE global
 JWT_SECRET = os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026")
@@ -60,8 +62,16 @@ def _decode_token(token):
 
 
 def get_db_conn():
-    """Return a raw DB connection for use outside context managers."""
-    conn = sqlite3.connect(DB_FILE or "/data/mirror_data.db", timeout=10)
+    """Return a raw DB connection — uses backend.db abstraction for PG/SQLite compat."""
+    if DATABASE_URL:
+        try:
+            from backend.db import get_db_conn as _pg_get_conn
+            return _pg_get_conn()
+        except Exception:
+            pass  # fallback below
+    # SQLite fallback
+    import sqlite3
+    conn = sqlite3.connect(DB_FILE or _DB_FILE, timeout=10)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA busy_timeout=5000")
@@ -69,10 +79,11 @@ def get_db_conn():
 
 
 def _get_db():
-    """Context manager for DB connections."""
+    """Context manager for DB connections (works with both PG and SQLite)."""
     @contextmanager
     def mgr():
         conn = get_db_conn()
+        is_pg = bool(DATABASE_URL)
         try:
             yield conn
             conn.commit()
