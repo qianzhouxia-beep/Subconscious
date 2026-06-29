@@ -2914,10 +2914,22 @@
             _tarotState.dailyCount = savedDate === today ? parseInt(localStorage.getItem('sm_tarot_draws') || '0') : 0;
             var el = document.getElementById('tarot-free-count');
             if (el) {
-                var remaining = 3 - _tarotState.dailyCount;
-                el.innerText = (i18n[currentLang].tarot_free_remaining || 'Free readings remaining today: ') + remaining + '/3';
-                if (remaining <= 0) el.classList.add('text-red-400/60');
-                else el.classList.remove('text-red-400/60');
+                var freeRemaining = 3 - _tarotState.dailyCount;
+                var isZh = currentLang === 'zh';
+                if (freeRemaining > 0) {
+                    el.innerText = (isZh ? '今日免费解读剩余：' : 'Free readings today: ') + freeRemaining + '/3';
+                    el.classList.remove('text-red-400/60');
+                } else {
+                    // Free quota exhausted — check paid credits
+                    var paidRem = (window.SMAuth && SMAuth.premium && SMAuth.premium.remaining) || 0;
+                    if (paidRem > 0) {
+                        el.innerText = (isZh ? '免费已用完 · 充值余额：' : 'Free used · Credits: ') + paidRem;
+                        el.className = 'mt-3 text-[10px] text-green-400/70 font-semibold';
+                    } else {
+                        el.innerText = (isZh ? '今日免费已用完，余额不足' : 'No credits remaining');
+                        el.classList.add('text-red-400/60');
+                    }
+                }
             }
         }
 
@@ -2948,9 +2960,24 @@
                 document.getElementById('tarot-spread').classList.remove('hidden');
                 return;
             }
-            if (_tarotState.dailyCount >= 3) {
-                alert(i18n[currentLang].tarot_daily_used || 'Daily free tarot used.');
-                return;
+            // Check: free quota or paid credits
+            var isFree = _tarotState.dailyCount < 3;
+            if (!isFree) {
+                // Free quota exhausted → check paid credits
+                var hasCredits = window.SMAuth && SMAuth.premium && SMAuth.premium.remaining > 0;
+                if (!hasCredits) {
+                    // No credits left → prompt to buy
+                    var isZh = currentLang === 'zh';
+                    alert(isZh ? '今日免费次数已用完，充值余额也不足。请充值后继续使用。' : 'Daily free quota used and no credits remaining. Please purchase credits.');
+                    if (window.SMAuth && typeof SMAuth.showPaymentPrompt === 'function') {
+                        SMAuth.showPaymentPrompt('credits_10', 'Popular · 10 Reports', 6.99);
+                    }
+                    return;
+                }
+                // Has credits → mark as paid usage (will deduct on report generation)
+                _tarotState.isPaidReading = true;
+            } else {
+                _tarotState.isPaidReading = false;
             }
             // Draw a random card (not duplicate)
             var idx = Math.floor(Math.random() * 22);
@@ -3074,11 +3101,36 @@
             }
             cardImgHtml += '</div>';
 
-            // Save daily count
-            var today = new Date().toDateString();
-            localStorage.setItem('sm_tarot_date', today);
-            _tarotState.dailyCount++;
-            localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
+            // Save daily count — only for FREE readings
+            if (!_tarotState.isPaidReading) {
+                var today = new Date().toDateString();
+                localStorage.setItem('sm_tarot_date', today);
+                _tarotState.dailyCount++;
+                localStorage.setItem('sm_tarot_draws', String(_tarotState.dailyCount));
+            } else {
+                // Paid reading: deduct one credit via backend
+                (function() {
+                    var token = '';
+                    if (document.cookie) {
+                        var match = document.cookie.match(/sm_auth_token=([^;]+)/);
+                        if (match) token = decodeURIComponent(match[1]);
+                    }
+                    fetch(API_BASE + '/api/user/deduct-credit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: token, reason: 'tarot_reading' })
+                    }).then(function(r) { return r.json(); }).then(function(data) {
+                        console.log('[Tarot] Credit deducted:', data);
+                        // Refresh premium status to show updated balance
+                        if (window.SMAuth && typeof SMAuth.checkPremium === 'function') {
+                            SMAuth.checkPremium();
+                        }
+                        updateSidebarAccount();
+                    }).catch(function(e) {
+                        console.warn('[Tarot] Credit deduction failed:', e);
+                    });
+                })();
+            }
 
             // Build the full report with glass-card styling (matching dream report)
             var completeEl = document.getElementById('tarot-complete-reading');
