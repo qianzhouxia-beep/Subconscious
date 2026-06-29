@@ -1667,7 +1667,7 @@
                         var te = allTarot[t];
                         var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
-                        html += '<div class="group flex items-center gap-1"><div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ')" class="history-item cursor-pointer flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ',\'tarot\')" class="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
+                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(tPreview).substring(0, 35) + (tPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof te.id === 'string' ? '"' + te.id + '"' : te.id) + ',\'tarot\')" class="opacity-40 hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
                     }
                     html += '</div></div>';
                 }
@@ -1688,7 +1688,7 @@
                         var de = allDreams[d];
                         var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
                         var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
-                        html += '<div class="group flex items-center gap-1"><div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ')" class="history-item cursor-pointer flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ',\'dream\')" class="opacity-0 group-hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
+                        html += '<div class="group flex items-center gap-1 min-w-0"><div onclick="loadJournalEntryByRef(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ')" class="history-item cursor-pointer min-w-0 flex-1 px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + String(dPreview).substring(0, 35) + (dPreview.length > 35 ? '\u2026' : '') + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div><button onclick="event.stopPropagation();deleteHistoryEntry(' + (typeof de.id === 'string' ? '"' + de.id + '"' : de.id) + ',\'dream\')" class="opacity-40 hover:opacity-100 text-red-400/50 hover:text-red-400 text-xs transition-all px-1 flex-shrink-0" title="' + (isZh ? '删除' : 'Delete') + '">✕</button></div>';
                     }
                     html += '</div></div>';
                 }
@@ -1779,7 +1779,7 @@
             if (!confirm(isZh ? '确定要删除这条记录吗？' : 'Delete this record?')) return;
             var token = localStorage.getItem('sm_token') || '';
             // Delete from server
-            var url = entryType === 'tarot' ? '/api/tarot/readings?id=' + encodeURIComponent(id) : '/api/chat/sessions/' + encodeURIComponent(id);
+            var url = entryType === 'tarot' ? '/api/tarot/readings?id=' + encodeURIComponent(id) : '/api/chat/session/' + encodeURIComponent(id);
             fetch(url, { method: 'DELETE', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } }).catch(function() {});
             // Delete from localStorage
             var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');

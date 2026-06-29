@@ -1275,14 +1275,6 @@ def tarot_readings_list():
             )
         return _cors(jsonify({"status": "saved", "id": reading_id}))
 
-    # GET — list readings
-    with get_db() as conn:
-        rows = conn.execute(
-            "SELECT id, cards, topic, reading, free_html, created_at FROM tarot_readings WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
-            (user_id,)
-        ).fetchall()
-    return _cors(jsonify({"readings": [dict(r) for r in rows]}))
-
     if request.method == 'DELETE':
         reading_id = request.args.get('id', '') or (request.json or {}).get('id', '')
         if not reading_id:
@@ -1290,6 +1282,14 @@ def tarot_readings_list():
         with get_db() as conn:
             conn.execute("DELETE FROM tarot_readings WHERE id=? AND user_id=?", (reading_id, user_id))
         return _cors(jsonify({"status": "deleted"}))
+
+    # GET — list readings
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, cards, topic, reading, free_html, created_at FROM tarot_readings WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
+            (user_id,)
+        ).fetchall()
+    return _cors(jsonify({"readings": [dict(r) for r in rows]}))
 
 
 # ── Deduct Credit (for tarot paid readings) ───────────────────
