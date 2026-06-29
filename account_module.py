@@ -128,8 +128,7 @@ def token_required(f):
 
 
 def init_account_tables():
-    """Create users, entitlements, and orders tables if they don't exist."""
-    from contextlib import contextmanager
+    """Create users, entitlements, and orders tables if they don't exist. Works with both PG and SQLite."""
     global DB_FILE
     # Import DB_FILE from main module scope
     import sys
@@ -139,118 +138,148 @@ def init_account_tables():
     elif not DB_FILE:
         DB_FILE = os.environ.get("DB_FILE", "/data/mirror_data.db")
 
+    _is_pg = bool(DATABASE_URL)
+
     with _get_db() as conn:
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
-                email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                google_sub TEXT DEFAULT '',
-                created_at TEXT DEFAULT (datetime('now')),
-                last_login TEXT DEFAULT (datetime('now'))
-            );
+        if _is_pg:
+            # ── PostgreSQL path ──
+            _pg_tables = [
+                """CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    google_sub TEXT DEFAULT '',
+                    email_verified INTEGER DEFAULT 0,
+                    failed_attempts INTEGER DEFAULT 0,
+                    locked_until TEXT DEFAULT '',
+                    created_at TEXT DEFAULT '',
+                    last_login TEXT DEFAULT '',
+                    updated_at TEXT DEFAULT ''
+                )""",
+                """CREATE TABLE IF NOT EXISTS entitlements (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    plan_type TEXT NOT NULL DEFAULT 'spark',
+                    total_count INTEGER NOT NULL DEFAULT 0,
+                    remaining INTEGER NOT NULL DEFAULT 0,
+                    is_expired INTEGER NOT NULL DEFAULT 0,
+                    expires_at TEXT DEFAULT '',
+                    order_id TEXT DEFAULT '',
+                    created_at TEXT DEFAULT ''
+                )""",
+                """CREATE TABLE IF NOT EXISTS orders (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    plan_type TEXT NOT NULL DEFAULT 'spark',
+                    amount REAL NOT NULL DEFAULT 0,
+                    currency TEXT DEFAULT 'USD',
+                    status TEXT DEFAULT 'pending',
+                    payment_provider TEXT DEFAULT '',
+                    provider_order_id TEXT DEFAULT '',
+                    created_at TEXT DEFAULT ''
+                )""",
+            ]
+            for sql in _pg_tables:
+                conn.execute(sql)
+            # Indexes
+            for idx_sql in [
+                "CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id)",
+                "CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id)",
+                "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+            ]:
+                try:
+                    conn.execute(idx_sql)
+                except Exception:
+                    pass
+        else:
+            # ── SQLite path (original) ──
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    google_sub TEXT DEFAULT '',
+                    created_at TEXT DEFAULT (datetime('now')),
+                    last_login TEXT DEFAULT (datetime('now'))
+                );
 
-            CREATE TABLE IF NOT EXISTS entitlements (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                plan_type TEXT NOT NULL DEFAULT 'spark',
-                total_count INTEGER NOT NULL DEFAULT 0,
-                remaining INTEGER NOT NULL DEFAULT 0,
-                is_expired INTEGER NOT NULL DEFAULT 0,
-                expires_at TEXT,
-                order_id TEXT,
-                created_at TEXT DEFAULT (datetime('now')),
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            );
+                CREATE TABLE IF NOT EXISTS entitlements (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    plan_type TEXT NOT NULL DEFAULT 'spark',
+                    total_count INTEGER NOT NULL DEFAULT 0,
+                    remaining INTEGER NOT NULL DEFAULT 0,
+                    is_expired INTEGER NOT NULL DEFAULT 0,
+                    expires_at TEXT,
+                    order_id TEXT,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
 
-            CREATE TABLE IF NOT EXISTS orders (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                plan_type TEXT NOT NULL DEFAULT 'spark',
-                amount REAL NOT NULL DEFAULT 0,
-                currency TEXT DEFAULT 'USD',
-                status TEXT DEFAULT 'pending',
-                payment_provider TEXT DEFAULT '',
-                provider_order_id TEXT DEFAULT '',
-                created_at TEXT DEFAULT (datetime('now')),
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            );
+                CREATE TABLE IF NOT EXISTS orders (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    plan_type TEXT NOT NULL DEFAULT 'spark',
+                    amount REAL NOT NULL DEFAULT 0,
+                    currency TEXT DEFAULT 'USD',
+                    status TEXT DEFAULT 'pending',
+                    payment_provider TEXT DEFAULT '',
+                    provider_order_id TEXT DEFAULT '',
+                    created_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                );
 
-            CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
-            CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
-            CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-        """)
-        
-        # Migration: add missing columns to existing tables
-        try:
-            conn.execute("ALTER TABLE entitlements ADD COLUMN remaining INTEGER NOT NULL DEFAULT 0")
-            print("[MIGRATION] Added 'remaining' column to entitlements table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass  # Column already exists
-            else:
-                raise
-        
-        try:
-            conn.execute("ALTER TABLE entitlements ADD COLUMN is_expired INTEGER NOT NULL DEFAULT 0")
-            print("[MIGRATION] Added 'is_expired' column to entitlements table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-        
-        try:
-            conn.execute("ALTER TABLE entitlements ADD COLUMN expires_at TEXT")
-            print("[MIGRATION] Added 'expires_at' column to entitlements table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-        
-        try:
-            conn.execute("ALTER TABLE entitlements ADD COLUMN order_id TEXT")
-            print("[MIGRATION] Added 'order_id' column to entitlements table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-        
-        # Also check users table for missing columns
-        try:
-            conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''")
-            print("[MIGRATION] Added 'google_sub' column to users table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-        
-        try:
-            conn.execute("ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT (datetime('now'))")
-            print("[MIGRATION] Added 'last_login' column to users table")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower() or "already exists" in str(e).lower():
-                pass
-            else:
-                raise
-        
-        conn.commit()
-        print("[INFO] Account tables initialized")
-        # Note: SQLite ALTER TABLE ADD COLUMN requires a CONSTANT default (no expressions).
-        try:
-            user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
-            if "last_login" not in user_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT ''")
-                conn.execute("UPDATE users SET last_login = datetime('now') WHERE last_login IS NULL OR last_login = ''")
-                print("[account_module] Migrated: added users.last_login column")
-            if "google_sub" not in user_cols:
-                conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''")
-                print("[account_module] Migrated: added users.google_sub column")
-        except Exception as e:
-            print(f"[account_module] Migration check failed (non-fatal): {e}")
+                CREATE INDEX IF NOT EXISTS idx_entitlements_user ON entitlements(user_id);
+                CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+                CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+            """)
+
+        # Migration: add missing columns to existing tables (PG + SQLite compatible)
+        _migration_cols = [
+            ("entitlements", "remaining", "INTEGER NOT NULL DEFAULT 0"),
+            ("entitlements", "is_expired", "INTEGER NOT NULL DEFAULT 0"),
+            ("entitlements", "expires_at", "TEXT"),
+            ("entitlements", "order_id", "TEXT"),
+            ("users", "google_sub", "TEXT DEFAULT ''"),
+        ]
+        for table, col, col_def in _migration_cols:
+            try:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
+                print(f"[MIGRATION] Added '{col}' column to {table} table")
+            except Exception as e:
+                _err = str(e).lower()
+                if "duplicate" in _err or "already exists" in _err or "column" in _err:
+                    pass  # Column already exists
+                else:
+                    raise
+
+        # Check users table for missing columns
+        if not _is_pg:
+            # SQLite: use PRAGMA
+            try:
+                user_cols = {row[1] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+                if "last_login" not in user_cols:
+                    conn.execute("ALTER TABLE users ADD COLUMN last_login TEXT DEFAULT ''")
+                    conn.execute("UPDATE users SET last_login = datetime('now') WHERE last_login IS NULL OR last_login = ''")
+                    print("[account_module] Migrated: added users.last_login column")
+                if "google_sub" not in user_cols:
+                    conn.execute("ALTER TABLE users ADD COLUMN google_sub TEXT DEFAULT ''")
+                    print("[account_module] Migrated: added users.google_sub column")
+            except Exception as e:
+                print(f"[account_module] Migration check failed (non-fatal): {e}")
+        else:
+            # PostgreSQL: check columns via information_schema
+            try:
+                existing = {row[0] for row in conn.execute(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name='users' AND table_schema='public'"
+                ).fetchall()}
+                for col_name in ["last_login", "google_sub"]:
+                    if col_name not in existing:
+                        conn.execute(f"ALTER TABLE users ADD COLUMN {col_name} TEXT DEFAULT ''")
+                        print(f"[account_module] PG migrated: added users.{col_name} column")
+            except Exception as e:
+                print(f"[account_module] PG migration check failed (non-fatal): {e}")
+
     print("[account_module] Tables initialized OK")
 
 
@@ -309,7 +338,8 @@ def register_account_routes(app):
 
             # Update last login (best-effort: tolerate legacy DBs without this column)
             try:
-                conn.execute("UPDATE users SET last_login = datetime('now') WHERE id = ?", (row["id"],))
+                _now = __import__('datetime').datetime.now().isoformat()
+                conn.execute("UPDATE users SET last_login = ? WHERE id = ?", (_now, row["id"]))
             except Exception:
                 pass
 
@@ -411,7 +441,8 @@ def register_account_routes(app):
                 try:
                     cur = conn.execute("SELECT google_sub FROM users WHERE id = ?", (user_id,)).fetchone()
                     if cur and not cur["google_sub"]:
-                        conn.execute("UPDATE users SET google_sub=?, last_login=datetime('now') WHERE id=?", (google_sub, user_id))
+                        _now = __import__('datetime').datetime.now().isoformat()
+                        conn.execute("UPDATE users SET google_sub=?, last_login=? WHERE id=?", (google_sub, _now, user_id))
                 except Exception:
                     pass
             else:
