@@ -1585,28 +1585,86 @@
         function refreshHistory() {
             var list = document.getElementById('history-list');
             if (!list) return;
-            var token = localStorage.getItem('sm_token') || '';
-            var headers = { 'Content-Type': 'application/json' };
-            if (token) headers['Authorization'] = 'Bearer ' + token;
-            fetch('/api/chat/sessions', { credentials: 'include', headers: headers })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    var sessions = data.sessions || [];
-                    if (sessions.length === 0) {
-                        list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8" id="t-history-empty">No dreams yet.</p>';
-                        if (typeof renderLanguage === 'function') renderLanguage();
-                        return;
-                    }
-                    var html = '';
-                    sessions.forEach(function(s) {
-                        var preview = (s.dream_text || '').substring(0, 40) || 'Dream session';
-                        var date = (s.created_at || '').substring(0, 10);
-                        html += '<div class="history-item" onclick="loadSession(\'' + s.session_id + '\')">';
-                        html += '<div class="text-sm text-white/80 truncate">' + preview + '</div>';
-                        html += '<div class="text-[8px] text-gray-600">' + date + '</div></div>';
-                    });
-                    list.innerHTML = html;
-                }).catch(function() {});
+            // Read from localStorage sm_journal — this is where ALL records are actually stored
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            if (journal.length === 0) {
+                list.innerHTML = '<p class="text-[11px] text-gray-600 text-center py-8" id="t-history-empty">' + (currentLang === 'zh' ? '暂无解读记录。开始一次解读吧！' : 'No readings yet. Start one!') + '</p>';
+                return;
+            }
+            // Categorize: tarot vs dream
+            var tarotEntries = [];
+            var dreamEntries = [];
+            for (var i = 0; i < journal.length; i++) {
+                var e = journal[i];
+                if (e.tarotCard && e.tarotCard.trim()) {
+                    tarotEntries.push(e);
+                } else {
+                    dreamEntries.push(e);
+                }
+            }
+            var isZh = currentLang === 'zh';
+            var html = '';
+            // Tarot section
+            if (tarotEntries.length > 0) {
+                html += '<div class="mb-2">';
+                html += '<div class="text-[9px] uppercase tracking-widest text-amber-400/60 font-semibold mb-1 flex items-center gap-1"><span>🃏</span> <span>' + (isZh ? '塔罗牌记录' : 'Tarot Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + tarotEntries.length + '</span></div>';
+                html += '<div class="space-y-0.5">';
+                for (var t = 0; t < tarotEntries.length; t++) {
+                    var te = tarotEntries[t];
+                    var tDate = te.date ? new Date(te.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    var tPreview = te.dreamPreview || te.tarotCard || (isZh ? '塔罗解读' : 'Tarot reading');
+                    html += '<div onclick="loadJournalEntry(' + te.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);">';
+                    html += '<div class="text-xs text-white/70 truncate leading-tight">' + tPreview.substring(0, 35) + (tPreview.length > 35 ? '…' : '') + '</div>';
+                    html += '<div class="text-[8px] text-gray-600 mt-0.5">' + tDate + '</div></div>';
+                }
+                html += '</div></div>';
+            }
+            // Dream section
+            if (dreamEntries.length > 0) {
+                html += '<div>';
+                html += '<div class="text-[9px] uppercase tracking-widest text-purple-400/60 font-semibold mb-1 flex items-center gap-1"><span>💭</span> <span>' + (isZh ? '梦境解读记录' : 'Dream Readings') + '</span><span class="ml-auto text-[8px] text-gray-600">' + dreamEntries.length + '</span></div>';
+                html += '<div class="space-y-0.5">';
+                for (var d = 0; d < dreamEntries.length; d++) {
+                    var de = dreamEntries[d];
+                    var dDate = de.date ? new Date(de.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                    var dPreview = de.dreamPreview || (isZh ? '梦境解读' : 'Dream reading');
+                    html += '<div onclick="loadJournalEntry(' + de.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);">';
+                    html += '<div class="text-xs text-white/70 truncate leading-tight">' + dPreview.substring(0, 35) + (dPreview.length > 35 ? '…' : '') + '</div>';
+                    html += '<div class="text-[8px] text-gray-600 mt-0.5">' + dDate + '</div></div>';
+                }
+                html += '</div></div>';
+            }
+            list.innerHTML = html;
+        }
+
+        function loadJournalEntry(entryId) {
+            var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
+            var entry = null;
+            for (var i = 0; i < journal.length; i++) {
+                if (journal[i].id === entryId) { entry = journal[i]; break; }
+            }
+            if (!entry) return;
+            // Switch to chat view if in journal view
+            var jv = document.getElementById('journal-view');
+            var cm = document.getElementById('chat-messages');
+            if (jv && !jv.classList.contains('hidden')) {
+                jv.classList.add('hidden');
+                if (cm) cm.classList.remove('hidden');
+            }
+            // Load into inline report view
+            document.getElementById('res-free').innerHTML = entry.freeHTML || '';
+            if (entry.paidHTML) {
+                document.getElementById('res-paid').innerHTML = entry.paidHTML;
+                document.getElementById('res-paid-wrapper')?.classList.remove('hidden');
+                document.getElementById('locked-preview')?.classList.add('hidden');
+            } else if (!entry.isPremium && entry.freeHTML) {
+                // Free-only entry: hide locked preview
+                document.getElementById('locked-preview')?.classList.add('hidden');
+                document.getElementById('res-paid-wrapper')?.classList.add('hidden');
+            }
+            var rv = document.getElementById('report-view-inline');
+            if (rv) rv.classList.remove('hidden');
+            gsap.fromTo("#report-view-inline", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
         }
 
         function initHistory() {
@@ -3305,6 +3363,7 @@
             });
             localStorage.setItem('sm_journal', JSON.stringify(journal.slice(0, 50)));
             showToast(i18n[currentLang].journal_saved || 'Saved to Dream Journal');
+            refreshHistory();
         }
 
         function shareTarotReading() {
@@ -3618,6 +3677,7 @@
             localStorage.setItem('sm_journal', JSON.stringify(journal));
             showToast(i18n[currentLang].journal_saved || 'Saved to Dream Journal');
             renderJournal();
+            refreshHistory();
         }
 
         function renderJournal() {
