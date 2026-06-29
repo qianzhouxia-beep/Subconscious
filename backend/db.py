@@ -332,6 +332,7 @@ def init_tables():
             """CREATE TABLE IF NOT EXISTS tarot_readings (
                 id TEXT PRIMARY KEY, user_id TEXT,
                 cards TEXT, topic TEXT, reading TEXT,
+                free_html TEXT DEFAULT '',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )""",
         ]

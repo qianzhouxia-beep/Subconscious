@@ -680,6 +680,7 @@ def force_init_pg():
             """CREATE TABLE tarot_readings (
                 id TEXT PRIMARY KEY, user_id TEXT,
                 cards TEXT, topic TEXT, reading TEXT,
+                free_html TEXT DEFAULT '',
                 created_at TEXT DEFAULT ''
             )""",
         ]
@@ -1212,6 +1213,52 @@ def tarot_reading():
         app.logger.error(f"[Tarot] AI call failed: {e}")
         # Fallback to template-based reading
         return _cors(jsonify({"error": str(e)}), 500)
+
+
+# ── Tarot Readings (Save/List for History) ────────────────────
+@app.route('/api/tarot/readings', methods=['GET', 'POST', 'OPTIONS'])
+def tarot_readings_list():
+    if request.method == 'OPTIONS': return _cors(make_response())
+    # Auth
+    auth_token = ''
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        auth_token = auth_header[7:]
+    if not auth_token:
+        auth_token = request.cookies.get('sm_auth_token', '')
+    user_id = ''
+    if auth_token:
+        try:
+            import jwt as pyjwt
+            payload = pyjwt.decode(auth_token, os.environ.get("JWT_SECRET", "smirror_fixed_secret_v1_7f3a9e2b8c1d4a6f_2026"), algorithms=["HS256"])
+            user_id = payload.get("sub", "")
+        except: pass
+    if not user_id:
+        return _cors(jsonify({"error": "Not authenticated"}), 401)
+
+    if request.method == 'POST':
+        req_data = request.json or {}
+        cards = req_data.get('cards', '')
+        topic = req_data.get('topic', '')
+        reading = req_data.get('reading', '')
+        free_html = req_data.get('free_html', '')
+        import uuid
+        reading_id = str(uuid.uuid4())
+        created_at = datetime.utcnow().isoformat()
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO tarot_readings (id, user_id, cards, topic, reading, free_html, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (reading_id, user_id, cards, topic, reading, free_html, created_at)
+            )
+        return _cors(jsonify({"status": "saved", "id": reading_id}))
+
+    # GET — list readings
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT id, cards, topic, reading, free_html, created_at FROM tarot_readings WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
+            (user_id,)
+        ).fetchall()
+    return _cors(jsonify({"readings": [dict(r) for r in rows]}))
 
 
 # ── Deduct Credit (for tarot paid readings) ───────────────────
