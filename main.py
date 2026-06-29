@@ -2919,8 +2919,8 @@ def view_table():
     """查看任意表的数据（需要 admin token）"""
     if request.method == 'OPTIONS':
         return _cors(jsonify({}), 200)
-    token = request.headers.get('X-Migration-Token', '')
-    if token != MIGRATION_TOKEN:
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
         return _cors(jsonify({"error": "Unauthorized"}), 401)
 
     table_name = request.args.get('name', '').strip()
@@ -2984,8 +2984,8 @@ def fix_tarot_entitlements():
     """For existing `credits_*` users who lack `tarot_*` entitlements, create matching tarot entitlements."""
     if request.method == 'OPTIONS':
         return _cors(jsonify({}), 200)
-    token = request.headers.get('X-Migration-Token', '')
-    if token != MIGRATION_TOKEN:
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
         return _cors(jsonify({"error": "Unauthorized"}), 401)
 
     dry_run = request.args.get('dry_run', '1') == '1'
