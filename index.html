@@ -1749,7 +1749,7 @@
                     for (var ft = 0; ft < fallbackTarot.length; ft++) {
                         var fte = fallbackTarot[ft];
                         var ftDate = fte.date ? new Date(fte.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                        fhtml += '<div onclick="loadJournalEntryByRef(' + fte.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fte.dreamPreview || fte.tarotCard || 'Tarot reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + ftDate + '</div></div>';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fte.id + ',\'tarot\')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(251,191,36,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fte.dreamPreview || fte.tarotCard || 'Tarot reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + ftDate + '</div></div>';
                     }
                     fhtml += '</div></div>';
                 }
@@ -1758,7 +1758,7 @@
                     for (var fd = 0; fd < fallbackDream.length; fd++) {
                         var fde = fallbackDream[fd];
                         var fdDate = fde.date ? new Date(fde.date).toLocaleDateString(isZh ? 'zh-CN' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-                        fhtml += '<div onclick="loadJournalEntryByRef(' + fde.id + ')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fde.dreamPreview || 'Dream reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + fdDate + '</div></div>';
+                        fhtml += '<div onclick="loadJournalEntryByRef(' + fde.id + ',\'dream\')" class="history-item cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/[0.04] transition-all" style="border-left: 2px solid rgba(124,92,255,0.4);"><div class="text-sm text-white/80 truncate leading-snug">' + (fde.dreamPreview || 'Dream reading').substring(0, 35) + '</div><div class="text-[8px] text-gray-600 mt-0.5">' + fdDate + '</div></div>';
                     }
                     fhtml += '</div></div>';
                 }
@@ -1774,7 +1774,11 @@
                 if (journal[i].id == ref || journal[i].session_id == ref) { entry = journal[i]; break; }
             }
             if (entry) {
-                loadJournalContent(entry.freeHTML, entry.paidHTML, !!entry.isPremium, entry.tarotData, entry.tarotCard);
+                if (entry.type === 'tarot' || entry.fullHTML) {
+                    showHistoryModal(entry.fullHTML || entry.freeHTML, '', false);
+                } else {
+                    loadJournalContent(entry.freeHTML, entry.paidHTML, !!entry.isPremium, entry.tarotData, entry.tarotCard);
+                }
                 return;
             }
             // If entry is a server dream session, load via API
@@ -1793,10 +1797,42 @@
                         for (var ri = 0; ri < readings.length; ri++) {
                             if (readings[ri].id == ref) {
                                 var rd = readings[ri];
-                                var html = rd.free_html || '';
-                                if (rd.reading) {
-                                    html += '<div class="mt-6 pt-4 border-t border-white/10"><h4 class="text-sm font-semibold text-amber-300/80 mb-3">' + (_isZh ? '🔮 AI 解读' : '🔮 AI Reading') + '</h4><div class="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">' + rd.reading + '</div></div>';
+                                var html = '<div class="glass-card px-6 py-8 rounded-2xl" style="border:1px solid rgba(255,255,255,0.08)">';
+                                html += '<h3 class="text-lg font-display italic text-amber-300/80 mb-4 text-center">' + (_isZh ? '🃏 塔罗三牌阵' : '🃏 Tarot Three-Card Spread') + '</h3>';
+                                if (rd.topic) {
+                                    html += '<p class="text-sm text-gray-400 mb-6 text-center">' + (_isZh ? '问题：' : 'Question: ') + rd.topic + '</p>';
                                 }
+                                // Reconstruct card images from card names
+                                if (rd.cards) {
+                                    var cardNames = rd.cards.split(/[,，、]\s*/).map(function(s) { return s.trim(); }).filter(Boolean);
+                                    var positions = _isZh ? ['过去', '现在', '未来'] : ['Past', 'Present', 'Future'];
+                                    html += '<div class="flex flex-wrap justify-center gap-6 py-4">';
+                                    for (var ci = 0; ci < cardNames.length && ci < 3; ci++) {
+                                        var cname = cardNames[ci];
+                                        var cidx = -1;
+                                        for (var ti = 0; ti < tarotCards.length; ti++) {
+                                            if (tarotCards[ti].zh === cname || tarotCards[ti].en === cname) { cidx = ti; break; }
+                                        }
+                                        if (cidx >= 0) {
+                                            var cslug = tarotCards[cidx].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                                            var cfn = String(cidx).padStart(2, '0') + '-' + cslug + '.png';
+                                            html += '<div class="flex flex-col items-center" style="width:120px;">' +
+                                                '<div class="text-[9px] uppercase tracking-[0.2em] text-amber-400/50 mb-2 text-center font-semibold">' + positions[ci] + '</div>' +
+                                                '<div class="relative" style="width:110px;height:165px;">' +
+                                                    '<div class="absolute inset-0 bg-accent/10 rounded-xl blur-lg opacity-50" style="transform:translateY(4px) scale(0.95);"></div>' +
+                                                    '<img src="/static/tarot/' + cfn + '" alt="' + cname + '" class="relative w-full h-full rounded-xl shadow-lg" style="border:1.5px solid rgba(255,255,255,0.12);object-fit:cover;" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + cfn + '\';">' +
+                                                '</div>' +
+                                                '<div class="text-xs text-white/80 mt-2 text-center font-medium">' + cname + '</div>' +
+                                            '</div>';
+                                        }
+                                    }
+                                    html += '</div>';
+                                }
+                                html += '<div class="border-t border-white/5 my-6"></div>';
+                                if (rd.reading) {
+                                    html += '<div class="text-sm text-gray-200 leading-relaxed space-y-4">' + rd.reading.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white/90 font-medium">$1</strong>').replace(/\n/g, '<br>') + '</div>';
+                                }
+                                html += '</div>';
                                 showHistoryModal(html, '', false);
                                 return;
                             }
@@ -3616,6 +3652,18 @@
                     return '<div class="text-center"><div class="text-[9px] uppercase tracking-widest text-amber-400/60 mb-1">' + pos + '</div>' +
                         '<div class="text-sm text-white/90">' + (isZh ? tarotCards[di].zh : tarotCards[di].en) + '</div></div>';
                 }).join('') + '</div></div>';
+            // Capture the full rendered tarot reading HTML if available
+            var fullTarotHTML = '';
+            var readingEl2 = document.getElementById('tarot-ai-reading');
+            var completeEl = document.getElementById('tarot-complete-reading');
+            if (completeEl && completeEl.innerHTML) {
+                // Clone to strip loading spinner and scripts
+                fullTarotHTML = completeEl.innerHTML;
+            } else if (readingEl2 && readingEl2.innerHTML) {
+                fullTarotHTML = freeHTML + '<div class="mt-6 pt-4 border-t border-white/10">' + readingEl2.innerHTML + '</div>';
+            } else {
+                fullTarotHTML = freeHTML;
+            }
             // Save to localStorage journal
             var journal = JSON.parse(localStorage.getItem('sm_journal') || '[]');
             journal.unshift({
@@ -3623,13 +3671,14 @@
                 date: new Date().toISOString(),
                 dreamPreview: (isZh ? '塔罗解读：' : 'Tarot: ') + topic,
                 freeHTML: freeHTML,
-                isPremium: false,
+                fullHTML: fullTarotHTML,
+                isPremium: true,
+                type: 'tarot',
                 tarotCard: cardNames.join(', ')
             });
             localStorage.setItem('sm_journal', JSON.stringify(journal.slice(0, 50)));
             // Also save to server
             var readingText = '';
-            var readingEl2 = document.getElementById('tarot-ai-reading');
             if (readingEl2) readingText = readingEl2.innerText || readingEl2.textContent || '';
             var token2 = localStorage.getItem('sm_token') || '';
             if (token2) {
