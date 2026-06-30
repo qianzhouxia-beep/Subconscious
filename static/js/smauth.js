@@ -332,8 +332,14 @@ const SMAuth = (function () {
     // Include tarot card info if available
     var tarotImg = document.getElementById('tarot-card-img-modal') || document.getElementById('tarot-card-img');
     var tarotName = document.getElementById('tarot-card-name-modal') || document.getElementById('tarot-card-name');
+    var tarotMeaning = document.getElementById('tarot-card-meaning-modal') || document.getElementById('tarot-card-meaning');
     if (tarotImg && tarotName) {
-      var tarotSection = '<div class="tarot-section"><img src="' + tarotImg.src + '" alt="' + tarotName.innerText + '"/><div class="card-name">' + tarotName.innerText + '</div></div>';
+      var meaningHTML = tarotMeaning ? tarotMeaning.innerHTML : '';
+      var tarotSection = '<div class="tarot-section">' +
+        '<img src="' + tarotImg.src + '" alt="' + tarotName.innerText + '"/>' +
+        '<div class="card-name">' + tarotName.innerText + '</div>' +
+        (meaningHTML ? '<div class="card-meaning" style="margin-top:12px;color:#c8bfe8;font-size:13px;line-height:1.7;">' + meaningHTML + '</div>' : '') +
+        '</div>';
       reportHTML = tarotSection + reportHTML;
     }
 

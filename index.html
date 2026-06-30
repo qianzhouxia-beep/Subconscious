@@ -1536,6 +1536,40 @@
             document.getElementById('report-modal').classList.add('hidden');
         }
 
+        function restoreTarotSection(tarotData, fallbackName) {
+            var tarotName = (tarotData && tarotData.name) || fallbackName || '';
+            var tarotImg = document.getElementById('tarot-card-img-modal');
+            var nameEl = document.getElementById('tarot-card-name-modal');
+            var meaningEl = document.getElementById('tarot-card-meaning-modal');
+            var sectionEl = document.getElementById('tarot-section-modal');
+            if (!tarotName || !tarotImg || !nameEl || !meaningEl || !sectionEl) {
+                if (sectionEl) sectionEl.classList.add('hidden');
+                return;
+            }
+            nameEl.innerText = tarotName;
+            if (tarotData && tarotData.filename) {
+                tarotImg.src = '/static/tarot/' + tarotData.filename;
+                tarotImg.onerror = function() {
+                    this.onerror = function() {
+                        this.onerror = null;
+                        this.outerHTML = '<div class="flex items-center justify-center h-full text-5xl opacity-30">🃏</div>';
+                    };
+                    this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotData.filename;
+                };
+            } else if (tarotData && tarotData.index >= 0) {
+                const tarotSlug = tarotCards[tarotData.index].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                var tarotFilename = String(tarotData.index).padStart(2, '0') + '-' + tarotSlug + '.png';
+                tarotImg.src = '/static/tarot/' + tarotFilename;
+            }
+            meaningEl.innerHTML = (tarotData && tarotData.meaningHTML) || '';
+            if (tarotImg.complete && tarotImg.naturalWidth > 0) {
+                sectionEl.classList.remove('hidden');
+            } else {
+                tarotImg.onload = function() { sectionEl.classList.remove('hidden'); };
+                tarotImg.onerror = function() { sectionEl.classList.remove('hidden'); };
+            }
+        }
+
         function openReportModal() {
             document.getElementById('report-modal').classList.remove('hidden');
             renderLanguage();
@@ -1740,7 +1774,7 @@
                 if (journal[i].id == ref || journal[i].session_id == ref) { entry = journal[i]; break; }
             }
             if (entry) {
-                loadJournalContent(entry.freeHTML, entry.paidHTML, !!entry.isPremium);
+                loadJournalContent(entry.freeHTML, entry.paidHTML, !!entry.isPremium, entry.tarotData, entry.tarotCard);
                 return;
             }
             // If entry is a server dream session, load via API
@@ -1774,8 +1808,23 @@
             }
         }
 
-        function loadJournalContent(freeHTML, paidHTML, isPremium) {
-            showHistoryModal(freeHTML, paidHTML, isPremium);
+        function loadJournalContent(freeHTML, paidHTML, isPremium, tarotData, tarotName) {
+            // Close history modal if open, then show report modal with full tarot section
+            closeHistoryModal();
+            document.getElementById('chat-input-area').classList.add('hidden');
+            document.getElementById('res-free-modal').innerHTML = freeHTML || '';
+            if (isPremium && paidHTML) {
+                document.getElementById('locked-preview-modal').classList.add('hidden');
+                document.getElementById('res-paid-wrapper-modal').classList.remove('hidden');
+                document.getElementById('pay-area-modal').classList.add('hidden');
+                document.getElementById('res-paid-modal').innerHTML = paidHTML;
+            } else {
+                document.getElementById('locked-preview-modal').classList.remove('hidden');
+                document.getElementById('res-paid-wrapper-modal').classList.add('hidden');
+                document.getElementById('pay-area-modal').classList.remove('hidden');
+            }
+            restoreTarotSection(tarotData, tarotName);
+            openReportModal();
         }
 
         function showHistoryModal(freeHTML, paidHTML, isPremium) {
@@ -1833,19 +1882,25 @@
             fetch('/api/chat/session/' + sessionId, { credentials: 'include' })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
-                    if (data.messages && data.messages.length > 0) {
+                    if (data.report) {
+                        var r = data.report;
+                        var tarotData = null;
+                        if (r.tarot_index >= 0) {
+                            var tName = currentLang === 'zh' ? tarotCards[r.tarot_index].zh : tarotCards[r.tarot_index].en;
+                            const tSlug = tarotCards[r.tarot_index].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
+                            var tFilename = String(r.tarot_index).padStart(2, '0') + '-' + tSlug + '.png';
+                            var meaning = '';
+                            if (r.paid_content) {
+                                meaning = extractTarotGuidance(r.paid_content, tName);
+                            }
+                            tarotData = { index: r.tarot_index, name: tName, filename: tFilename, meaningHTML: meaning };
+                        }
+                        loadJournalContent(r.free_content, r.paid_content, !!r.is_paid, tarotData, tarotData ? tarotData.name : '');
+                    } else if (data.messages && data.messages.length > 0) {
                         document.getElementById('chat-thread').innerHTML = '';
                         data.messages.forEach(function(m) {
                             addBubble(m.content, m.role);
                         });
-                    }
-                    if (data.report) {
-                        var r = data.report;
-                        document.getElementById('res-free').innerHTML = r.free_content || '';
-                        if (r.paid_content) {
-                            document.getElementById('res-paid').innerHTML = r.paid_content;
-                        }
-                        document.getElementById('report-view-inline').classList.remove('hidden');
                     }
                 }).catch(function() {});
         }
@@ -2003,7 +2058,7 @@
                             document.getElementById('res-paid-wrapper-modal').classList.remove('hidden');
                             document.getElementById('pay-area-modal').classList.add('hidden');
                             
-                            // Pre-load tarot card
+                            // Pre-load tarot card and full interpretation
                             if (tarotIndex >= 0 && tarotIndex <= 21) {
                                 const tarotSlug = tarotCards[tarotIndex].en.toLowerCase().replace(/^the\s+/, '').replace(/\s+/g, '-');
                                 var tarotImg = document.getElementById('tarot-card-img-modal');
@@ -2016,15 +2071,20 @@
                                     };
                                     this.src = 'https://raw.githubusercontent.com/qianzhouxia-beep/Subconscious/main/static/tarot/' + tarotFilename;
                                 };
-                                document.getElementById('tarot-card-name-modal').innerText = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
+                                var tarotCardName = currentLang === 'zh' ? tarotCards[tarotIndex].zh : tarotCards[tarotIndex].en;
+                                document.getElementById('tarot-card-name-modal').innerText = tarotCardName;
                                 
-                                const tarotSectionText = tarotSearchText.split('**Tarot Guidance**')[1] || tarotSearchText.split('**塔罗指引**')[1] || tarotSearchText.split('塔罗指引')[1] || tarotSearchText.split('🃏')[1] || '';
-                                if (tarotSectionText) {
-                                    var fullMeaning = tarotSectionText.split(/\*\*/)[0].trim();
-                                    if (fullMeaning.length > 20) {
-                                        document.getElementById('tarot-card-meaning-modal').innerText = fullMeaning;
-                                    }
-                                }
+                                // Extract full tarot guidance from the raw text
+                                var fullTarotHTML = extractTarotGuidance(tarotSearchText, tarotCardName);
+                                document.getElementById('tarot-card-meaning-modal').innerHTML = fullTarotHTML;
+                                
+                                // Store current report tarot data for journal/history
+                                window.currentReportTarot = {
+                                    index: tarotIndex,
+                                    name: tarotCardName,
+                                    filename: tarotFilename,
+                                    meaningHTML: fullTarotHTML
+                                };
                                 
                                 // Show tarot section after image loads
                                 var _tsEl = document.getElementById('tarot-section-modal');
@@ -2033,6 +2093,8 @@
                                 } else {
                                     tarotImg.onload = function() { _tsEl.classList.remove('hidden'); };
                                 }
+                            } else {
+                                window.currentReportTarot = null;
                             }
                         } else {
                             // Non-premium: show locked preview and pay area
@@ -2065,6 +2127,52 @@
                 addBubble(i18n[currentLang].error_ether || 'Connection error. Please try again.', 'ai');
             }
 
+        }
+
+        function extractTarotGuidance(text, cardName) {
+            if (!text) return '';
+            // Try Chinese first if card name is Chinese
+            var sectionStart = text.indexOf('**塔罗指引');
+            if (sectionStart === -1) sectionStart = text.indexOf('塔罗指引');
+            if (sectionStart === -1) sectionStart = text.indexOf('**Tarot Guidance');
+            if (sectionStart === -1) sectionStart = text.indexOf('Tarot Guidance');
+            if (sectionStart === -1) sectionStart = text.indexOf('🃏');
+            if (sectionStart === -1) return '';
+
+            // Move past the header line (strip **Header** and anything up to newline)
+            var afterHeader = text.substring(sectionStart);
+            var newlineIdx = afterHeader.indexOf('\n');
+            if (newlineIdx === -1) return '';
+            var content = afterHeader.substring(newlineIdx + 1);
+
+            // Find end: next known section header, [TAROT: N], or end of text
+            var endIdx = content.length;
+            var nextSectionRegex = /\n\*\*(现实映照|行动智慧|预言|心理学分析|符号解码|情感地图|Real-Life Mirror|Actionable Wisdom|Prophecy|Psychological Analysis|Symbol Decoding|Emotional Landscape)\*\*/;
+            var nextSectionIdx = content.search(nextSectionRegex);
+            var tarotMarkerIdx = content.indexOf('[TAROT:');
+            if (nextSectionIdx !== -1) endIdx = Math.min(endIdx, nextSectionIdx);
+            if (tarotMarkerIdx !== -1) endIdx = Math.min(endIdx, tarotMarkerIdx);
+
+            content = content.substring(0, endIdx).trim();
+            if (!content) return '';
+
+            // Convert markdown bold to HTML, preserve paragraphs
+            var html = '';
+            var paragraphs = content.split(/\n\s*\n/).filter(function(p) { return p.trim(); });
+            for (var pi = 0; pi < paragraphs.length; pi++) {
+                var p = paragraphs[pi].trim();
+                // Strip leading card title line only from the first paragraph (e.g. "隐者（The Hermit, 9）：")
+                if (pi === 0 && cardName && p.indexOf(cardName) === 0) {
+                    var colonPos = p.indexOf('：');
+                    if (colonPos === -1) colonPos = p.indexOf(':');
+                    if (colonPos > cardName.length - 1) {
+                        p = p.substring(colonPos + 1).trim();
+                    }
+                }
+                p = p.replace(/\*\*(.+?)\*\*/g, '<strong class="text-amber-300/90">$1</strong>');
+                html += '<p class="mb-4 last:mb-0">' + p.replace(/\n/g, '<br>') + '</p>';
+            }
+            return html;
         }
 
         function formatReportText(raw, isPaid) {
@@ -3837,11 +3945,22 @@
                 if (userBubbles.length > 0) dreamText = userBubbles[0].innerText || '';
             }
             var tarotName = document.getElementById('tarot-card-name-modal')?.innerText || '';
+            // Capture complete tarot section data
+            var tarotData = window.currentReportTarot || null;
+            if (!tarotData && tarotName) {
+                tarotData = {
+                    index: -1,
+                    name: tarotName,
+                    filename: '',
+                    meaningHTML: document.getElementById('tarot-card-meaning-modal')?.innerHTML || ''
+                };
+            }
             var entry = {
                 id: Date.now(),
                 date: new Date().toISOString(),
                 dreamPreview: dreamText.substring(0, 120) + (dreamText.length > 120 ? '...' : ''),
                 tarotCard: tarotName,
+                tarotData: tarotData,
                 freeHTML: freeHTML,
                 paidHTML: paidHTML,
                 isPremium: !!window.isPremiumUser
@@ -3896,6 +4015,9 @@
                 document.getElementById('res-paid-wrapper-modal').classList.add('hidden');
                 document.getElementById('pay-area-modal').classList.remove('hidden');
             }
+            
+            // Restore tarot section if data available
+            restoreTarotSection(entry.tarotData, entry.tarotCard);
             
             // Open modal
             openReportModal();
