@@ -115,10 +115,16 @@ def send_report_content_email(email, report_data, html_body, lang='zh'):
         msg['To'] = email
         msg.attach(MIMEText(html, 'html', 'utf-8'))
 
-        with smtplib.SMTP(smtp_server, smtp_port, timeout=30) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(mail_from, [email], msg.as_string())
+        # Port 465 uses SSL from the start; 587 uses STARTTLS
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=30) as server:
+                server.login(smtp_user, smtp_password)
+                server.sendmail(mail_from, [email], msg.as_string())
+        else:
+            with smtplib.SMTP(smtp_server, smtp_port, timeout=30) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(mail_from, [email], msg.as_string())
 
         print(f"[Email] Report sent to {email}")
         return True, None
