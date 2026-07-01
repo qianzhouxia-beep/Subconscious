@@ -1528,12 +1528,21 @@
         function newJourney() {
             document.getElementById('report-view-inline').classList.add('hidden');
             document.getElementById('report-modal').classList.add('hidden');
-            document.getElementById('chat-input-area').style.display = '';
+            var chatInputArea = document.getElementById('chat-input-area');
+            if (chatInputArea) {
+                chatInputArea.classList.remove('hidden');
+                chatInputArea.style.display = '';
+            }
             resetOracle();
         }
 
         function closeReportModal() {
             document.getElementById('report-modal').classList.add('hidden');
+            var chatInputArea = document.getElementById('chat-input-area');
+            if (chatInputArea) {
+                chatInputArea.classList.remove('hidden');
+                chatInputArea.style.display = '';
+            }
         }
 
         function restoreTarotSection(tarotData, fallbackName) {
@@ -1975,7 +1984,11 @@
             lucidityInteracted = false;
             document.getElementById('chat-thread').innerHTML = '';
             document.getElementById('report-view-inline').classList.add('hidden');
-            document.getElementById('chat-input-area').style.display = '';
+            var chatInputArea = document.getElementById('chat-input-area');
+            if (chatInputArea) {
+                chatInputArea.classList.remove('hidden');
+                chatInputArea.style.display = '';
+            }
             document.getElementById('t-chat-placeholder').value = "";
             // Reset env pill selected states
             document.querySelectorAll('.env-pill.active').forEach(p => {
