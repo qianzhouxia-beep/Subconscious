@@ -838,14 +838,14 @@
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q3">What payment methods do you accept?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a3">We accept PayPal (credit/debit cards) and USDT crypto via NOWPayments.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a3">We accept PayPal (credit/debit cards).</div>
             </div>
             <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
                 <div class="flex justify-between items-center">
                     <h3 class="text-sm text-white/80 font-medium" id="t-faq-q4">Is my data private?</h3>
                     <svg class="w-4 h-4 text-accent transition-transform duration-300 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a4">We do not store your dreams. Sessions are ephemeral. Payment data is handled securely by PayPal and NOWPayments.</div>
+                <div class="faq-answer mt-3 text-sm text-gray-400 leading-relaxed hidden" id="t-faq-a4">We do not store your dreams. Sessions are ephemeral. Payment data is handled securely by PayPal.</div>
             </div>
             <div class="faq-item glass-card px-6 py-5 rounded-xl cursor-pointer" onclick="toggleFaq(this)">
                 <div class="flex justify-between items-center">
@@ -3587,6 +3587,12 @@
             // Call AI for the reading
             var readingEl = document.getElementById('tarot-ai-reading');
             var loadingEl = document.getElementById('tarot-ai-loading');
+            var tarotAbortController = new AbortController();
+            // 60s timeout — if AI takes too long, show fallback
+            var tarotTimeout = setTimeout(function() {
+                tarotAbortController.abort();
+                console.warn('[Tarot] AI request timed out after 60s, showing fallback');
+            }, 60000);
             fetch(API_BASE + API_PREFIX + '/tarot/reading', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3594,7 +3600,8 @@
                     cards: _tarotState.drawn,
                     topic: topic,
                     lang: currentLang
-                })
+                }),
+                signal: tarotAbortController.signal
             }).then(function(r) { return r.json(); }).then(function(data) {
                 if (data.reading) {
                     // Parse AI reading into rich HTML with sections
@@ -3650,6 +3657,7 @@
                     readingEl.classList.remove('hidden');
                 }
             }).finally(function() {
+                clearTimeout(tarotTimeout);
                 if (loadingEl) loadingEl.classList.add('hidden');
             });
         }
