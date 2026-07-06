@@ -264,10 +264,11 @@ def init_tables():
                 purpose TEXT NOT NULL, expires_at TEXT NOT NULL, used INTEGER DEFAULT 0,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )""",
-            """CREATE TABLE IF NOT EXISTS entitlements (
+            """            CREATE TABLE IF NOT EXISTS entitlements (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, plan_type TEXT NOT NULL,
                 total_count INTEGER NOT NULL, used_count INTEGER DEFAULT 0,
-                expires_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                remaining INTEGER NOT NULL DEFAULT 0, is_expired INTEGER NOT NULL DEFAULT 0,
+                expires_at TEXT, order_id TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE IF NOT EXISTS user_orders (
                 id TEXT PRIMARY KEY, user_id TEXT NOT NULL, paypal_order_id TEXT,

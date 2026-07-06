@@ -122,7 +122,7 @@ def token_required(f):
             import traceback
             print(f"[ERROR] token_required db error: {e}")
             print(traceback.format_exc())
-            return jsonify({"detail": f"DB error: {str(e)}"}), 500
+            return jsonify({"detail": f"Authentication DB error: {str(e)}"}), 401
         return f(*args, **kwargs)
     return decorated
 
@@ -250,13 +250,21 @@ def init_account_tables():
             try:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {col_def}")
                 print(f"[MIGRATION] Added '{col}' column to {table} table")
+                # If we just added 'remaining' to entitlements, backfill existing rows
+                if table == "entitlements" and col == "remaining":
+                    try:
+                        conn.execute("UPDATE entitlements SET remaining = total_count WHERE remaining = 0 OR remaining IS NULL")
+                        print("[MIGRATION] Backfilled entitlements.remaining = total_count for existing rows")
+                    except Exception as be:
+                        print(f"[MIGRATION] Backfill warning: {be}")
             except Exception as e:
                 _err = str(e).lower()
                 if "duplicate" in _err or "already exists" in _err or "column" in _err:
                     pass  # Column already exists
                 else:
                     print(f"[MIGRATION] Error: {e}")
-                conn.rollback()
+                try: conn.rollback()
+                except Exception: pass
 
         # Check users table for missing columns
         if not _is_pg:
@@ -563,7 +571,18 @@ def register_account_routes(app):
             import traceback
             print(f"[ERROR] premium-status failed: {e}")
             print(traceback.format_exc())
-            return jsonify({"error": str(e)}), 500
+            # Graceful fallback: return a safe default so the frontend can still render
+            return jsonify({
+                "premium": False,
+                "tarot_premium": False,
+                "tarot_remaining": 0,
+                "tarot_total": 0,
+                "remaining": 0,
+                "total": 0,
+                "plan_type": "spark",
+                "plan_label": "Free",
+                "_error_detail": str(e)
+            })
 
     @app.route("/api/user/entitlements", methods=["GET"])
     @token_required
