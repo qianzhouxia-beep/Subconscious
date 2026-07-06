@@ -3588,11 +3588,12 @@
             var readingEl = document.getElementById('tarot-ai-reading');
             var loadingEl = document.getElementById('tarot-ai-loading');
             var tarotAbortController = new AbortController();
-            // 60s timeout — if AI takes too long, show fallback
+            // 30s timeout — if AI takes too long, show fallback
             var tarotTimeout = setTimeout(function() {
                 tarotAbortController.abort();
-                console.warn('[Tarot] AI request timed out after 60s, showing fallback');
-            }, 60000);
+                console.warn('[Tarot] AI request timed out after 30s, showing fallback');
+            }, 30000);
+            console.log('[Tarot] Requesting AI reading for cards:', _tarotState.drawn, 'topic:', topic);
             fetch(API_BASE + API_PREFIX + '/tarot/reading', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -3602,7 +3603,14 @@
                     lang: currentLang
                 }),
                 signal: tarotAbortController.signal
-            }).then(function(r) { return r.json(); }).then(function(data) {
+            }).then(function(r) {
+                console.log('[Tarot] Response status:', r.status);
+                if (!r.ok) {
+                    throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+                }
+                return r.json();
+            }).then(function(data) {
+                console.log('[Tarot] Response data keys:', Object.keys(data), 'has reading:', !!data.reading);
                 if (data.reading) {
                     // Parse AI reading into rich HTML with sections
                     var text = data.reading;
@@ -3640,7 +3648,8 @@
                 } else {
                     throw new Error('No reading returned');
                 }
-            }).catch(function() {
+            }).catch(function(err) {
+                console.error('[Tarot] AI reading failed:', err.message || err);
                 // Fallback: show hardcoded per-card meanings
                 if (readingEl) {
                     var fallbackHtml = '';
@@ -3658,7 +3667,14 @@
                 }
             }).finally(function() {
                 clearTimeout(tarotTimeout);
-                if (loadingEl) loadingEl.classList.add('hidden');
+                // Always hide loading, no matter what
+                try {
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                } catch(e) {
+                    // Silently ignore DOM errors in finally
+                    var _le = document.getElementById('tarot-ai-loading');
+                    if (_le) _le.style.display = 'none';
+                }
             });
         }
 
