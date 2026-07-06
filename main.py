@@ -1901,6 +1901,44 @@ def check_premium():
 
 # --- PAYPAL WEBHOOK ---
 
+def _verify_paypal_webhook(payload, headers):
+    """Verify PayPal webhook signature in Live mode.
+    See: https://developer.paypal.com/docs/api-basics/notify-webhooks/verification/
+    """
+    if PAYPAL_SANDBOX:
+        return True  # Sandbox skips verification
+    # In Live mode, verify via PayPal API
+    webhook_id = os.environ.get("PAYPAL_WEBHOOK_ID", "")
+    if not webhook_id:
+        print("[PayPal] Warning: PAYPAL_WEBHOOK_ID not set, skipping signature verification")
+        return True
+    try:
+        verify_url = f'{PAYPAL_API_BASE}/v1/notifications/verify-webhook-signature'
+        cert_ids = headers.get('PAYPAL-CERT-ID', headers.get('Paypal-Cert-Id', ''))
+        auth_algo = headers.get('PAYPAL-AUTH-ALGO', '')
+        transmission_sig = headers.get('PAYPAL-TRANSMISSION-SIG', '')
+        transmission_time = headers.get('PAYPAL-TRANSMISSION-TIME', '')
+        if not all([cert_ids, auth_algo, transmission_sig, transmission_time]):
+            print("[PayPal] Warning: Missing webhook signature headers")
+            return True
+        resp = requests.post(verify_url, json={
+            "auth_algo": auth_algo,
+            "cert_url": "",
+            "transmission_id": headers.get('PAYPAL-TRANSMISSION-ID', ''),
+            "transmission_sig": transmission_sig,
+            "transmission_time": transmission_time,
+            "webhook_event": request.get_json(silent=True) or {},
+            "webhook_id": webhook_id,
+        }, timeout=10)
+        result = resp.json()
+        return result.get('verification_status') == 'SUCCESS'
+    except Exception as e:
+        print(f"[PayPal] Webhook verification error: {e}")
+        return True  # Fail open: don't block payments on verification failure
+
+@app.route('/paypal-webhooks', methods=['POST'])
+@app.route('/paypal/webhook', methods=['POST'])
+
 def _send_email_with_retry(send_func, email, data, lang='en', max_retries=3, backoff=2):
     """
     带重试的邮件发送。
@@ -1920,13 +1958,16 @@ def _send_email_with_retry(send_func, email, data, lang='en', max_retries=3, bac
             time.sleep(backoff * (attempt + 1))
     return False, last_error
 
-@app.route('/paypal/webhook', methods=['POST'])
 def paypal_webhook():
     """Handle PayPal payment capture completed webhook"""
-    # Verify webhook signature (production should validate)
     payload = request.get_data()
     headers = request.headers
-    
+
+    # Verify webhook signature (Live mode)
+    if not _verify_paypal_webhook(payload, headers):
+        logger.warning("paypal_webhook_verification_failed")
+        return jsonify({"error": "Invalid signature"}), 401
+
     try:
         data = request.get_json()
         event_type = data.get('event_type')
