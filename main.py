@@ -1219,7 +1219,7 @@ def tarot_reading():
             return payload
         
         res_json, used_provider = _call_llm_with_fallback(
-            _build_tarot_payload, timeout=45, mode='tarot', report_mode=False
+            _build_tarot_payload, timeout=20, mode='tarot', report_mode=False
         )
         ai_msg = res_json['choices'][0]['message']
         text = ai_msg.get('content') or ai_msg.get('reasoning_content') or ""
@@ -2017,66 +2017,6 @@ def _send_email_with_retry(send_func, email, data, lang='en', max_retries=3, bac
         if attempt < max_retries - 1:
             time.sleep(backoff * (attempt + 1))
     return False, last_error
-
-def paypal_webhook():
-    """Handle PayPal payment capture completed webhook"""
-    payload = request.get_data()
-    headers = request.headers
-
-    # Verify webhook signature (Live mode)
-    if not _verify_paypal_webhook(payload, headers):
-        logger.warning("paypal_webhook_verification_failed")
-        return jsonify({"error": "Invalid signature"}), 401
-
-    try:
-        data = request.get_json()
-        event_type = data.get('event_type')
-        
-        if event_type == 'PAYMENT.CAPTURE.COMPLETED':
-            resource = data.get('resource', {})
-            payer_email = resource.get('payer', {}).get('email_address')
-            amount = resource.get('amount', {}).get('value')
-            capture_id = resource.get('id')
-            
-            if payer_email:
-                with get_db() as conn:
-                    conn.execute(
-                        "INSERT OR REPLACE INTO payments (email, status, license_key, timestamp) VALUES (?, 'paid', ?, ?)",
-                        (payer_email, f"paypal-{capture_id}", time.time())
-                    )
-                print(f"[PayPal] Payment captured for {payer_email}, amount: ${amount}")
-                
-                # Send order confirmation email (with retry)
-                if send_order_confirmation:
-                    try:
-                        order_data = {
-                            'customer_name': 'Seeker',
-                            'product_name': 'Subconscious Mirror PRO STABLE (Lifetime)',
-                            'order_id': capture_id,
-                            'amount': f'${amount}',
-                            'date': time.strftime('%Y-%m-%d %H:%M UTC'),
-                            'status': 'PAID / SUCCESS',
-                            'cta_link': BRAND_URL
-                        }
-                        success, error = _send_email_with_retry(
-                            send_order_confirmation, payer_email, order_data, 'en'
-                        )
-                        if success:
-                            logger.info("email_order_confirmation_sent", extra={"email": payer_email})
-                        else:
-                            logger.error("email_order_confirmation_failed", extra={"email": payer_email, "error": error})
-                    except Exception as e:
-                        logger.error("email_order_confirmation_exception", extra={"email": payer_email, "error": str(e)})
-                
-                return jsonify({"status": "success"}), 200
-        
-        return jsonify({"status": "ignored"}), 200
-    except json.JSONDecodeError:
-        logger.warning("paypal_webhook_invalid_json")
-        return jsonify({"error": "Invalid JSON"}), 400
-    except Exception as e:
-        logger.error("paypal_webhook_error", extra={"error": str(e)})
-        return jsonify({"error": "Webhook processing error"}), 500
 
 @app.route('/api/paypal/debug', methods=['GET'])
 def paypal_debug():
