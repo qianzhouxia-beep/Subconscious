@@ -2899,44 +2899,99 @@
             document.getElementById('voice-bar-status').className = 'text-[9px] uppercase tracking-widest text-green-400/70';
         }
 
+        // ===== Client-side Whisper (transformers.js) — Firefox / unsupported browsers =====
+        // Runs ASR entirely in the browser. No backend, no API key. Model cached after first load.
+        // Model weights are pulled from the HF China mirror so users in mainland China can download.
+        let _whisperPipeline = null;
+        let _whisperLoading = null;
+
+        async function _getWhisperPipeline() {
+            if (_whisperPipeline) return _whisperPipeline;
+            if (_whisperLoading) return _whisperLoading;  // reuse in-flight load
+            _whisperLoading = (async () => {
+                const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+                env.allowLocalModels = false;
+                env.hubUrl = 'https://hf-mirror.com';  // China-accessible HF mirror
+                const modelId = 'Xenova/whisper-base';
+                const setStatus = (t) => { const el = document.getElementById('voice-bar-text'); if (el) el.innerHTML = t; };
+                setStatus(currentLang === 'zh' ? '加载识别引擎...' : 'Loading engine...');
+                const transcriber = await pipeline('automatic-speech-recognition', modelId, {
+                    chunk_length_s: 30,
+                    stride_length_s: 5,
+                    dtype: 'q8',  // int8 quant → smaller download, faster
+                    progress_callback: (p) => {
+                        if (p && p.status === 'progress' && p.total) {
+                            const pct = Math.round((p.loaded / p.total) * 100);
+                            setStatus(currentLang === 'zh' ? `加载识别模型 ${pct}%` : `Loading model ${pct}%`);
+                        }
+                    }
+                });
+                _whisperPipeline = transcriber;
+                _whisperLoading = null;
+                return transcriber;
+            })();
+            return _whisperLoading;
+        }
+
+        async function _decodeTo16kMono(blob) {
+            // Decode recorded audio (webm/opus) → 16kHz mono Float32Array (Whisper's expected input)
+            const arrayBuffer = await blob.arrayBuffer();
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioCtx();
+            const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+            const targetRate = 16000;
+            const offline = new OfflineAudioContext(
+                1, Math.max(1, Math.ceil(decoded.duration * targetRate)), targetRate
+            );
+            const src = offline.createBufferSource();
+            src.buffer = decoded;
+            src.connect(offline.destination);
+            src.start();
+            const rendered = await offline.startRendering();
+            try { audioCtx.close(); } catch (e) {}
+            return rendered.getChannelData(0);
+        }
+
         async function processVoiceAudio() {
-            // Fallback: send recorded audio to /api/transcribe (Whisper API)
+            // Fallback ASR: run Whisper entirely in the browser (no backend, no API key)
             if (voiceCanceled) return;
             if (!audioChunks.length) {
                 console.warn('[Voice] No audio chunks to process');
                 cancelVoiceInput(); return;
             }
             const blob = new Blob(audioChunks, { type: mediaRecorder ? mediaRecorder.mimeType || 'audio/webm' : 'audio/webm' });
-            console.log('[Voice] Sending', blob.size, 'bytes to /api/transcribe');
-            const formData = new FormData();
-            formData.append('audio', blob, 'recording.webm');
-            formData.append('lang', currentLang === 'zh' ? 'zh' : 'en');
+            console.log('[Voice] Transcribing', blob.size, 'bytes via client-side Whisper');
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 12000);  // 12秒超时
-                const resp = await fetch(API_BASE + API_PREFIX + '/transcribe', { 
-                    method: 'POST', body: formData, signal: controller.signal 
+                const transcriber = await _getWhisperPipeline();
+                if (voiceCanceled) return;
+                const audio = await _decodeTo16kMono(blob);
+                document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别中...' : 'Transcribing...';
+                const output = await transcriber(audio, {
+                    language: currentLang === 'zh' ? 'chinese' : 'english',
+                    task: 'transcribe',
+                    return_timestamps: false,
                 });
-                clearTimeout(timeoutId);
-                if (!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + await resp.text().catch(() => ''));
-                const data = await resp.json();
-                const text = (data.text || '').trim();
+                const text = (output && output.text ? output.text : '').trim();
                 console.log('[Voice] Whisper result:', JSON.stringify(text));
                 if (!text) throw new Error('Empty transcription result');
                 _fillVoiceText(text);
                 isProcessing = false;
                 setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 600);
             } catch (err) {
-                console.error('[Voice] Whisper failed:', err);
-                if (err.name === 'AbortError') {
+                console.error('[Voice] Client Whisper failed:', err);
+                if (voiceCanceled) { cancelVoiceInput(); return; }
+                const msg = (err && err.message) ? err.message : '';
+                if (msg.includes('import') || msg.includes('fetch')) {
+                    document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别引擎加载失败(网络)' : 'Engine load failed (network)';
+                } else if (err && err.name === 'AbortError') {
                     document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别超时，请重试' : 'Timed out, please retry';
                 } else {
-                    document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别失败，请重试' : 'Transcription failed';
+                    document.getElementById('voice-bar-text').innerHTML = currentLang === 'zh' ? '识别失败，请用 Chrome' : 'Failed, try Chrome';
                 }
                 document.getElementById('voice-bar-dot').className = 'w-2 h-2 rounded-full bg-red-500';
                 document.getElementById('voice-bar-status').innerText = 'Error';
                 isProcessing = false;
-                setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 2000);
+                setTimeout(() => { document.getElementById('voice-bar').classList.add('hidden'); resetVoiceUI(); }, 2500);
             }
         }
 
