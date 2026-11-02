@@ -1456,6 +1456,17 @@
 
         // 模块变化时自动更新指示器
         document.addEventListener('DOMContentLoaded', () => {
+            // 隐藏访客统计埋点：页面加载即记录一次访问（不影响主流程）
+            try {
+                let _vsid = sessionStorage.getItem('sm_vsid');
+                if (!_vsid) { _vsid = 'v_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); sessionStorage.setItem('sm_vsid', _vsid); }
+                fetch(API_BASE + API_PREFIX + '/track-visit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: location.pathname || '/', session_id: _vsid }),
+                    keepalive: true
+                }).catch(function () {});
+            } catch (e) {}
             // 环境 pill 点击时更新（由全局 click 委托处理）
             // 符号标签变化时更新（通过 MutationObserver 监听标签容器）
             const tagContainer = document.getElementById('symbol-tag-container');

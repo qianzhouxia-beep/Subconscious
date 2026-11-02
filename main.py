@@ -347,6 +347,16 @@ else:
                                 license_key TEXT,
                                 timestamp REAL)''')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_payments_email ON payments(email)')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS visits (
+                                id TEXT PRIMARY KEY,
+                                path TEXT NOT NULL,
+                                referrer TEXT DEFAULT '',
+                                user_agent TEXT DEFAULT '',
+                                ip TEXT DEFAULT '',
+                                session_id TEXT DEFAULT '',
+                                created_at TEXT DEFAULT (datetime('now')))''')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at)')
+            cursor.execute('CREATE INDEX IF NOT EXISTS idx_visits_session ON visits(session_id)')
             cursor.execute('''CREATE TABLE IF NOT EXISTS chat_sessions (
                                 id TEXT PRIMARY KEY,
                                 user_id TEXT,
@@ -1809,6 +1819,68 @@ def _polish_via_llm(text, lang='zh'):
     except Exception as e:
         logger.warning(f"_polish_via_llm all providers failed: {e}")
         return text
+
+
+# --- VISIT TRACKING (hidden analytics; frontend fires /api/track-visit on load) ---
+@app.route('/api/track-visit', methods=['POST', 'OPTIONS'])
+@limiter.limit("30 per minute")
+def track_visit():
+    if request.method == 'OPTIONS':
+        return _cors(make_response())
+    try:
+        data = request.get_json(silent=True) or {}
+        path = (data.get('path') or request.path or '/')[:512]
+        referrer = (request.referrer or data.get('referrer') or '')[:512]
+        ua = ((request.user_agent.string if request.user_agent else '') or '')[:512]
+        ip = (request.headers.get('X-Forwarded-For', request.remote_addr or '') or '').split(',')[0].strip()[:64]
+        sid = (data.get('session_id') or '')[:128]
+        with get_db() as conn:
+            conn.execute(
+                "INSERT INTO visits (id, path, referrer, user_agent, ip, session_id) VALUES (?, ?, ?, ?, ?, ?)",
+                (str(uuid.uuid4()), path, referrer, ua, ip, sid),
+            )
+    except Exception as e:
+        logger.warning("track_visit_failed", extra={"error": str(e)})
+    return _cors(jsonify({"ok": True}))
+
+
+@app.route('/api/admin/visit-stats', methods=['GET', 'OPTIONS'])
+def visit_stats():
+    if request.method == 'OPTIONS':
+        return _cors(make_response())
+    req_token = request.headers.get('X-Migration-Token', '') or request.args.get('token', '')
+    if req_token != MIGRATION_TOKEN:
+        return _cors(jsonify({"error": "unauthorized"}), 401)
+    try:
+        with get_db() as conn:
+            total = conn.execute("SELECT COUNT(*) AS c FROM visits").fetchone()['c']
+            rows = conn.execute(
+                "SELECT created_at FROM visits ORDER BY created_at DESC LIMIT 5000"
+            ).fetchall()
+            recent = conn.execute(
+                "SELECT path, referrer, created_at FROM visits ORDER BY created_at DESC LIMIT 20"
+            ).fetchall()
+        now = datetime.now()
+        def _parse(ts):
+            try:
+                if 'T' in ts:
+                    return datetime.fromisoformat(ts.replace('Z', '+00:00')).replace(tzinfo=None)
+                return datetime.strptime(ts, '%Y-%m-%d %H:%M:%S')
+            except Exception:
+                return None
+        times = [t for t in (_parse(r['created_at']) for r in rows) if t]
+        today = sum(1 for t in times if t.date() == now.date())
+        d7 = sum(1 for t in times if 0 <= (now - t).days < 7)
+        d30 = sum(1 for t in times if 0 <= (now - t).days < 30)
+        return _cors(jsonify({
+            "total": total,
+            "today": today,
+            "last_7_days": d7,
+            "last_30_days": d30,
+            "recent": [dict(r) for r in recent],
+        }))
+    except Exception as e:
+        return _cors(jsonify({"error": str(e), "hint": "visits table may not exist yet"}), 500)
 
 
 # --- WHISPER TRANSCRIPTION (audio → text via WHISPER_API_BASE) ---

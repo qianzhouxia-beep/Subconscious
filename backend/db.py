@@ -336,6 +336,12 @@ def init_tables():
                 free_html TEXT DEFAULT '',
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )""",
+            """CREATE TABLE IF NOT EXISTS visits (
+                id TEXT PRIMARY KEY, path TEXT NOT NULL,
+                referrer TEXT DEFAULT '', user_agent TEXT DEFAULT '',
+                ip TEXT DEFAULT '', session_id TEXT DEFAULT '',
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )""",
         ]
         
         indexes = [
@@ -348,6 +354,8 @@ def init_tables():
             "CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id)",
             "CREATE INDEX IF NOT EXISTS idx_dream_reports_session ON dream_reports(session_id)",
             "CREATE INDEX IF NOT EXISTS idx_dream_journal_user ON dream_journal(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_visits_created ON visits(created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_visits_session ON visits(session_id)",
         ]
         
         cursor = conn.cursor() if is_pg else conn
